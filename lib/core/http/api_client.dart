@@ -34,18 +34,30 @@ class ApiResponse {
   String toString() => 'ApiResponse($statusCode, data: $data)';
 }
 
+/// Supplies the current bearer access token, if any.
+///
+/// Wired in by the authenticated session layer; kept as a function so a single
+/// [ApiClient] can serve token rotations without being rebuilt.
+typedef AccessTokenProvider = String? Function();
+
 /// A small JSON HTTP pipeline for the Meu Preço API.
 ///
 /// It owns the mechanical parts of every request — base URL joining, the
-/// `/api/v1` prefix, request timeouts, JSON encoding/decoding, status-code
-/// handling, and mapping the `{error: {code, message}}` envelope to typed
-/// [AppException]s — so feature repositories only deal with data.
+/// `/api/v1` prefix, request timeouts, bearer headers, JSON encoding/decoding,
+/// status-code handling, and mapping the `{error: {code, message}}` envelope to
+/// typed [AppException]s — so feature repositories only deal with data.
 class ApiClient {
-  ApiClient({required ConfigProvider configProvider, http.Client? httpClient})
-    : _configProvider = configProvider, // ignore: prefer_initializing_formals
-      _client = httpClient ?? http.Client();
+  ApiClient({
+    required ConfigProvider configProvider,
+    http.Client? httpClient,
+    AccessTokenProvider? accessTokenProvider,
+  }) : _configProvider = configProvider, // ignore: prefer_initializing_formals
+       // ignore: prefer_initializing_formals
+       _accessTokenProvider = accessTokenProvider,
+       _client = httpClient ?? http.Client();
 
   final ConfigProvider _configProvider;
+  final AccessTokenProvider? _accessTokenProvider;
   final http.Client _client;
 
   /// GET request; [useApiPrefix] selects `/api/v1` vs the origin root
@@ -180,11 +192,15 @@ class ApiClient {
       ...?headers,
     };
 
+    final token = _accessTokenProvider?.call();
+    final hasAuthorization = requestHeaders.keys.any(
+      (key) => key.toLowerCase() == 'authorization',
+    );
+    if (!hasAuthorization && token != null && token.isNotEmpty) {
+      requestHeaders['Authorization'] = 'Bearer $token';
+    }
+
     try {
-      // TODO: Check if there is a better way to validate the port number in Dart. The current check is simple but may not cover all edge cases.The app was freezing before this
-      if (uri.port > 65535 || uri.port < 0) {
-        throw const NetworkException(message: 'Invalid port number');
-      }
       final request = http.Request(method, uri);
       if (body != null) {
         request.body = jsonEncode(body);
@@ -202,6 +218,12 @@ class ApiClient {
       throw NetworkException(message: error.message);
     } on FormatException {
       throw const NetworkException(message: 'Invalid response body');
+    } on ArgumentError catch (error) {
+      // dart:io reports an out-of-range port as an `Error`, which would
+      // otherwise escape every `catch (Exception)` and freeze the caller.
+      throw NetworkException(
+        message: error.message?.toString() ?? 'Invalid request',
+      );
     } on Exception catch (error) {
       throw NetworkException(message: error.toString());
     }

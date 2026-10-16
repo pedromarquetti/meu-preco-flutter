@@ -102,9 +102,11 @@ class HttpServerHealthChecker implements ServerHealthChecker {
         errorCode: 'unhealthy',
         errorMessage: error.message,
       );
-    } on Exception catch (error) {
+    } on Object catch (error) {
+      // The probe backs a user action, so it must always resolve to a result
+      // (never throw) — a stray `Error` here would freeze the caller's UI.
       return ServerHealthResult.failed(
-        errorCode: 'unhealthy',
+        errorCode: 'unreachable',
         errorMessage: error.toString(),
       );
     }

@@ -44,6 +44,27 @@ void main() {
       expect(AppConfig.tryFromOrigin(''), isNull);
       expect(AppConfig.tryFromOrigin('   '), isNull);
     });
+
+    test('accepts ports within range', () {
+      for (final raw in [
+        'http://localhost:80',
+        'http://localhost:8080',
+        'https://api.example.com:65535',
+      ]) {
+        expect(AppConfig.tryFromOrigin(raw), isNotNull, reason: raw);
+      }
+    });
+
+    test('rejects out-of-range ports instead of sending a doomed request', () {
+      for (final raw in [
+        'http://localhost:0',
+        'http://localhost:-1',
+        'http://localhost:65536',
+        'http://localhost:372184721897213',
+      ]) {
+        expect(AppConfig.tryFromOrigin(raw), isNull, reason: raw);
+      }
+    });
   });
 
   group('AppConfigController', () {

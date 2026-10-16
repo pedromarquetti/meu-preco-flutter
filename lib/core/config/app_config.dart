@@ -26,6 +26,12 @@ class AppConfig {
   /// Default origin used when nothing else is configured.
   static const String defaultApiOrigin = 'http://localhost:8080';
 
+  /// Lowest valid TCP port (0 means "any port" and is not a usable origin).
+  static const int minPort = 1;
+
+  /// Highest valid TCP port.
+  static const int maxPort = 65535;
+
   /// Root URI of the configured Meu Preço API (scheme + host + optional port).
   ///
   /// The [path] is preserved for deployments hosted under a sub-path but any
@@ -83,6 +89,14 @@ class AppConfig {
 
     if (parsed.scheme != 'http' && parsed.scheme != 'https') return null;
     if (parsed.host.isEmpty) return null;
+
+    // `Uri.parse` accepts out-of-range ports without complaint, but the
+    // transport (dart:io) later rejects them with an uncaught `Error` that
+    // freezes the caller. Reject them here so an invalid port is reported as a
+    // plain invalid origin, on every platform.
+    if (parsed.hasPort && (parsed.port < minPort || parsed.port > maxPort)) {
+      return null;
+    }
 
     var path = parsed.path;
     while (path.length > 1 && path.endsWith('/')) {

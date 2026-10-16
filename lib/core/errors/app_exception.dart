@@ -48,6 +48,17 @@ class ConfigException extends AppException {
   const ConfigException({super.message, super.code});
 }
 
+/// A payload could not be decoded into (or encoded from) a contract model.
+///
+/// Raised at the serialization boundary so a malformed response becomes an
+/// actionable typed failure instead of a silent fallback.
+class SerializationException extends AppException {
+  const SerializationException({
+    required String message,
+    super.code = 'serialization_error',
+  }) : super(message: message);
+}
+
 /// Generic API failure carrying status and backend metadata.
 class ApiException extends AppException {
   const ApiException({

@@ -119,6 +119,21 @@ void main() {
       expect(called, isFalse);
     });
 
+    test('an out-of-range port never hits the network', () async {
+      var called = false;
+      final mock = MockClient((_) async {
+        called = true;
+        return http.Response('{}', 200);
+      });
+
+      final result = await checkerWith(mock)
+          .check('http://localhost:372184721897213');
+
+      expect(result.ok, isFalse);
+      expect(result.errorCode, 'invalid_url');
+      expect(called, isFalse);
+    });
+
     test('a transport failure is reported as unreachable', () async {
       final mock = MockClient(
         (_) async => throw http.ClientException('connection refused'),
