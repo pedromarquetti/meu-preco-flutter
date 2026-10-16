@@ -102,6 +102,11 @@ class HttpServerHealthChecker implements ServerHealthChecker {
         errorCode: 'unhealthy',
         errorMessage: error.message,
       );
+    } on Exception catch (error) {
+      return ServerHealthResult.failed(
+        errorCode: 'unhealthy',
+        errorMessage: error.toString(),
+      );
     }
   }
 

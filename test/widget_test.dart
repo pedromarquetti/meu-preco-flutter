@@ -38,7 +38,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(health.callCount, 1);
+    expect(health.callCount, 2);
     expect(find.text(_strings.loginTitle), findsOneWidget);
     expect(find.text(_strings.serverConfigTitle), findsNothing);
   });

@@ -181,6 +181,10 @@ class ApiClient {
     };
 
     try {
+      // TODO: Check if there is a better way to validate the port number in Dart. The current check is simple but may not cover all edge cases.The app was freezing before this
+      if (uri.port > 65535 || uri.port < 0) {
+        throw const NetworkException(message: 'Invalid port number');
+      }
       final request = http.Request(method, uri);
       if (body != null) {
         request.body = jsonEncode(body);
@@ -198,6 +202,8 @@ class ApiClient {
       throw NetworkException(message: error.message);
     } on FormatException {
       throw const NetworkException(message: 'Invalid response body');
+    } on Exception catch (error) {
+      throw NetworkException(message: error.toString());
     }
   }
 
