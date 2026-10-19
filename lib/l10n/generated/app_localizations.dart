@@ -525,6 +525,432 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Não configurado'**
   String get notConfiguredLabel;
+
+  /// No description provided for @scanQrAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escanear QR'**
+  String get scanQrAction;
+
+  /// No description provided for @pasteNfceKeyAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Colar chave da NFC-e'**
+  String get pasteNfceKeyAction;
+
+  /// No description provided for @scanWithCameraAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escanear com a câmera'**
+  String get scanWithCameraAction;
+
+  /// No description provided for @scanQrHelp.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aponte a câmera para o QR Code do cupom.'**
+  String get scanQrHelp;
+
+  /// No description provided for @scanQrUnavailable.
+  ///
+  /// In pt, this message translates to:
+  /// **'A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.'**
+  String get scanQrUnavailable;
+
+  /// No description provided for @accessKeyLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Chave de acesso'**
+  String get accessKeyLabel;
+
+  /// No description provided for @accessKeyHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'44 dígitos'**
+  String get accessKeyHint;
+
+  /// No description provided for @accessKeyHelp.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fica no rodapé do cupom fiscal.'**
+  String get accessKeyHelp;
+
+  /// No description provided for @qrPayloadLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conteúdo do QR Code'**
+  String get qrPayloadLabel;
+
+  /// No description provided for @qrPayloadHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cole aqui o link do QR Code do cupom'**
+  String get qrPayloadHint;
+
+  /// No description provided for @invalidAccessKeyError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe os 44 dígitos da chave de acesso'**
+  String get invalidAccessKeyError;
+
+  /// No description provided for @invalidQrPayloadError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe um QR Code válido'**
+  String get invalidQrPayloadError;
+
+  /// No description provided for @draftingReceiptLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Processando o cupom...'**
+  String get draftingReceiptLabel;
+
+  /// No description provided for @submittingReceiptLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Enviando o cupom...'**
+  String get submittingReceiptLabel;
+
+  /// No description provided for @captchaTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verificação de segurança'**
+  String get captchaTitle;
+
+  /// No description provided for @captchaDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Digite os caracteres da imagem para continuar.'**
+  String get captchaDescription;
+
+  /// No description provided for @captchaSolutionLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resposta'**
+  String get captchaSolutionLabel;
+
+  /// No description provided for @captchaSolveAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confirmar'**
+  String get captchaSolveAction;
+
+  /// No description provided for @captchaReloadAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recarregar imagem'**
+  String get captchaReloadAction;
+
+  /// No description provided for @captchaImageUnavailable.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível carregar a imagem.'**
+  String get captchaImageUnavailable;
+
+  /// No description provided for @captchaWrongSolutionError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resposta incorreta. Tente novamente.'**
+  String get captchaWrongSolutionError;
+
+  /// No description provided for @captchaAttemptsLeft.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tentativas restantes: {count}'**
+  String captchaAttemptsLeft(int count);
+
+  /// No description provided for @captchaExpiredError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este desafio expirou. Leia o cupom novamente.'**
+  String get captchaExpiredError;
+
+  /// No description provided for @captchaLockedError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Muitas respostas incorretas. Leia o cupom novamente.'**
+  String get captchaLockedError;
+
+  /// No description provided for @captchaUsedError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este desafio já foi utilizado.'**
+  String get captchaUsedError;
+
+  /// No description provided for @captchaNotFoundError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desafio não encontrado.'**
+  String get captchaNotFoundError;
+
+  /// No description provided for @previewTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confira os dados do cupom'**
+  String get previewTitle;
+
+  /// No description provided for @previewAccessKeyLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Chave de acesso'**
+  String get previewAccessKeyLabel;
+
+  /// No description provided for @previewExpiresAtLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Expira em {time}'**
+  String previewExpiresAtLabel(String time);
+
+  /// No description provided for @previewExpiredLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Prévia expirada'**
+  String get previewExpiredLabel;
+
+  /// No description provided for @previewItemsTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Itens'**
+  String get previewItemsTitle;
+
+  /// No description provided for @previewTotalsTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resumo'**
+  String get previewTotalsTitle;
+
+  /// No description provided for @previewItemsCountLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Itens lidos'**
+  String get previewItemsCountLabel;
+
+  /// No description provided for @previewAutoSaveLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvos automaticamente'**
+  String get previewAutoSaveLabel;
+
+  /// No description provided for @previewNeedsReviewLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Precisam de revisão'**
+  String get previewNeedsReviewLabel;
+
+  /// No description provided for @previewParseErrorsLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Com erro de leitura'**
+  String get previewParseErrorsLabel;
+
+  /// No description provided for @previewEstimatedTotalLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total estimado'**
+  String get previewEstimatedTotalLabel;
+
+  /// No description provided for @previewPriceLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preço'**
+  String get previewPriceLabel;
+
+  /// No description provided for @itemStatusGtinKnown.
+  ///
+  /// In pt, this message translates to:
+  /// **'Produto reconhecido'**
+  String get itemStatusGtinKnown;
+
+  /// No description provided for @itemStatusGtinNew.
+  ///
+  /// In pt, this message translates to:
+  /// **'Produto novo'**
+  String get itemStatusGtinNew;
+
+  /// No description provided for @itemStatusCommodity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Produto a granel'**
+  String get itemStatusCommodity;
+
+  /// No description provided for @itemStatusUncertain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Código incerto'**
+  String get itemStatusUncertain;
+
+  /// No description provided for @itemStatusParseError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro de leitura'**
+  String get itemStatusParseError;
+
+  /// No description provided for @itemUncertainHelp.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escolha como tratar este item.'**
+  String get itemUncertainHelp;
+
+  /// No description provided for @itemApiMessageTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mensagem da API'**
+  String get itemApiMessageTitle;
+
+  /// No description provided for @closeAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fechar'**
+  String get closeAction;
+
+  /// No description provided for @resolutionNeedsReviewAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Revisar depois'**
+  String get resolutionNeedsReviewAction;
+
+  /// No description provided for @resolutionSkipAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ignorar'**
+  String get resolutionSkipAction;
+
+  /// No description provided for @submitDryRunAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Simular envio'**
+  String get submitDryRunAction;
+
+  /// No description provided for @submitConfirmAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Enviar cupom'**
+  String get submitConfirmAction;
+
+  /// No description provided for @commitResultTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cupom enviado'**
+  String get commitResultTitle;
+
+  /// No description provided for @commitWrittenLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Itens registrados'**
+  String get commitWrittenLabel;
+
+  /// No description provided for @commitAutoSavedLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvos automaticamente'**
+  String get commitAutoSavedLabel;
+
+  /// No description provided for @commitSkippedLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Itens ignorados'**
+  String get commitSkippedLabel;
+
+  /// No description provided for @commitNeedsReviewLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Para revisão'**
+  String get commitNeedsReviewLabel;
+
+  /// No description provided for @commitAssignedLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Associados'**
+  String get commitAssignedLabel;
+
+  /// No description provided for @doneAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Concluir'**
+  String get doneAction;
+
+  /// No description provided for @deleteReceiptAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir cupom'**
+  String get deleteReceiptAction;
+
+  /// No description provided for @deleteReceiptConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir cupom?'**
+  String get deleteReceiptConfirmTitle;
+
+  /// No description provided for @deleteReceiptConfirmMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Os preços deste cupom serão removidos. Esta ação não pode ser desfeita.'**
+  String get deleteReceiptConfirmMessage;
+
+  /// No description provided for @deleteReceiptSuccessMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cupom excluído'**
+  String get deleteReceiptSuccessMessage;
+
+  /// No description provided for @cancelAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cancelar'**
+  String get cancelAction;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir'**
+  String get deleteAction;
+
+  /// No description provided for @startOverAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ler outro cupom'**
+  String get startOverAction;
+
+  /// No description provided for @receiptNotFoundError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cupom não encontrado.'**
+  String get receiptNotFoundError;
+
+  /// No description provided for @unsupportedUfError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estado (UF) não suportado.'**
+  String get unsupportedUfError;
+
+  /// No description provided for @upstreamErrorMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'O portal da SEFAZ não respondeu. Tente novamente.'**
+  String get upstreamErrorMessage;
+
+  /// No description provided for @previewExpiredError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esta prévia expirou. Leia o cupom novamente.'**
+  String get previewExpiredError;
+
+  /// No description provided for @previewNotFoundError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Prévia não encontrada. Leia o cupom novamente.'**
+  String get previewNotFoundError;
+
+  /// No description provided for @alreadyCommittedError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este cupom já foi registrado.'**
+  String get alreadyCommittedError;
+
+  /// No description provided for @invalidResolutionError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível aplicar as escolhas dos itens.'**
+  String get invalidResolutionError;
 }
 
 class _AppLocalizationsDelegate

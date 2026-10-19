@@ -14,6 +14,8 @@ import '../core/storage/secure_credential_store.dart';
 import '../core/storage/shared_preferences_key_value_store.dart';
 import '../features/auth/auth_session.dart';
 import '../features/auth/data/auth_repository.dart';
+import '../features/nfce/code_scanner.dart';
+import '../features/nfce/data/nfce_repository.dart';
 
 /// Composition root for the app.
 ///
@@ -27,6 +29,8 @@ class AppDependencies {
     required CredentialStore credentialStore,
     AuthRepository? authRepository,
     ServerHealthChecker? healthChecker,
+    NfceRepository? nfceRepository,
+    CodeScanner? codeScanner,
     http.Client? httpClient,
   }) {
     final rawClient = httpClient ?? http.Client();
@@ -56,6 +60,8 @@ class AppDependencies {
       credentialStore: credentialStore,
       authSession: authSession,
       apiClient: apiClient,
+      nfceRepository: nfceRepository ?? ApiNfceRepository(client: apiClient),
+      codeScanner: codeScanner ?? const UnavailableCodeScanner(),
       healthChecker:
           healthChecker ?? HttpServerHealthChecker(apiClient: transportApi),
     );
@@ -68,6 +74,8 @@ class AppDependencies {
     required this.credentialStore,
     required this.authSession,
     required this.apiClient,
+    required this.nfceRepository,
+    required this.codeScanner,
     required this.healthChecker,
   }) : _rawClient = rawClient; // ignore: prefer_initializing_formals
 
@@ -81,6 +89,12 @@ class AppDependencies {
 
   /// Authenticated client used by feature repositories.
   final ApiClient apiClient;
+
+  /// NFC-e ingestion operations.
+  final NfceRepository nfceRepository;
+
+  /// Platform seam for camera QR scanning.
+  final CodeScanner codeScanner;
 
   final ServerHealthChecker healthChecker;
 

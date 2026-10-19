@@ -139,7 +139,7 @@ void main() {
     await signIn(tester);
 
     expect(find.text(_strings.homeTitle), findsOneWidget);
-    expect(find.text(_strings.scanReceiptAction), findsOneWidget);
+    expect(find.byTooltip(_strings.scanReceiptAction), findsOneWidget);
     expect(find.text(_strings.searchProductAction), findsOneWidget);
     expect(
       find.textContaining('${_strings.homeGreeting}, Ada'),
@@ -263,9 +263,10 @@ void main() {
     await continueFromServer(tester);
     await signIn(tester);
 
-    await tester.tap(find.text(_strings.scanReceiptAction));
+    await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
     expect(find.text(_strings.receiptSubmissionTitle), findsOneWidget);
+    expect(find.text(_strings.scanQrAction), findsOneWidget);
 
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();

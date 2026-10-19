@@ -5,6 +5,7 @@ import '../features/auth/auth_session.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/nfce/nfce_entry_mode.dart';
 import '../features/nfce/receipt_submission_screen.dart';
 import '../features/products/product_detail_screen.dart';
 import '../features/products/product_search_screen.dart';
@@ -27,6 +28,10 @@ abstract final class AppRoutes {
 
   /// Location for a concrete product detail page.
   static String productDetailFor(String id) => '/products/$id';
+
+  /// Location for starting the receipt flow in a specific capture [mode].
+  static String receiptSubmissionFor(NfceEntryMode mode) =>
+      '$receiptSubmission?mode=${mode.name}';
 
   /// Routes that require the admin role.
   static const Set<String> adminOnly = {admin};
@@ -69,7 +74,11 @@ GoRouter createRouter({required AuthSession authSession}) {
       GoRoute(
         path: AppRoutes.receiptSubmission,
         name: 'receiptSubmission',
-        builder: (context, state) => const ReceiptSubmissionScreen(),
+        builder: (context, state) => ReceiptSubmissionScreen(
+          initialMode: NfceEntryMode.fromQuery(
+            state.uri.queryParameters['mode'],
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.productSearch,

@@ -4,6 +4,8 @@ import 'package:meu_preco_frontend/core/http/server_health_service.dart';
 import 'package:meu_preco_frontend/core/storage/credential_store.dart';
 import 'package:meu_preco_frontend/core/storage/key_value_store.dart';
 import 'package:meu_preco_frontend/features/auth/data/auth_repository.dart';
+import 'package:meu_preco_frontend/features/nfce/code_scanner.dart';
+import 'package:meu_preco_frontend/features/nfce/data/nfce_repository.dart';
 
 import 'fakes.dart';
 
@@ -14,6 +16,8 @@ AppDependencies buildTestDependencies({
   AuthRepository? authRepository,
   CredentialStore? credentialStore,
   KeyValueStore? store,
+  NfceRepository? nfceRepository,
+  CodeScanner? codeScanner,
 }) {
   final keyValueStore = store ?? InMemoryKeyValueStore();
   final configController = AppConfigController(store: keyValueStore);
@@ -23,5 +27,7 @@ AppDependencies buildTestDependencies({
     credentialStore: credentialStore ?? InMemoryCredentialStore(),
     authRepository: authRepository ?? FakeAuthRepository(),
     healthChecker: healthChecker ?? FakeServerHealthChecker(),
+    nfceRepository: nfceRepository ?? FakeNfceRepository(),
+    codeScanner: codeScanner ?? const UnavailableCodeScanner(),
   );
 }

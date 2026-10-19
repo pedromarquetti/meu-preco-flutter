@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../app/app_scope.dart';
 import '../../app/router.dart';
 import '../../l10n/generated/app_localizations.dart';
+import 'scan_speed_dial.dart';
 
-/// Main navigation hub after login: scan an NFC-e or search for products.
+/// Main navigation hub after login: search for products, or start a receipt
+/// capture from the expandable button in the lower-right corner.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -14,8 +16,6 @@ class HomeScreen extends StatelessWidget {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final session = context.authSession;
-    final width = MediaQuery.sizeOf(context).width;
-    final isWide = width >= 720;
 
     return Scaffold(
       appBar: AppBar(
@@ -34,6 +34,7 @@ class HomeScreen extends StatelessWidget {
             ),
         ],
       ),
+      floatingActionButton: const ScanSpeedDial(),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
@@ -51,28 +52,10 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                 ],
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    SizedBox(
-                      width: isWide ? 320 : double.infinity,
-                      child: _HomeEntry(
-                        icon: Icons.qr_code_scanner,
-                        label: strings.scanReceiptAction,
-                        onTap: () => context.push(AppRoutes.receiptSubmission),
-                      ),
-                    ),
-                    SizedBox(
-                      width: isWide ? 320 : double.infinity,
-                      child: _HomeEntry(
-                        icon: Icons.search,
-                        label: strings.searchProductAction,
-                        onTap: () => context.push(AppRoutes.productSearch),
-                      ),
-                    ),
-                  ],
+                _HomeEntry(
+                  icon: Icons.search,
+                  label: strings.searchProductAction,
+                  onTap: () => context.push(AppRoutes.productSearch),
                 ),
                 const SizedBox(height: 24),
                 Text(

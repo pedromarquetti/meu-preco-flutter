@@ -67,7 +67,15 @@ class ApiException extends AppException {
     super.statusCode,
     super.retryable,
     super.retryAfter,
+    this.details,
   });
+
+  /// Extra fields the backend attached to `error` alongside code/message.
+  ///
+  /// Some failures carry structured data the UI needs — for example a `412`
+  /// captcha challenge ships `challenge_id`/`image_url` — so the raw envelope
+  /// is preserved here instead of being flattened into a string.
+  final Map<String, Object?>? details;
 }
 
 /// 401 — missing, expired, or invalid credentials.
@@ -94,7 +102,7 @@ class ConflictException extends ApiException {
 
 /// 412 — precondition failed (e.g. captcha required).
 class PreconditionFailedException extends ApiException {
-  const PreconditionFailedException({super.message, super.code})
+  const PreconditionFailedException({super.message, super.code, super.details})
     : super(statusCode: 412);
 }
 

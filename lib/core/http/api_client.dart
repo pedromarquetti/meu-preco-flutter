@@ -1,5 +1,6 @@
 import 'dart:async' as async;
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -54,6 +55,7 @@ class ApiClient {
     String path, {
     bool useApiPrefix = true,
     Map<String, String>? headers,
+    Map<String, String>? query,
     AppConfig? config,
   }) {
     return _send(
@@ -61,6 +63,7 @@ class ApiClient {
       path,
       useApiPrefix: useApiPrefix,
       headers: headers,
+      query: query,
       config: config,
     );
   }
@@ -70,6 +73,7 @@ class ApiClient {
     Object? body,
     bool useApiPrefix = true,
     Map<String, String>? headers,
+    Map<String, String>? query,
     AppConfig? config,
   }) {
     return _send(
@@ -77,6 +81,7 @@ class ApiClient {
       path,
       useApiPrefix: useApiPrefix,
       headers: headers,
+      query: query,
       body: body,
       config: config,
     );
@@ -87,6 +92,7 @@ class ApiClient {
     Object? body,
     bool useApiPrefix = true,
     Map<String, String>? headers,
+    Map<String, String>? query,
     AppConfig? config,
   }) {
     return _send(
@@ -94,6 +100,7 @@ class ApiClient {
       path,
       useApiPrefix: useApiPrefix,
       headers: headers,
+      query: query,
       body: body,
       config: config,
     );
@@ -103,6 +110,7 @@ class ApiClient {
     String path, {
     bool useApiPrefix = true,
     Map<String, String>? headers,
+    Map<String, String>? query,
     AppConfig? config,
   }) {
     return _send(
@@ -110,8 +118,34 @@ class ApiClient {
       path,
       useApiPrefix: useApiPrefix,
       headers: headers,
+      query: query,
       config: config,
     );
+  }
+
+  /// GET a binary body (e.g. the captcha challenge image) as raw bytes.
+  ///
+  /// Non-2xx responses go through the same typed-error mapping as [get], so a
+  /// missing or expired image surfaces as an actionable [AppException].
+  Future<Uint8List> getBytes(
+    String path, {
+    bool useApiPrefix = true,
+    Map<String, String>? headers,
+    Map<String, String>? query,
+    AppConfig? config,
+  }) async {
+    final response = await _request(
+      'GET',
+      path,
+      useApiPrefix: useApiPrefix,
+      headers: headers,
+      query: query,
+      config: config,
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes;
+    }
+    throw _mapError(response);
   }
 
   /// Sends a request and returns the [ApiResponse] **without** throwing on a
@@ -125,6 +159,7 @@ class ApiClient {
     String path, {
     bool useApiPrefix = true,
     Map<String, String>? headers,
+    Map<String, String>? query,
     Object? body,
     AppConfig? config,
   }) async {
@@ -133,6 +168,7 @@ class ApiClient {
       path,
       useApiPrefix: useApiPrefix,
       headers: headers,
+      query: query,
       body: body,
       config: config,
     );
@@ -148,6 +184,7 @@ class ApiClient {
     String path, {
     required bool useApiPrefix,
     Map<String, String>? headers,
+    Map<String, String>? query,
     Object? body,
     AppConfig? config,
   }) async {
@@ -156,6 +193,7 @@ class ApiClient {
       path,
       useApiPrefix: useApiPrefix,
       headers: headers,
+      query: query,
       body: body,
       config: config,
     );
@@ -167,13 +205,17 @@ class ApiClient {
     String path, {
     required bool useApiPrefix,
     Map<String, String>? headers,
+    Map<String, String>? query,
     Object? body,
     AppConfig? config,
   }) async {
     final effectiveConfig = config ?? _configProvider();
-    final uri = useApiPrefix
+    var uri = useApiPrefix
         ? effectiveConfig.resolveApi(path)
         : effectiveConfig.resolveRoot(path);
+    if (query != null && query.isNotEmpty) {
+      uri = uri.replace(queryParameters: {...uri.queryParameters, ...query});
+    }
 
     final requestHeaders = <String, String>{
       'Accept': 'application/json',
@@ -225,6 +267,7 @@ class ApiClient {
   AppException _mapError(http.Response response) {
     final String? code;
     final String? message;
+    Map<String, Object?>? details;
     final decoded = _tryDecode(response.body);
     if (decoded is Map<String, dynamic>) {
       final error = decoded['error'];
@@ -233,6 +276,7 @@ class ApiClient {
         message = error['message'] is String
             ? error['message'] as String
             : null;
+        details = error.cast<String, Object?>();
       } else {
         code = null;
         message = decoded['message'] is String
@@ -250,7 +294,11 @@ class ApiClient {
       403 => ForbiddenException(message: message, code: code),
       404 => NotFoundException(message: message, code: code),
       409 => ConflictException(message: message, code: code),
-      412 => PreconditionFailedException(message: message, code: code),
+      412 => PreconditionFailedException(
+        message: message,
+        code: code,
+        details: details,
+      ),
       422 => ValidationException(message: message, code: code),
       429 => RateLimitedException(
         message: message,
@@ -267,6 +315,7 @@ class ApiClient {
         code: code,
         statusCode: status,
         retryAfter: _retryAfter(response),
+        details: details,
       ),
     };
   }

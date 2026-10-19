@@ -11,14 +11,16 @@ class CaptchaChallenge {
     required this.imageUrl,
   });
 
-  factory CaptchaChallenge.fromJson(JsonMap json) {
-    final error = json.objectValue('error');
-    return CaptchaChallenge(
-      message: error.stringValue('message'),
-      challengeId: error.stringValue('challenge_id'),
-      imageUrl: error.stringValue('image_url'),
-    );
-  }
+  factory CaptchaChallenge.fromJson(JsonMap json) =>
+      CaptchaChallenge.fromError(json.objectValue('error'));
+
+  /// Decodes the challenge straight from the flattened `error` object the
+  /// typed [AppException.details] exposes.
+  factory CaptchaChallenge.fromError(JsonMap error) => CaptchaChallenge(
+    message: error.stringValue('message'),
+    challengeId: error.stringValue('challenge_id'),
+    imageUrl: error.stringValue('image_url'),
+  );
 
   final String message;
   final String challengeId;
@@ -45,15 +47,17 @@ class CaptchaWrongSolution {
     required this.imageUrl,
   });
 
-  factory CaptchaWrongSolution.fromJson(JsonMap json) {
-    final error = json.objectValue('error');
-    return CaptchaWrongSolution(
-      message: error.stringValue('message'),
-      challengeId: error.stringValue('challenge_id'),
-      attemptsLeft: error.intValue('attempts_left'),
-      imageUrl: error.stringValue('image_url'),
-    );
-  }
+  factory CaptchaWrongSolution.fromJson(JsonMap json) =>
+      CaptchaWrongSolution.fromError(json.objectValue('error'));
+
+  /// Decodes the retry feedback straight from the flattened `error` object the
+  /// typed [AppException.details] exposes.
+  factory CaptchaWrongSolution.fromError(JsonMap error) => CaptchaWrongSolution(
+    message: error.stringValue('message'),
+    challengeId: error.stringValue('challenge_id'),
+    attemptsLeft: error.intValue('attempts_left'),
+    imageUrl: error.stringValue('image_url'),
+  );
 
   final String message;
   final String challengeId;

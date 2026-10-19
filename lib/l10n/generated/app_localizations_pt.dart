@@ -232,4 +232,232 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get notConfiguredLabel => 'Não configurado';
+
+  @override
+  String get scanQrAction => 'Escanear QR';
+
+  @override
+  String get pasteNfceKeyAction => 'Colar chave da NFC-e';
+
+  @override
+  String get scanWithCameraAction => 'Escanear com a câmera';
+
+  @override
+  String get scanQrHelp => 'Aponte a câmera para o QR Code do cupom.';
+
+  @override
+  String get scanQrUnavailable =>
+      'A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.';
+
+  @override
+  String get accessKeyLabel => 'Chave de acesso';
+
+  @override
+  String get accessKeyHint => '44 dígitos';
+
+  @override
+  String get accessKeyHelp => 'Fica no rodapé do cupom fiscal.';
+
+  @override
+  String get qrPayloadLabel => 'Conteúdo do QR Code';
+
+  @override
+  String get qrPayloadHint => 'Cole aqui o link do QR Code do cupom';
+
+  @override
+  String get invalidAccessKeyError =>
+      'Informe os 44 dígitos da chave de acesso';
+
+  @override
+  String get invalidQrPayloadError => 'Informe um QR Code válido';
+
+  @override
+  String get draftingReceiptLabel => 'Processando o cupom...';
+
+  @override
+  String get submittingReceiptLabel => 'Enviando o cupom...';
+
+  @override
+  String get captchaTitle => 'Verificação de segurança';
+
+  @override
+  String get captchaDescription =>
+      'Digite os caracteres da imagem para continuar.';
+
+  @override
+  String get captchaSolutionLabel => 'Resposta';
+
+  @override
+  String get captchaSolveAction => 'Confirmar';
+
+  @override
+  String get captchaReloadAction => 'Recarregar imagem';
+
+  @override
+  String get captchaImageUnavailable => 'Não foi possível carregar a imagem.';
+
+  @override
+  String get captchaWrongSolutionError =>
+      'Resposta incorreta. Tente novamente.';
+
+  @override
+  String captchaAttemptsLeft(int count) {
+    return 'Tentativas restantes: $count';
+  }
+
+  @override
+  String get captchaExpiredError =>
+      'Este desafio expirou. Leia o cupom novamente.';
+
+  @override
+  String get captchaLockedError =>
+      'Muitas respostas incorretas. Leia o cupom novamente.';
+
+  @override
+  String get captchaUsedError => 'Este desafio já foi utilizado.';
+
+  @override
+  String get captchaNotFoundError => 'Desafio não encontrado.';
+
+  @override
+  String get previewTitle => 'Confira os dados do cupom';
+
+  @override
+  String get previewAccessKeyLabel => 'Chave de acesso';
+
+  @override
+  String previewExpiresAtLabel(String time) {
+    return 'Expira em $time';
+  }
+
+  @override
+  String get previewExpiredLabel => 'Prévia expirada';
+
+  @override
+  String get previewItemsTitle => 'Itens';
+
+  @override
+  String get previewTotalsTitle => 'Resumo';
+
+  @override
+  String get previewItemsCountLabel => 'Itens lidos';
+
+  @override
+  String get previewAutoSaveLabel => 'Salvos automaticamente';
+
+  @override
+  String get previewNeedsReviewLabel => 'Precisam de revisão';
+
+  @override
+  String get previewParseErrorsLabel => 'Com erro de leitura';
+
+  @override
+  String get previewEstimatedTotalLabel => 'Total estimado';
+
+  @override
+  String get previewPriceLabel => 'Preço';
+
+  @override
+  String get itemStatusGtinKnown => 'Produto reconhecido';
+
+  @override
+  String get itemStatusGtinNew => 'Produto novo';
+
+  @override
+  String get itemStatusCommodity => 'Produto a granel';
+
+  @override
+  String get itemStatusUncertain => 'Código incerto';
+
+  @override
+  String get itemStatusParseError => 'Erro de leitura';
+
+  @override
+  String get itemUncertainHelp => 'Escolha como tratar este item.';
+
+  @override
+  String get itemApiMessageTitle => 'Mensagem da API';
+
+  @override
+  String get closeAction => 'Fechar';
+
+  @override
+  String get resolutionNeedsReviewAction => 'Revisar depois';
+
+  @override
+  String get resolutionSkipAction => 'Ignorar';
+
+  @override
+  String get submitDryRunAction => 'Simular envio';
+
+  @override
+  String get submitConfirmAction => 'Enviar cupom';
+
+  @override
+  String get commitResultTitle => 'Cupom enviado';
+
+  @override
+  String get commitWrittenLabel => 'Itens registrados';
+
+  @override
+  String get commitAutoSavedLabel => 'Salvos automaticamente';
+
+  @override
+  String get commitSkippedLabel => 'Itens ignorados';
+
+  @override
+  String get commitNeedsReviewLabel => 'Para revisão';
+
+  @override
+  String get commitAssignedLabel => 'Associados';
+
+  @override
+  String get doneAction => 'Concluir';
+
+  @override
+  String get deleteReceiptAction => 'Excluir cupom';
+
+  @override
+  String get deleteReceiptConfirmTitle => 'Excluir cupom?';
+
+  @override
+  String get deleteReceiptConfirmMessage =>
+      'Os preços deste cupom serão removidos. Esta ação não pode ser desfeita.';
+
+  @override
+  String get deleteReceiptSuccessMessage => 'Cupom excluído';
+
+  @override
+  String get cancelAction => 'Cancelar';
+
+  @override
+  String get deleteAction => 'Excluir';
+
+  @override
+  String get startOverAction => 'Ler outro cupom';
+
+  @override
+  String get receiptNotFoundError => 'Cupom não encontrado.';
+
+  @override
+  String get unsupportedUfError => 'Estado (UF) não suportado.';
+
+  @override
+  String get upstreamErrorMessage =>
+      'O portal da SEFAZ não respondeu. Tente novamente.';
+
+  @override
+  String get previewExpiredError =>
+      'Esta prévia expirou. Leia o cupom novamente.';
+
+  @override
+  String get previewNotFoundError =>
+      'Prévia não encontrada. Leia o cupom novamente.';
+
+  @override
+  String get alreadyCommittedError => 'Este cupom já foi registrado.';
+
+  @override
+  String get invalidResolutionError =>
+      'Não foi possível aplicar as escolhas dos itens.';
 }
