@@ -1,7 +1,9 @@
 import 'package:go_router/go_router.dart';
 
 import '../features/admin/admin_screen.dart';
+import '../features/auth/auth_session.dart';
 import '../features/auth/login_screen.dart';
+import '../features/auth/register_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/nfce/receipt_submission_screen.dart';
 import '../features/products/product_detail_screen.dart';
@@ -14,6 +16,7 @@ import '../features/supermarkets/supermarkets_screen.dart';
 abstract final class AppRoutes {
   static const String server = '/server';
   static const String login = '/login';
+  static const String register = '/register';
   static const String home = '/home';
   static const String receiptSubmission = '/receipts/new';
   static const String productSearch = '/products';
@@ -24,16 +27,24 @@ abstract final class AppRoutes {
 
   /// Location for a concrete product detail page.
   static String productDetailFor(String id) => '/products/$id';
+
+  /// Routes that require the admin role.
+  static const Set<String> adminOnly = {admin};
 }
 
 /// Builds the app's [GoRouter].
 ///
 /// The router starts on the server configuration screen so a fresh install (or
 /// a deployment pointing at an unknown host) always confirms the API origin
-/// before showing authenticated screens.
-GoRouter createRouter() {
+/// before showing authenticated screens. [authSession] drives the redirect
+/// guards, so reaching a protected route without a valid session is impossible
+/// through navigation or a deep link.
+GoRouter createRouter({required AuthSession authSession}) {
   return GoRouter(
     initialLocation: AppRoutes.server,
+    refreshListenable: authSession,
+    redirect: (context, state) =>
+        authRedirect(authSession, state.matchedLocation),
     routes: <RouteBase>[
       GoRoute(
         path: AppRoutes.server,
@@ -44,6 +55,11 @@ GoRouter createRouter() {
         path: AppRoutes.login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
         path: AppRoutes.home,
@@ -83,4 +99,29 @@ GoRouter createRouter() {
       ),
     ],
   );
+}
+
+/// Resolves where a given [location] should be sent for the current session.
+///
+/// Returns `null` to allow the navigation, or a redirect target otherwise.
+String? authRedirect(AuthSession session, String location) {
+  if (location == AppRoutes.server) return null;
+
+  final isAuthRoute =
+      location == AppRoutes.login || location == AppRoutes.register;
+  final authenticated = session.isAuthenticated;
+
+  if (!authenticated) {
+    return isAuthRoute ? null : AppRoutes.login;
+  }
+
+  // Signed in: keep users off the login/register pages.
+  if (isAuthRoute) return AppRoutes.home;
+
+  final requiresAdmin = AppRoutes.adminOnly.any(
+    (route) => location == route || location.startsWith('$route/'),
+  );
+  if (requiresAdmin && !session.isAdmin) return AppRoutes.home;
+
+  return null;
 }

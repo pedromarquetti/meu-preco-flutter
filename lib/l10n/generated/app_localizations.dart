@@ -187,7 +187,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginDescription.
   ///
   /// In pt, this message translates to:
-  /// **'Ainda faremos o login nesta etapa. Esta tela é um marcador da Fase 1.'**
+  /// **'Entre com sua conta Meu Preço.'**
   String get loginDescription;
 
   /// No description provided for @emailLabel.
@@ -202,11 +202,137 @@ abstract class AppLocalizations {
   /// **'Senha'**
   String get passwordLabel;
 
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confirmar senha'**
+  String get confirmPasswordLabel;
+
   /// No description provided for @signInAction.
   ///
   /// In pt, this message translates to:
   /// **'Fazer login'**
   String get signInAction;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar conta'**
+  String get registerTitle;
+
+  /// No description provided for @registerDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Crie uma conta para começar a usar o Meu Preço.'**
+  String get registerDescription;
+
+  /// No description provided for @createAccountAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar conta'**
+  String get createAccountAction;
+
+  /// No description provided for @needAccountAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar uma conta'**
+  String get needAccountAction;
+
+  /// No description provided for @alreadyHaveAccountAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Já tenho uma conta'**
+  String get alreadyHaveAccountAction;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In pt, this message translates to:
+  /// **'As senhas não coincidem'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @invalidEmailError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe um e-mail válido'**
+  String get invalidEmailError;
+
+  /// No description provided for @weakPasswordError.
+  ///
+  /// In pt, this message translates to:
+  /// **'A senha deve ter pelo menos 8 caracteres'**
+  String get weakPasswordError;
+
+  /// No description provided for @invalidCredentialsError.
+  ///
+  /// In pt, this message translates to:
+  /// **'E-mail ou senha inválidos'**
+  String get invalidCredentialsError;
+
+  /// No description provided for @userExistsError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este e-mail já está cadastrado'**
+  String get userExistsError;
+
+  /// No description provided for @rateLimitedError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Muitas tentativas. Tente novamente em instantes'**
+  String get rateLimitedError;
+
+  /// No description provided for @networkErrorMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível conectar ao servidor'**
+  String get networkErrorMessage;
+
+  /// No description provided for @sessionExpiredMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sua sessão expirou. Entre novamente.'**
+  String get sessionExpiredMessage;
+
+  /// No description provided for @accountSection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conta'**
+  String get accountSection;
+
+  /// No description provided for @currentUserLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Usuário'**
+  String get currentUserLabel;
+
+  /// No description provided for @roleLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil'**
+  String get roleLabel;
+
+  /// No description provided for @adminRoleLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Administrador'**
+  String get adminRoleLabel;
+
+  /// No description provided for @userRoleLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Usuário'**
+  String get userRoleLabel;
+
+  /// No description provided for @notAuthenticatedLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não autenticado'**
+  String get notAuthenticatedLabel;
+
+  /// No description provided for @signOutSuccessMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sessão encerrada'**
+  String get signOutSuccessMessage;
 
   /// No description provided for @homeTitle.
   ///
@@ -313,7 +439,7 @@ abstract class AppLocalizations {
   /// No description provided for @notImplementedLabel.
   ///
   /// In pt, this message translates to:
-  /// **'Esta funcionalidade será implementada em uma fase futura.'**
+  /// **'Esta funcionalidade ainda não está disponível.'**
   String get notImplementedLabel;
 
   /// No description provided for @currentHostLabel.

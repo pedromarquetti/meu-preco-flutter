@@ -5,6 +5,7 @@ import '../../app/app_scope.dart';
 import '../../app/router.dart';
 import '../../core/config/app_config.dart';
 import '../../core/http/server_health_service.dart';
+import '../../core/models/models.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 /// Frontend configuration: change the API host, reset to defaults, and view
@@ -78,6 +79,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _logout() async {
+    await context.appDependencies.authSession.logout();
+  }
+
+  String _roleLabel(AppLocalizations strings, UserRole? role) {
+    return switch (role) {
+      UserRole.admin => strings.adminRoleLabel,
+      UserRole.user => strings.userRoleLabel,
+      null => strings.notAuthenticatedLabel,
+    };
+  }
+
   String _messageFor(AppLocalizations strings, ServerHealthResult result) {
     if (result.ok) return strings.serverConnectionSuccess;
     switch (result.errorCode) {
@@ -95,6 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final config = context.appConfig;
+    final session = context.authSession;
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.settingsTitle)),
@@ -104,6 +118,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        strings.accountSection,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${strings.currentUserLabel}: '
+                        '${session.user?.email ?? strings.notAuthenticatedLabel}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${strings.roleLabel}: '
+                        '${_roleLabel(strings, session.user?.role)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: _busy ? null : _logout,
+                          icon: const Icon(Icons.logout),
+                          label: Text(strings.logoutAction),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),

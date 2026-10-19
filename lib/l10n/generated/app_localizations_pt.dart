@@ -60,8 +60,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get loginTitle => 'Entrar';
 
   @override
-  String get loginDescription =>
-      'Ainda faremos o login nesta etapa. Esta tela é um marcador da Fase 1.';
+  String get loginDescription => 'Entre com sua conta Meu Preço.';
 
   @override
   String get emailLabel => 'E-mail';
@@ -70,7 +69,72 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passwordLabel => 'Senha';
 
   @override
+  String get confirmPasswordLabel => 'Confirmar senha';
+
+  @override
   String get signInAction => 'Fazer login';
+
+  @override
+  String get registerTitle => 'Criar conta';
+
+  @override
+  String get registerDescription =>
+      'Crie uma conta para começar a usar o Meu Preço.';
+
+  @override
+  String get createAccountAction => 'Criar conta';
+
+  @override
+  String get needAccountAction => 'Criar uma conta';
+
+  @override
+  String get alreadyHaveAccountAction => 'Já tenho uma conta';
+
+  @override
+  String get passwordsDoNotMatch => 'As senhas não coincidem';
+
+  @override
+  String get invalidEmailError => 'Informe um e-mail válido';
+
+  @override
+  String get weakPasswordError => 'A senha deve ter pelo menos 8 caracteres';
+
+  @override
+  String get invalidCredentialsError => 'E-mail ou senha inválidos';
+
+  @override
+  String get userExistsError => 'Este e-mail já está cadastrado';
+
+  @override
+  String get rateLimitedError =>
+      'Muitas tentativas. Tente novamente em instantes';
+
+  @override
+  String get networkErrorMessage => 'Não foi possível conectar ao servidor';
+
+  @override
+  String get sessionExpiredMessage => 'Sua sessão expirou. Entre novamente.';
+
+  @override
+  String get accountSection => 'Conta';
+
+  @override
+  String get currentUserLabel => 'Usuário';
+
+  @override
+  String get roleLabel => 'Perfil';
+
+  @override
+  String get adminRoleLabel => 'Administrador';
+
+  @override
+  String get userRoleLabel => 'Usuário';
+
+  @override
+  String get notAuthenticatedLabel => 'Não autenticado';
+
+  @override
+  String get signOutSuccessMessage => 'Sessão encerrada';
 
   @override
   String get homeTitle => 'Início';
@@ -125,7 +189,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get notImplementedLabel =>
-      'Esta funcionalidade será implementada em uma fase futura.';
+      'Esta funcionalidade ainda não está disponível.';
 
   @override
   String get currentHostLabel => 'Servidor atual';

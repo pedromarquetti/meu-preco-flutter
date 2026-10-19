@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/app_scope.dart';
 import '../../app/router.dart';
 import '../../l10n/generated/app_localizations.dart';
+import 'auth_error_messages.dart';
+import 'auth_session.dart';
 
-/// Login screen placeholder.
-///
-/// for now it demonstrates the post-selection route.
+/// Sign-in screen.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -19,6 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  bool _busy = false;
+  String? _error;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -26,16 +30,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_busy) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    // placeholder for actual login logic
-    context.go(AppRoutes.home);
+
+    final strings = AppLocalizations.of(context);
+    final session = context.appDependencies.authSession;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+
+    try {
+      await session.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      // On success the router redirect leaves this screen.
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = authErrorMessage(strings, error);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final expired = context.authSession.status == AuthStatus.expired;
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.loginTitle)),
@@ -50,6 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (expired) ...[
+                    _MessageBanner(
+                      text: strings.sessionExpiredMessage,
+                      icon: Icons.lock_clock,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Text(
                     strings.loginDescription,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -60,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _emailController,
+                    enabled: !_busy,
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: const [AutofillHints.email],
                     decoration: InputDecoration(
@@ -68,13 +102,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       final email = value?.trim() ?? '';
-                      if (!email.contains('@')) return strings.emailLabel;
+                      if (email.isEmpty || !email.contains('@')) {
+                        return strings.invalidEmailError;
+                      }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
+                    enabled: !_busy,
                     obscureText: true,
                     autofillHints: const [AutofillHints.password],
                     decoration: InputDecoration(
@@ -82,15 +119,38 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
-                      if ((value ?? '').isEmpty) return strings.passwordLabel;
+                      if ((value ?? '').length < 8) {
+                        return strings.weakPasswordError;
+                      }
                       return null;
                     },
                     onFieldSubmitted: (_) => _submit(),
                   ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 16),
+                    _MessageBanner(
+                      text: _error!,
+                      icon: Icons.error_outline,
+                      color: theme.colorScheme.error,
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   FilledButton(
-                    onPressed: _submit,
-                    child: Text(strings.signInAction),
+                    onPressed: _busy ? null : _submit,
+                    child: _busy
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(strings.signInAction),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => context.push(AppRoutes.register),
+                    child: Text(strings.needAccountAction),
                   ),
                 ],
               ),
@@ -98,6 +158,36 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Small inline banner used for session and submission feedback.
+class _MessageBanner extends StatelessWidget {
+  const _MessageBanner({
+    required this.text,
+    required this.icon,
+    required this.color,
+  });
+
+  final String text;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, color: color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/config/app_config.dart';
 import '../core/config/app_config_controller.dart';
+import '../features/auth/auth_session.dart';
 import 'app_dependencies.dart';
 
 /// Convenience accessors for the app's dependency graph.
@@ -15,4 +16,7 @@ extension AppScope on BuildContext {
 
   /// The currently active configuration (rebuilds when it changes).
   AppConfig get appConfig => configController.config;
+
+  /// Reactive accessor for authentication state.
+  AuthSession get authSession => watch<AuthSession>();
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/config/app_config_controller.dart';
+import '../features/auth/auth_session.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'app_dependencies.dart';
 import 'router.dart';
@@ -19,7 +20,9 @@ class MeuPrecoApp extends StatefulWidget {
 }
 
 class _MeuPrecoAppState extends State<MeuPrecoApp> {
-  late final GoRouter _router = createRouter();
+  late final GoRouter _router = createRouter(
+    authSession: widget.dependencies.authSession,
+  );
 
   @override
   void dispose() {
@@ -34,6 +37,9 @@ class _MeuPrecoAppState extends State<MeuPrecoApp> {
         Provider<AppDependencies>.value(value: widget.dependencies),
         ChangeNotifierProvider<AppConfigController>.value(
           value: widget.dependencies.configController,
+        ),
+        ChangeNotifierProvider<AuthSession>.value(
+          value: widget.dependencies.authSession,
         ),
       ],
       child: MaterialApp.router(
