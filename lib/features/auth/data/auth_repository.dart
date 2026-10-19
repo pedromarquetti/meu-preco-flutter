@@ -4,11 +4,11 @@ import '../../../core/models/models.dart';
 
 /// Authentication operations against the Meu Preço API.
 abstract interface class AuthRepository {
-  /// `POST /auth/login` — exchange credentials for a token pair.
-  Future<AuthPair> login(Credentials credentials);
+  /// `POST /auth/login` — exchange an email/name and password for a token pair.
+  Future<AuthPair> login(LoginCredentials credentials);
 
   /// `POST /auth/register` — create an account (role `user`).
-  Future<User> register(Credentials credentials);
+  Future<User> register(RegisterCredentials credentials);
 
   /// `POST /auth/refresh` — rotate a refresh token into a new pair.
   Future<AuthPair> refresh(RefreshRequest request);
@@ -28,13 +28,13 @@ class ApiAuthRepository implements AuthRepository {
   final ApiClient _client;
 
   @override
-  Future<AuthPair> login(Credentials credentials) async {
+  Future<AuthPair> login(LoginCredentials credentials) async {
     final data = await _client.post('/auth/login', body: credentials.toJson());
     return AuthPair.fromJson(_asObject(data));
   }
 
   @override
-  Future<User> register(Credentials credentials) async {
+  Future<User> register(RegisterCredentials credentials) async {
     final data = await _client.post(
       '/auth/register',
       body: credentials.toJson(),

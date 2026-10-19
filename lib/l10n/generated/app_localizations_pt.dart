@@ -60,10 +60,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get loginTitle => 'Entrar';
 
   @override
-  String get loginDescription => 'Entre com sua conta Meu Preço.';
+  String get loginDescription => 'Entre com seu e-mail ou nome de usuário.';
+
+  @override
+  String get loginIdentifierLabel => 'E-mail ou nome';
 
   @override
   String get emailLabel => 'E-mail';
+
+  @override
+  String get nameLabel => 'Nome';
 
   @override
   String get passwordLabel => 'Senha';
@@ -92,6 +98,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get passwordsDoNotMatch => 'As senhas não coincidem';
+
+  @override
+  String get invalidIdentifierError => 'Informe um e-mail ou nome';
+
+  @override
+  String get invalidNameError => 'Informe um nome de até 100 caracteres';
 
   @override
   String get invalidEmailError => 'Informe um e-mail válido';

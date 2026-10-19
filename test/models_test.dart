@@ -42,7 +42,12 @@ void main() {
       final json = <String, dynamic>{
         'access_token': 'access-1',
         'refresh_token': 'refresh-1',
-        'user': {'id': 7, 'email': 'ada@example.com', 'role': 'admin'},
+        'user': {
+          'id': 7,
+          'name': 'Ada',
+          'email': 'ada@example.com',
+          'role': 'admin',
+        },
       };
 
       final pair = AuthPair.fromJson(json);
@@ -50,16 +55,39 @@ void main() {
       expect(pair.accessToken, 'access-1');
       expect(pair.refreshToken, 'refresh-1');
       expect(pair.user.id, 7);
+      expect(pair.user.name, 'Ada');
       expect(pair.user.role, UserRole.admin);
       expect(pair.toJson(), json);
     });
 
-    test('Credentials encodes email and password', () {
-      const credentials = Credentials(
+    test('User falls back to the email when a cached name is absent', () {
+      final user = User.fromJson({
+        'id': 1,
+        'email': 'ada@example.com',
+        'role': 'user',
+      });
+      expect(user.name, 'ada@example.com');
+    });
+
+    test('LoginCredentials encodes the login identifier and password', () {
+      const credentials = LoginCredentials(
+        login: 'ada@example.com',
+        password: 'secret',
+      );
+      expect(credentials.toJson(), {
+        'login': 'ada@example.com',
+        'password': 'secret',
+      });
+    });
+
+    test('RegisterCredentials encodes name, email, and password', () {
+      const credentials = RegisterCredentials(
+        name: 'Ada',
         email: 'ada@example.com',
         password: 'secret',
       );
       expect(credentials.toJson(), {
+        'name': 'Ada',
         'email': 'ada@example.com',
         'password': 'secret',
       });
@@ -67,7 +95,12 @@ void main() {
 
     test('unknown role is a serialization failure', () {
       expect(
-        () => User.fromJson({'id': 1, 'email': 'a@b.c', 'role': 'root'}),
+        () => User.fromJson({
+          'id': 1,
+          'name': 'Ada',
+          'email': 'a@b.c',
+          'role': 'root',
+        }),
         throwsA(isA<SerializationException>()),
       );
     });

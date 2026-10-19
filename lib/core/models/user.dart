@@ -18,19 +18,39 @@ enum UserRole {
 
 /// User summary returned by `/auth/me`, `/users/me`, and auth responses.
 class User {
-  const User({required this.id, required this.email, required this.role});
+  const User({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+  });
 
-  factory User.fromJson(JsonMap json) => User(
-    id: json.intValue('id'),
-    email: json.stringValue('email'),
-    role: UserRole.fromJson(json.stringValue('role')),
-  );
+  factory User.fromJson(JsonMap json) {
+    final email = json.stringValue('email');
+    return User(
+      id: json.intValue('id'),
+      // Sessions cached before the server added `name` fall back to the email
+      // so a cold start still restores instead of failing to decode.
+      name: json.stringOrNull('name') ?? email,
+      email: email,
+      role: UserRole.fromJson(json.stringValue('role')),
+    );
+  }
 
   final int id;
+
+  /// Display name; unique across accounts and usable as a login.
+  final String name;
+
   final String email;
   final UserRole role;
 
-  JsonMap toJson() => {'id': id, 'email': email, 'role': role.toJson()};
+  JsonMap toJson() => {
+    'id': id,
+    'name': name,
+    'email': email,
+    'role': role.toJson(),
+  };
 }
 
 /// `{"user": {...}}` wrapper returned by the auth/me endpoints.
@@ -48,10 +68,11 @@ class UserResponse {
 /// A user row in the admin listing (`/admin/users`), which also carries the
 /// creation timestamp.
 class UserView {
-  const UserView({this.id, this.email, this.role, this.createdAt});
+  const UserView({this.id, this.name, this.email, this.role, this.createdAt});
 
   factory UserView.fromJson(JsonMap json) => UserView(
     id: json.intOrNull('id'),
+    name: json.stringOrNull('name'),
     email: json.stringOrNull('email'),
     role: json.stringOrNull('role') == null
         ? null
@@ -60,12 +81,14 @@ class UserView {
   );
 
   final int? id;
+  final String? name;
   final String? email;
   final UserRole? role;
   final DateTime? createdAt;
 
   JsonMap toJson() => {
     'id': id,
+    'name': name,
     'email': email,
     'role': role?.toJson(),
     'created_at': createdAt?.toUtc().toIso8601String(),

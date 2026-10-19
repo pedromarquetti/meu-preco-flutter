@@ -9,7 +9,12 @@ import 'package:meu_preco_frontend/features/auth/auth_session.dart';
 import 'fakes.dart';
 
 void main() {
-  const user = User(id: 1, email: 'ada@example.com', role: UserRole.user);
+  const user = User(
+    id: 1,
+    name: 'Ada',
+    email: 'ada@example.com',
+    role: UserRole.user,
+  );
 
   (AuthSession, FakeAuthRepository, InMemoryCredentialStore) build() {
     final repository = FakeAuthRepository(user: user);
@@ -54,7 +59,7 @@ void main() {
     test('persists the token pair and current user', () async {
       final (session, _, store) = build();
 
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
 
       expect(session.status, AuthStatus.authenticated);
       expect(session.user, user);
@@ -69,7 +74,7 @@ void main() {
       );
 
       await expectLater(
-        session.login(email: 'ada@example.com', password: 'secret123'),
+        session.login(identifier: 'ada@example.com', password: 'secret123'),
         throwsA(isA<UnauthorizedException>()),
       );
 
@@ -81,17 +86,17 @@ void main() {
       final (session, repository, _) = build();
 
       await expectLater(
-        session.login(email: 'not-an-email', password: 'secret123'),
+        session.login(identifier: '   ', password: 'secret123'),
         throwsA(
           isA<ValidationException>().having(
             (e) => e.code,
             'code',
-            'invalid_email',
+            'invalid_login',
           ),
         ),
       );
       await expectLater(
-        session.login(email: 'ada@example.com', password: 'short'),
+        session.login(identifier: 'ada@example.com', password: 'short'),
         throwsA(
           isA<ValidationException>().having(
             (e) => e.code,
@@ -102,12 +107,80 @@ void main() {
       );
       expect(repository.loginCalls, 0);
     });
+
+    test('accepts a display name as the identifier', () async {
+      final (session, repository, _) = build();
+
+      await session.login(identifier: 'Ada', password: 'secret123');
+
+      expect(session.isAuthenticated, isTrue);
+      expect(repository.loginCalls, 1);
+    });
+  });
+
+  group('register', () {
+    test(
+      'creates the account and signs in with the same credentials',
+      () async {
+        final (session, repository, store) = build();
+
+        final user = await session.register(
+          name: 'Grace',
+          email: 'grace@example.com',
+          password: 'secret123',
+        );
+
+        expect(repository.registerCalls, 1);
+        expect(repository.loginCalls, 1);
+        expect(user.name, 'Grace');
+        expect(user.email, 'grace@example.com');
+        expect(session.isAuthenticated, isTrue);
+        expect(store.session?.user.name, 'Grace');
+      },
+    );
+
+    test(
+      'validates name, email, and password before sending a request',
+      () async {
+        final (session, repository, _) = build();
+
+        await expectLater(
+          session.register(
+            name: '   ',
+            email: 'ada@example.com',
+            password: 'secret123',
+          ),
+          throwsA(
+            isA<ValidationException>().having(
+              (e) => e.code,
+              'code',
+              'invalid_name',
+            ),
+          ),
+        );
+        await expectLater(
+          session.register(
+            name: 'Ada',
+            email: 'not-an-email',
+            password: 'secret123',
+          ),
+          throwsA(
+            isA<ValidationException>().having(
+              (e) => e.code,
+              'code',
+              'invalid_email',
+            ),
+          ),
+        );
+        expect(repository.registerCalls, 0);
+      },
+    );
   });
 
   group('refresh', () {
     test('rotates both tokens atomically and persists them', () async {
       final (session, repository, store) = build();
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
       final firstAccess = session.accessToken;
       final firstRefresh = session.refreshToken;
 
@@ -123,7 +196,7 @@ void main() {
 
     test('signs out and expires the session on failure', () async {
       final (session, repository, store) = build();
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
       repository.refreshError = const UnauthorizedException(
         code: 'refresh_reuse_detected',
       );
@@ -138,7 +211,7 @@ void main() {
 
     test('concurrent calls share a single refresh operation', () async {
       final (session, repository, _) = build();
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
 
       final gate = Completer<void>();
       repository.refreshGate = gate;
@@ -156,9 +229,10 @@ void main() {
   group('validate', () {
     test('reloads the current user from the server', () async {
       final (session, repository, _) = build();
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
       repository.user = const User(
         id: 1,
+        name: 'Ada',
         email: 'ada@example.com',
         role: UserRole.admin,
       );
@@ -171,7 +245,7 @@ void main() {
 
     test('expires the session when the token cannot be refreshed', () async {
       final (session, repository, _) = build();
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
       repository.currentUserError = const UnauthorizedException();
       repository.refreshError = const UnauthorizedException(
         code: 'invalid_refresh_token',
@@ -185,7 +259,7 @@ void main() {
 
   test('logout clears credentials and cached state', () async {
     final (session, _, store) = build();
-    await session.login(email: 'ada@example.com', password: 'secret123');
+    await session.login(identifier: 'ada@example.com', password: 'secret123');
 
     await session.logout();
 

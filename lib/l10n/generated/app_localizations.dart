@@ -187,14 +187,26 @@ abstract class AppLocalizations {
   /// No description provided for @loginDescription.
   ///
   /// In pt, this message translates to:
-  /// **'Entre com sua conta Meu Preço.'**
+  /// **'Entre com seu e-mail ou nome de usuário.'**
   String get loginDescription;
+
+  /// No description provided for @loginIdentifierLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'E-mail ou nome'**
+  String get loginIdentifierLabel;
 
   /// No description provided for @emailLabel.
   ///
   /// In pt, this message translates to:
   /// **'E-mail'**
   String get emailLabel;
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome'**
+  String get nameLabel;
 
   /// No description provided for @passwordLabel.
   ///
@@ -249,6 +261,18 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'As senhas não coincidem'**
   String get passwordsDoNotMatch;
+
+  /// No description provided for @invalidIdentifierError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe um e-mail ou nome'**
+  String get invalidIdentifierError;
+
+  /// No description provided for @invalidNameError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe um nome de até 100 caracteres'**
+  String get invalidNameError;
 
   /// No description provided for @invalidEmailError.
   ///

@@ -10,6 +10,10 @@ String authErrorMessage(AppLocalizations strings, Object error) {
     switch (error.code) {
       case 'invalid_credentials':
         return strings.invalidCredentialsError;
+      case 'invalid_login':
+        return strings.invalidIdentifierError;
+      case 'invalid_name':
+        return strings.invalidNameError;
       case 'invalid_email':
         return strings.invalidEmailError;
       case 'invalid_password':

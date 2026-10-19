@@ -16,6 +16,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -25,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
@@ -44,6 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       await session.register(
+        name: _nameController.text,
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -65,10 +68,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(strings.registerTitle)),
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
             child: Form(
               key: _formKey,
               child: Column(
@@ -83,6 +86,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _nameController,
+                    enabled: !_busy,
+                    textCapitalization: TextCapitalization.words,
+                    autofillHints: const [AutofillHints.name],
+                    decoration: InputDecoration(
+                      labelText: strings.nameLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      final name = value?.trim() ?? '';
+                      if (name.isEmpty || name.length > 100) {
+                        return strings.invalidNameError;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailController,
                     enabled: !_busy,

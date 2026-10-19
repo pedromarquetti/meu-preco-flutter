@@ -17,7 +17,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _busy = false;
@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await session.login(
-        email: _emailController.text,
+        identifier: _identifierController.text,
         password: _passwordController.text,
       );
       // On success the router redirect leaves this screen.
@@ -65,10 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(strings.loginTitle)),
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
             child: Form(
               key: _formKey,
               child: Column(
@@ -92,18 +92,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
-                    controller: _emailController,
+                    controller: _identifierController,
                     enabled: !_busy,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [AutofillHints.email],
+                    autocorrect: false,
+                    autofillHints: const [AutofillHints.username],
                     decoration: InputDecoration(
-                      labelText: strings.emailLabel,
+                      labelText: strings.loginIdentifierLabel,
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
-                      final email = value?.trim() ?? '';
-                      if (email.isEmpty || !email.contains('@')) {
-                        return strings.invalidEmailError;
+                      if ((value?.trim() ?? '').isEmpty) {
+                        return strings.invalidIdentifierError;
                       }
                       return null;
                     },

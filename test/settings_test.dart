@@ -17,7 +17,12 @@ AppLocalizations get _strings => lookupAppLocalizations(const Locale('pt'));
 const _session = StoredSession(
   accessToken: 'access-1',
   refreshToken: 'refresh-1',
-  user: User(id: 1, email: 'user@example.com', role: UserRole.user),
+  user: User(
+    id: 1,
+    name: 'Ada',
+    email: 'user@example.com',
+    role: UserRole.user,
+  ),
 );
 
 /// Boots the app with a restored session and opens Settings from the home
@@ -55,8 +60,9 @@ void main() {
   testWidgets('shows the signed-in account and current host', (tester) async {
     await openSettings(tester);
 
+    expect(find.text('${_strings.currentUserLabel}: Ada'), findsOneWidget);
     expect(
-      find.text('${_strings.currentUserLabel}: user@example.com'),
+      find.text('${_strings.emailLabel}: user@example.com'),
       findsOneWidget,
     );
     expect(

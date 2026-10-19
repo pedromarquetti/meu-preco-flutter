@@ -99,11 +99,14 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
     }
   }
 
-  /// Signs in and persists the returned token pair.
-  Future<User> login({required String email, required String password}) async {
-    _validateCredentials(email, password);
+  /// Signs in with an email address or account name and persists the pair.
+  Future<User> login({
+    required String identifier,
+    required String password,
+  }) async {
+    _validateLogin(identifier, password);
     final pair = await _repository.login(
-      Credentials(email: email.trim(), password: password),
+      LoginCredentials(login: identifier.trim(), password: password),
     );
     await _apply(pair);
     return pair.user;
@@ -114,14 +117,22 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   /// The account is created even if the follow-up sign-in fails, in which case
   /// the created user is returned and the caller can send the user to login.
   Future<User> register({
+    required String name,
     required String email,
     required String password,
   }) async {
-    _validateCredentials(email, password);
-    final credentials = Credentials(email: email.trim(), password: password);
-    final created = await _repository.register(credentials);
+    _validateRegister(name, email, password);
+    final created = await _repository.register(
+      RegisterCredentials(
+        name: name.trim(),
+        email: email.trim(),
+        password: password,
+      ),
+    );
     try {
-      final pair = await _repository.login(credentials);
+      final pair = await _repository.login(
+        LoginCredentials(login: email.trim(), password: password),
+      );
       await _apply(pair);
       return pair.user;
     } on AppException {
@@ -207,14 +218,35 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
     notifyListeners();
   }
 
-  void _validateCredentials(String email, String password) {
-    final trimmed = email.trim();
-    if (trimmed.isEmpty || !trimmed.contains('@')) {
+  void _validateLogin(String identifier, String password) {
+    if (identifier.trim().isEmpty) {
+      throw const ValidationException(
+        code: 'invalid_login',
+        message: 'An email or name is required',
+      );
+    }
+    _validatePassword(password);
+  }
+
+  void _validateRegister(String name, String email, String password) {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty || trimmedName.length > 100) {
+      throw const ValidationException(
+        code: 'invalid_name',
+        message: 'A name between 1 and 100 characters is required',
+      );
+    }
+    final trimmedEmail = email.trim();
+    if (trimmedEmail.isEmpty || !trimmedEmail.contains('@')) {
       throw const ValidationException(
         code: 'invalid_email',
         message: 'Invalid e-mail address',
       );
     }
+    _validatePassword(password);
+  }
+
+  void _validatePassword(String password) {
     if (password.length < 8) {
       throw const ValidationException(
         code: 'invalid_password',

@@ -1,19 +1,43 @@
 import 'json.dart';
 import 'user.dart';
 
-/// Login/registration credentials.
-class Credentials {
-  const Credentials({required this.email, required this.password});
+/// Body of `/auth/login`.
+///
+/// [login] is an email address or an account name; the backend resolves either
+/// one to the same account and still accepts the legacy `email` field.
+class LoginCredentials {
+  const LoginCredentials({required this.login, required this.password});
 
-  factory Credentials.fromJson(JsonMap json) => Credentials(
+  factory LoginCredentials.fromJson(JsonMap json) => LoginCredentials(
+    login: json.stringValue('login'),
+    password: json.stringValue('password'),
+  );
+
+  final String login;
+  final String password;
+
+  JsonMap toJson() => {'login': login, 'password': password};
+}
+
+/// Body of `/auth/register`.
+class RegisterCredentials {
+  const RegisterCredentials({
+    required this.name,
+    required this.email,
+    required this.password,
+  });
+
+  factory RegisterCredentials.fromJson(JsonMap json) => RegisterCredentials(
+    name: json.stringValue('name'),
     email: json.stringValue('email'),
     password: json.stringValue('password'),
   );
 
+  final String name;
   final String email;
   final String password;
 
-  JsonMap toJson() => {'email': email, 'password': password};
+  JsonMap toJson() => {'name': name, 'email': email, 'password': password};
 }
 
 /// Access/refresh token pair plus the authenticated user.

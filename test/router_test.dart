@@ -11,7 +11,7 @@ void main() {
     final repository = FakeAuthRepository(
       user: role == null
           ? null
-          : User(id: 1, email: 'ada@example.com', role: role),
+          : User(id: 1, name: 'Ada', email: 'ada@example.com', role: role),
     );
     final session = AuthSession(
       repository: repository,
@@ -19,7 +19,7 @@ void main() {
     );
     await session.restore();
     if (role != null) {
-      await session.login(email: 'ada@example.com', password: 'secret123');
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
       if (refreshError != null) {
         repository.refreshError = refreshError;
         await session.refreshAccessToken();

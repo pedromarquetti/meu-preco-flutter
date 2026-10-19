@@ -97,7 +97,7 @@ void main() {
       repository: repository,
       credentialStore: InMemoryCredentialStore(),
     );
-    await session.login(email: 'ada@example.com', password: 'secret123');
+    await session.login(identifier: 'ada@example.com', password: 'secret123');
 
     final gate = Completer<void>();
     repository.refreshGate = gate;

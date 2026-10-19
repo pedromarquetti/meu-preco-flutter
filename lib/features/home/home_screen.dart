@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 if (session.user != null) ...[
                   Text(
-                    '${strings.homeGreeting}, ${session.user!.email}',
+                    '${strings.homeGreeting}, ${session.user!.name}',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleMedium,
                   ),

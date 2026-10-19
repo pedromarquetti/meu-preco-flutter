@@ -105,7 +105,12 @@ class FakeAuthRepository implements AuthRepository {
     this.currentUserError,
   }) : user =
            user ??
-           const User(id: 1, email: 'user@example.com', role: UserRole.user);
+           const User(
+             id: 1,
+             name: 'Ada',
+             email: 'user@example.com',
+             role: UserRole.user,
+           );
 
   User user;
   Object? loginError;
@@ -134,16 +139,22 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthPair> login(Credentials credentials) async {
+  Future<AuthPair> login(LoginCredentials credentials) async {
     loginCalls++;
     if (loginError != null) throw loginError!;
     return _nextPair();
   }
 
   @override
-  Future<User> register(Credentials credentials) async {
+  Future<User> register(RegisterCredentials credentials) async {
     registerCalls++;
     if (registerError != null) throw registerError!;
+    user = User(
+      id: user.id,
+      name: credentials.name,
+      email: credentials.email,
+      role: UserRole.user,
+    );
     return user;
   }
 

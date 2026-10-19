@@ -20,59 +20,82 @@ void main() {
     return ApiAuthRepository(client: client);
   }
 
-  test('login posts credentials to /auth/login and decodes the pair', () async {
+  test(
+    'login posts the identifier to /auth/login and decodes the pair',
+    () async {
+      final requests = <http.Request>[];
+      final repository = repositoryWith((request) async {
+        requests.add(request);
+        return http.Response(
+          jsonEncode({
+            'access_token': 'access-1',
+            'refresh_token': 'refresh-1',
+            'user': {
+              'id': 1,
+              'name': 'Ada',
+              'email': 'ada@example.com',
+              'role': 'user',
+            },
+          }),
+          200,
+        );
+      });
+
+      final pair = await repository.login(
+        const LoginCredentials(login: 'Ada', password: 'secret123'),
+      );
+
+      expect(pair.accessToken, 'access-1');
+      expect(pair.refreshToken, 'refresh-1');
+      expect(pair.user.name, 'Ada');
+      expect(pair.user.email, 'ada@example.com');
+
+      expect(
+        requests.single.url.toString(),
+        'https://api.example.com/api/v1/auth/login',
+      );
+      expect(jsonDecode(requests.single.body), {
+        'login': 'Ada',
+        'password': 'secret123',
+      });
+    },
+  );
+
+  test('register posts name, email and password to /auth/register', () async {
     final requests = <http.Request>[];
     final repository = repositoryWith((request) async {
       requests.add(request);
       return http.Response(
         jsonEncode({
-          'access_token': 'access-1',
-          'refresh_token': 'refresh-1',
-          'user': {'id': 1, 'email': 'ada@example.com', 'role': 'user'},
+          'user': {
+            'id': 9,
+            'name': 'New User',
+            'email': 'new@example.com',
+            'role': 'user',
+          },
         }),
-        200,
+        201,
       );
     });
 
-    final pair = await repository.login(
-      const Credentials(email: 'ada@example.com', password: 'secret123'),
+    final user = await repository.register(
+      const RegisterCredentials(
+        name: 'New User',
+        email: 'new@example.com',
+        password: 'secret123',
+      ),
     );
 
-    expect(pair.accessToken, 'access-1');
-    expect(pair.refreshToken, 'refresh-1');
-    expect(pair.user.email, 'ada@example.com');
-
-    expect(
-      requests.single.url.toString(),
-      'https://api.example.com/api/v1/auth/login',
-    );
+    expect(user.id, 9);
+    expect(user.name, 'New User');
+    expect(user.email, 'new@example.com');
+    expect(user.role, UserRole.user);
     expect(jsonDecode(requests.single.body), {
-      'email': 'ada@example.com',
+      'name': 'New User',
+      'email': 'new@example.com',
       'password': 'secret123',
     });
   });
-
-  test(
-    'register posts to /auth/register and returns the created user',
-    () async {
-      final repository = repositoryWith(
-        (_) async => http.Response(
-          jsonEncode({
-            'user': {'id': 9, 'email': 'new@example.com', 'role': 'user'},
-          }),
-          201,
-        ),
-      );
-
-      final user = await repository.register(
-        const Credentials(email: 'new@example.com', password: 'secret123'),
-      );
-
-      expect(user.id, 9);
-      expect(user.email, 'new@example.com');
-      expect(user.role, UserRole.user);
-    },
-  );
 
   test(
     'refresh sends the refresh token and decodes the rotated pair',
@@ -135,7 +158,10 @@ void main() {
 
       await expectLater(
         repository.login(
-          const Credentials(email: 'ada@example.com', password: 'secret123'),
+          const LoginCredentials(
+            login: 'ada@example.com',
+            password: 'secret123',
+          ),
         ),
         throwsA(
           isA<UnauthorizedException>().having(

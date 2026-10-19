@@ -116,7 +116,12 @@ void main() {
       const StoredSession(
         accessToken: 'access-1',
         refreshToken: 'refresh-1',
-        user: User(id: 1, email: 'user@example.com', role: UserRole.user),
+        user: User(
+          id: 1,
+          name: 'Ada',
+          email: 'user@example.com',
+          role: UserRole.user,
+        ),
       ),
     );
     await pumpApp(tester, credentialStore: store, restore: true);
@@ -137,9 +142,59 @@ void main() {
     expect(find.text(_strings.scanReceiptAction), findsOneWidget);
     expect(find.text(_strings.searchProductAction), findsOneWidget);
     expect(
-      find.textContaining('${_strings.homeGreeting}, user@example.com'),
+      find.textContaining('${_strings.homeGreeting}, Ada'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('login accepts a display name instead of an email', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    await continueFromServer(tester);
+    await signIn(tester, email: 'Ada');
+
+    expect(find.text(_strings.homeTitle), findsOneWidget);
+  });
+
+  testWidgets('a restored session welcomes the user by name', (tester) async {
+    final store = InMemoryCredentialStore(
+      const StoredSession(
+        accessToken: 'access-1',
+        refreshToken: 'refresh-1',
+        user: User(
+          id: 1,
+          name: 'Ada Lovelace',
+          email: 'user@example.com',
+          role: UserRole.user,
+        ),
+      ),
+    );
+    await pumpApp(tester, credentialStore: store, restore: true);
+
+    await continueFromServer(tester);
+
+    expect(find.text('${_strings.homeGreeting}, Ada Lovelace'), findsOneWidget);
+  });
+
+  testWidgets('registration requires a name', (tester) async {
+    await pumpApp(tester);
+
+    await continueFromServer(tester);
+    await tester.tap(find.text(_strings.needAccountAction));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).at(1), 'new@example.com');
+    await tester.enterText(find.byType(TextFormField).at(2), 'secret123');
+    await tester.enterText(find.byType(TextFormField).at(3), 'secret123');
+    await tester.tap(
+      find.widgetWithText(FilledButton, _strings.createAccountAction),
+    );
+    await tester.pump();
+
+    expect(find.text(_strings.invalidNameError), findsOneWidget);
+    expect(find.text(_strings.homeTitle), findsNothing);
   });
 
   testWidgets('invalid credentials keep the user on login', (tester) async {
@@ -185,7 +240,12 @@ void main() {
 
   testWidgets('an admin can reach the admin screen', (tester) async {
     final repository = FakeAuthRepository(
-      user: const User(id: 1, email: 'admin@example.com', role: UserRole.admin),
+      user: const User(
+        id: 1,
+        name: 'Admin',
+        email: 'admin@example.com',
+        role: UserRole.admin,
+      ),
     );
     await pumpApp(tester, authRepository: repository);
 
@@ -222,9 +282,10 @@ void main() {
     await tester.tap(find.text(_strings.needAccountAction));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'new@example.com');
-    await tester.enterText(find.byType(TextFormField).at(1), 'secret123');
+    await tester.enterText(find.byType(TextFormField).at(0), 'New User');
+    await tester.enterText(find.byType(TextFormField).at(1), 'new@example.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'secret123');
+    await tester.enterText(find.byType(TextFormField).at(3), 'secret123');
     await tester.tap(
       find.widgetWithText(FilledButton, _strings.createAccountAction),
     );

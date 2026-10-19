@@ -155,9 +155,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 8),
                       Text(
                         '${strings.currentUserLabel}: '
-                        '${session.user?.email ?? strings.notAuthenticatedLabel}',
+                        '${session.user?.name ?? strings.notAuthenticatedLabel}',
                         style: theme.textTheme.bodyMedium,
                       ),
+                      if (session.user != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '${strings.emailLabel}: ${session.user!.email}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Text(
                         '${strings.roleLabel}: '
