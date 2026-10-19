@@ -340,6 +340,12 @@ abstract class AppLocalizations {
   /// **'Início'**
   String get homeTitle;
 
+  /// No description provided for @homeGreeting.
+  ///
+  /// In pt, this message translates to:
+  /// **'Bem-vindo(a) de volta'**
+  String get homeGreeting;
+
   /// No description provided for @scanReceiptAction.
   ///
   /// In pt, this message translates to:
@@ -393,6 +399,42 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Servidor'**
   String get settingsServerSection;
+
+  /// No description provided for @connectivitySection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conectividade'**
+  String get connectivitySection;
+
+  /// No description provided for @checkConnectivityAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verificar conexão'**
+  String get checkConnectivityAction;
+
+  /// No description provided for @healthStatusLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Servidor'**
+  String get healthStatusLabel;
+
+  /// No description provided for @readinessStatusLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Prontidão'**
+  String get readinessStatusLabel;
+
+  /// No description provided for @readinessHealthyLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pronto para uso'**
+  String get readinessHealthyLabel;
+
+  /// No description provided for @readinessUnavailableLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Indisponível'**
+  String get readinessUnavailableLabel;
 
   /// No description provided for @settingsResetToDefault.
   ///

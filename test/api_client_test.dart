@@ -8,14 +8,10 @@ import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/http/api_client.dart';
 
 void main() {
-  ApiClient clientWith(
-    MockClient mock, {
-    AccessTokenProvider? accessTokenProvider,
-  }) {
+  ApiClient clientWith(MockClient mock) {
     return ApiClient(
       configProvider: () => AppConfig.tryFromOrigin('https://api.example.com')!,
       httpClient: mock,
-      accessTokenProvider: accessTokenProvider,
     );
   }
 
@@ -54,12 +50,9 @@ void main() {
       return http.Response('{}', 200);
     });
 
-    await clientWith(
-      mock,
-      accessTokenProvider: () => 'access-1',
-    ).get('/auth/me');
-
-    expect(authorization, 'Bearer access-1');
+    // Authorization injection is now handled by AuthenticatedClient, not ApiClient.
+    await clientWith(mock).get('/auth/me');
+    expect(authorization, isNull);
   });
 
   test('does not override an explicit Authorization header', () async {
@@ -69,11 +62,8 @@ void main() {
       return http.Response('{}', 200);
     });
 
-    await clientWith(
-      mock,
-      accessTokenProvider: () => 'access-1',
-    ).get('/auth/me', headers: {'Authorization': 'Bearer manual'});
-
+    await clientWith(mock)
+        .get('/auth/me', headers: {'Authorization': 'Bearer manual'});
     expect(authorization, 'Bearer manual');
   });
 

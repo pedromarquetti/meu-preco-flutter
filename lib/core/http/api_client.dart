@@ -34,30 +34,18 @@ class ApiResponse {
   String toString() => 'ApiResponse($statusCode, data: $data)';
 }
 
-/// Supplies the current bearer access token, if any.
-///
-/// Wired in by the authenticated session layer; kept as a function so a single
-/// [ApiClient] can serve token rotations without being rebuilt.
-typedef AccessTokenProvider = String? Function();
-
 /// A small JSON HTTP pipeline for the Meu Preço API.
 ///
 /// It owns the mechanical parts of every request — base URL joining, the
-/// `/api/v1` prefix, request timeouts, bearer headers, JSON encoding/decoding,
+/// `/api/v1` prefix, request timeouts, JSON encoding/decoding,
 /// status-code handling, and mapping the `{error: {code, message}}` envelope to
 /// typed [AppException]s — so feature repositories only deal with data.
 class ApiClient {
-  ApiClient({
-    required ConfigProvider configProvider,
-    http.Client? httpClient,
-    AccessTokenProvider? accessTokenProvider,
-  }) : _configProvider = configProvider, // ignore: prefer_initializing_formals
-       // ignore: prefer_initializing_formals
-       _accessTokenProvider = accessTokenProvider,
-       _client = httpClient ?? http.Client();
+  ApiClient({required ConfigProvider configProvider, http.Client? httpClient})
+    : _configProvider = configProvider, // ignore: prefer_initializing_formals
+      _client = httpClient ?? http.Client();
 
   final ConfigProvider _configProvider;
-  final AccessTokenProvider? _accessTokenProvider;
   final http.Client _client;
 
   /// GET request; [useApiPrefix] selects `/api/v1` vs the origin root
@@ -191,14 +179,6 @@ class ApiClient {
       'Accept': 'application/json',
       ...?headers,
     };
-
-    final token = _accessTokenProvider?.call();
-    final hasAuthorization = requestHeaders.keys.any(
-      (key) => key.toLowerCase() == 'authorization',
-    );
-    if (!hasAuthorization && token != null && token.isNotEmpty) {
-      requestHeaders['Authorization'] = 'Bearer $token';
-    }
 
     try {
       final request = http.Request(method, uri);

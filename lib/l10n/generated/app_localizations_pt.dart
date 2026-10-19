@@ -140,6 +140,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeTitle => 'Início';
 
   @override
+  String get homeGreeting => 'Bem-vindo(a) de volta';
+
+  @override
   String get scanReceiptAction => 'Escanear NFC-e';
 
   @override
@@ -165,6 +168,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsServerSection => 'Servidor';
+
+  @override
+  String get connectivitySection => 'Conectividade';
+
+  @override
+  String get checkConnectivityAction => 'Verificar conexão';
+
+  @override
+  String get healthStatusLabel => 'Servidor';
+
+  @override
+  String get readinessStatusLabel => 'Prontidão';
+
+  @override
+  String get readinessHealthyLabel => 'Pronto para uso';
+
+  @override
+  String get readinessUnavailableLabel => 'Indisponível';
 
   @override
   String get settingsResetToDefault => 'Restaurar padrão';

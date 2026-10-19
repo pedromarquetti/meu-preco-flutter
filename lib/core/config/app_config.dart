@@ -105,9 +105,14 @@ class AppConfig {
     if (path == '/') path = '';
 
     final prefix = _normalizePrefix(apiPrefix);
-    if (prefix.isNotEmpty && (path == prefix || path.endsWith(prefix))) {
-      path = path.substring(0, path.length - prefix.length);
+    if (prefix.isNotEmpty) {
+      // Strip a trailing API prefix, repeatedly, so a pasted
+      // `.../api/v1/api/v1` never survives to be doubled by resolution.
+      while (path.endsWith(prefix)) {
+        path = path.substring(0, path.length - prefix.length);
+      }
     }
+
     while (path.length > 1 && path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }

@@ -29,6 +29,28 @@ void main() {
       );
     });
 
+    test('strips a prefix pasted more than once', () {
+      final config = AppConfig.tryFromOrigin(
+        'https://api.example.com/api/v1/api/v1',
+      );
+      expect(config!.apiOrigin.toString(), 'https://api.example.com');
+      expect(
+        config.resolveApi('/auth/login').toString(),
+        'https://api.example.com/api/v1/auth/login',
+      );
+    });
+
+    test('preserves a sub-path when stripping the prefix', () {
+      final config = AppConfig.tryFromOrigin(
+        'https://example.com/meupreco/api/v1',
+      );
+      expect(config!.apiOrigin.toString(), 'https://example.com/meupreco');
+      expect(
+        config.resolveApi('/products').toString(),
+        'https://example.com/meupreco/api/v1/products',
+      );
+    });
+
     test('preserves a deployment sub-path', () {
       final config = AppConfig.tryFromOrigin('https://example.com/meupreco');
       expect(config!.apiOrigin.toString(), 'https://example.com/meupreco');

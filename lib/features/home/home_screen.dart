@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/app_scope.dart';
 import '../../app/router.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final session = context.authSession;
     final width = MediaQuery.sizeOf(context).width;
     final isWide = width >= 720;
 
@@ -24,11 +26,12 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push(AppRoutes.settings),
           ),
-          IconButton(
-            tooltip: strings.adminTitle,
-            icon: const Icon(Icons.admin_panel_settings_outlined),
-            onPressed: () => context.push(AppRoutes.admin),
-          ),
+          if (session.isAdmin)
+            IconButton(
+              tooltip: strings.adminTitle,
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              onPressed: () => context.push(AppRoutes.admin),
+            ),
         ],
       ),
       body: Center(
@@ -40,6 +43,14 @@ class HomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (session.user != null) ...[
+                  Text(
+                    '${strings.homeGreeting}, ${session.user!.email}',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 24),
+                ],
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 16,

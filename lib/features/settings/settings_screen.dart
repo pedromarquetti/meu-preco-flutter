@@ -21,7 +21,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _controller;
   final _formKey = GlobalKey<FormState>();
   bool _busy = false;
+  bool _checking = false;
   ServerHealthResult? _result;
+  ServerHealthResult? _health;
+  ServerHealthResult? _readiness;
 
   @override
   void initState() {
@@ -76,6 +79,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _controller.text = deps.config.apiOrigin.toString();
     setState(() {
       _result = const ServerHealthResult.ok();
+      _health = null;
+      _readiness = null;
+    });
+  }
+
+  /// Probes both `/healthz` (liveness) and `/readyz` (readiness) for the
+  /// address currently typed, without saving it.
+  Future<void> _checkConnectivity() async {
+    final deps = context.appDependencies;
+    setState(() {
+      _checking = true;
+      _health = null;
+      _readiness = null;
+    });
+    final health = await deps.healthChecker.check(_controller.text);
+    final readiness = await deps.healthChecker.checkReadiness(_controller.text);
+    if (!mounted) return;
+    setState(() {
+      _checking = false;
+      _health = health;
+      _readiness = readiness;
     });
   }
 
@@ -184,6 +208,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        strings.connectivitySection,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      if (_health != null || _readiness != null) ...[
+                        const SizedBox(height: 12),
+                        if (_health != null)
+                          _StatusRow(
+                            label: strings.healthStatusLabel,
+                            ok: _health!.ok,
+                            text: _messageFor(strings, _health!),
+                          ),
+                        if (_readiness != null) ...[
+                          const SizedBox(height: 8),
+                          _StatusRow(
+                            label: strings.readinessStatusLabel,
+                            ok: _readiness!.ok,
+                            text: _readiness!.ok
+                                ? strings.readinessHealthyLabel
+                                : strings.readinessUnavailableLabel,
+                          ),
+                        ],
+                      ],
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: _busy || _checking
+                              ? null
+                              : _checkConnectivity,
+                          icon: _checking
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.wifi_tethering),
+                          label: Text(strings.checkConnectivityAction),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               Form(
                 key: _formKey,
                 child: TextFormField(
@@ -262,6 +339,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.label, required this.ok, required this.text});
+
+  final String label;
+  final bool ok;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = ok ? theme.colorScheme.primary : theme.colorScheme.error;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          ok ? Icons.check_circle_outline : Icons.error_outline,
+          color: color,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            '$label: $text',
+            style: theme.textTheme.bodyMedium?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 }

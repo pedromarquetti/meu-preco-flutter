@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/app/app.dart';
+import 'package:meu_preco_frontend/core/config/app_config_controller.dart';
 import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/http/server_health_service.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
@@ -78,6 +79,23 @@ void main() {
     expect(find.text(_strings.loginTitle), findsNothing);
   });
 
+  testWidgets('a persisted server origin is restored on cold boot', (
+    tester,
+  ) async {
+    final store = InMemoryKeyValueStore();
+    await store.writeString(
+      AppConfigController.apiOriginKey,
+      'https://saved.example.com',
+    );
+    final dependencies = buildTestDependencies(store: store);
+    await dependencies.configController.load();
+
+    await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
+    await tester.pumpAndSettle();
+
+    expect(find.text('https://saved.example.com'), findsOneWidget);
+  });
+
   testWidgets('invalid server address is rejected locally', (tester) async {
     final health = FakeServerHealthChecker();
     await pumpApp(tester, healthChecker: health);
@@ -118,6 +136,10 @@ void main() {
     expect(find.text(_strings.homeTitle), findsOneWidget);
     expect(find.text(_strings.scanReceiptAction), findsOneWidget);
     expect(find.text(_strings.searchProductAction), findsOneWidget);
+    expect(
+      find.textContaining('${_strings.homeGreeting}, user@example.com'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('invalid credentials keep the user on login', (tester) async {
@@ -151,15 +173,13 @@ void main() {
     expect(find.text(_strings.homeTitle), findsNothing);
   });
 
-  testWidgets('a non-admin cannot reach the admin screen', (tester) async {
+  testWidgets('a non-admin does not see the admin entry', (tester) async {
     await pumpApp(tester);
 
     await continueFromServer(tester);
     await signIn(tester);
-    await tester.tap(find.byTooltip(_strings.adminTitle));
-    await tester.pumpAndSettle();
 
-    expect(find.text(_strings.adminTitle), findsNothing);
+    expect(find.byTooltip(_strings.adminTitle), findsNothing);
     expect(find.text(_strings.homeTitle), findsOneWidget);
   });
 
