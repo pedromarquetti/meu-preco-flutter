@@ -72,7 +72,10 @@ class ApiAdminRepository implements AdminRepository {
 
   @override
   Future<ProductView> updateProduct(int id, ProductPatch patch) async {
-    final data = await client.patch('/admin/products/$id', body: patch.toJson());
+    final data = await client.patch(
+      '/admin/products/$id',
+      body: patch.toJson(),
+    );
     return ProductView.fromJson(_asObject(data));
   }
 
