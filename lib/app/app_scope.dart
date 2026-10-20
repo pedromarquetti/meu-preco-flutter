@@ -6,6 +6,7 @@ import '../core/config/app_config_controller.dart';
 import '../features/auth/auth_session.dart';
 import '../features/nfce/code_scanner.dart';
 import '../features/nfce/data/nfce_repository.dart';
+import '../features/products/data/product_repository.dart';
 import 'app_dependencies.dart';
 
 /// Convenience accessors for the app's dependency graph.
@@ -24,6 +25,10 @@ extension AppScope on BuildContext {
 
   /// NFC-e ingestion operations.
   NfceRepository get nfceRepository => appDependencies.nfceRepository;
+
+  /// Product catalog search and price history.
+  ProductRepository get productsRepository =>
+      appDependencies.productsRepository;
 
   /// Platform seam for camera QR scanning.
   CodeScanner get codeScanner => appDependencies.codeScanner;

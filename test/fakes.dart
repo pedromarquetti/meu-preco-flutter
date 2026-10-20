@@ -10,6 +10,7 @@ import 'package:meu_preco_frontend/core/storage/key_value_store.dart';
 import 'package:meu_preco_frontend/features/auth/data/auth_repository.dart';
 import 'package:meu_preco_frontend/features/nfce/code_scanner.dart';
 import 'package:meu_preco_frontend/features/nfce/data/nfce_repository.dart';
+import 'package:meu_preco_frontend/features/products/data/product_repository.dart';
 
 /// In-memory [KeyValueStore] so tests never touch platform storage.
 class InMemoryKeyValueStore implements KeyValueStore {
@@ -388,4 +389,171 @@ class FakeCodeScanner implements CodeScanner {
     if (error != null) throw error!;
     return payload;
   }
+}
+
+/// Scriptable [ProductRepository] for catalog and history tests.
+class FakeProductRepository implements ProductRepository {
+  ProductPage? searchResult;
+  ProductView? detailResult;
+  ProductHistory? historyResult;
+
+  Object? searchError;
+  Object? detailError;
+  Object? historyError;
+
+  FutureOr<ProductPage> Function(int page, String? q)? searchHandler;
+  FutureOr<ProductHistory> Function(DateTime? from, DateTime? to)?
+  historyHandler;
+
+  int searchCalls = 0;
+  int detailCalls = 0;
+  int historyCalls = 0;
+
+  final List<
+    ({
+      String? q,
+      String? gtin,
+      String? unit,
+      String? brand,
+      int page,
+      int limit,
+    })
+  >
+  searchRequests =
+      <
+        ({
+          String? q,
+          String? gtin,
+          String? unit,
+          String? brand,
+          int page,
+          int limit,
+        })
+      >[];
+  final List<({int id, DateTime? from, DateTime? to})> historyRequests =
+      <({int id, DateTime? from, DateTime? to})>[];
+  final List<int> detailRequests = <int>[];
+
+  @override
+  Future<ProductPage> search({
+    String? q,
+    String? gtin,
+    String? unit,
+    String? brand,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    searchCalls++;
+    searchRequests.add((
+      q: q,
+      gtin: gtin,
+      unit: unit,
+      brand: brand,
+      page: page,
+      limit: limit,
+    ));
+    if (searchError != null) throw searchError!;
+    final handler = searchHandler;
+    if (handler != null) return await handler(page, q);
+    return searchResult ?? ProductPage(items: const [], page: const Page());
+  }
+
+  @override
+  Future<ProductView> detail(int id) async {
+    detailCalls++;
+    detailRequests.add(id);
+    if (detailError != null) throw detailError!;
+    return detailResult ?? sampleProduct(id: id);
+  }
+
+  @override
+  Future<ProductHistory> history(int id, {DateTime? from, DateTime? to}) async {
+    historyCalls++;
+    historyRequests.add((id: id, from: from, to: to));
+    if (historyError != null) throw historyError!;
+    final handler = historyHandler;
+    if (handler != null) return await handler(from, to);
+    return historyResult ?? sampleHistory();
+  }
+}
+
+ProductView sampleProduct({
+  int? id = 1,
+  String? name = 'Arroz Tipo 1 5kg',
+  String? brand = 'Marca Boa',
+  String? unit = 'kg',
+  String? gtin = '7891234567890',
+}) => ProductView(
+  id: id,
+  productKey: 'rice-5kg',
+  gtin: gtin,
+  name: name,
+  brand: brand,
+  unit: unit,
+  canonicalStem: 'arroz',
+  createdAt: DateTime.utc(2025, 1, 1),
+);
+
+PricePointView samplePricePoint({
+  String? price = '5.49',
+  String? total = '27.45',
+  String? qty = '5',
+  String? unit = 'kg',
+  String? supermarketName = 'Mercado Central',
+  DateTime? loggedAt,
+  DateTime? issuedAt,
+  String? accessKey,
+}) => PricePointView(
+  accessKey: accessKey ?? kSampleAccessKey,
+  supermarket: SupermarketRef(id: 1, cnpj: '123', legalName: supermarketName),
+  line: 1,
+  qty: qty == null ? null : Decimal(qty),
+  unit: unit,
+  normalizedUnit: unit,
+  pricePerUnit: price == null ? null : Decimal(price),
+  comparableUnit: unit,
+  comparablePricePerUnit: price == null ? null : Decimal(price),
+  unitPrice: price == null ? null : Decimal(price),
+  totalPrice: total == null ? null : Decimal(total),
+  issuedAt: issuedAt ?? DateTime.utc(2025, 2, 1),
+  loggedAt: loggedAt ?? DateTime.utc(2025, 2, 2),
+);
+
+ProductHistory sampleHistory({
+  ProductView? product,
+  List<PricePointView>? points,
+  List<UnitStats>? aggregate,
+}) {
+  final resolvedPoints =
+      points ??
+      <PricePointView>[
+        samplePricePoint(
+          price: '4.99',
+          loggedAt: DateTime.utc(2025, 1, 10),
+          issuedAt: DateTime.utc(2025, 1, 9),
+        ),
+        samplePricePoint(
+          price: '5.49',
+          loggedAt: DateTime.utc(2025, 2, 10),
+          issuedAt: DateTime.utc(2025, 2, 9),
+        ),
+      ];
+  return ProductHistory(
+    product: product ?? sampleProduct(),
+    from: DateTime.utc(2025, 1, 1),
+    to: DateTime.utc(2025, 12, 31),
+    points: resolvedPoints,
+    aggregate:
+        aggregate ??
+        const <UnitStats>[
+          UnitStats(
+            unit: 'kg',
+            count: 2,
+            min: Decimal('4.99'),
+            avg: Decimal('5.24'),
+            max: Decimal('5.49'),
+            last: Decimal('5.49'),
+          ),
+        ],
+  );
 }

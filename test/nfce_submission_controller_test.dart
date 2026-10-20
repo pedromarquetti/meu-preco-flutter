@@ -209,4 +209,53 @@ void main() {
     expect(controller.deletion, isNotNull);
     expect(controller.stage, NfceStage.input);
   });
+
+  group('product assignment', () {
+    test(
+      'assigning a product sends an assign resolution with its id',
+      () async {
+        final repository = FakeNfceRepository();
+        final controller = NfceSubmissionController(repository: repository);
+        await controller.start(accessKeyInput());
+        final product = sampleProduct(id: 42, name: 'Arroz 5kg');
+
+        controller.assignProduct(2, product);
+        await controller.submit(confirm: true);
+
+        expect(controller.assignmentFor(2), same(product));
+        expect(controller.resolutionFor(2).action, ResolutionAction.assign);
+        final resolutions = repository.submitRequests.single.resolutions;
+        expect(resolutions, hasLength(1));
+        expect(resolutions.single.line, 2);
+        expect(resolutions.single.action, ResolutionAction.assign);
+        expect(resolutions.single.productId, 42);
+      },
+    );
+
+    test('switching back to review clears the assigned product', () async {
+      final controller = NfceSubmissionController(
+        repository: FakeNfceRepository(),
+      );
+      await controller.start(accessKeyInput());
+      controller.assignProduct(2, sampleProduct(id: 42));
+
+      controller.setResolution(2, ResolutionAction.needsReview);
+
+      expect(controller.assignmentFor(2), isNull);
+      expect(controller.resolutionFor(2).action, ResolutionAction.needsReview);
+      expect(controller.resolutionFor(2).productId, isNull);
+    });
+
+    test('ignores products without an id', () async {
+      final controller = NfceSubmissionController(
+        repository: FakeNfceRepository(),
+      );
+      await controller.start(accessKeyInput());
+
+      controller.assignProduct(2, sampleProduct(id: null));
+
+      expect(controller.assignmentFor(2), isNull);
+      expect(controller.resolutionFor(2).action, ResolutionAction.needsReview);
+    });
+  });
 }

@@ -24,6 +24,7 @@ CaptchaChallenge _challenge() => const CaptchaChallenge(
 Future<void> pumpScreen(
   WidgetTester tester, {
   FakeNfceRepository? repository,
+  FakeProductRepository? productsRepository,
   CodeScanner? scanner,
   NfceEntryMode mode = NfceEntryMode.scan,
 }) async {
@@ -32,6 +33,7 @@ Future<void> pumpScreen(
   addTearDown(tester.view.reset);
   final dependencies = buildTestDependencies(
     nfceRepository: repository,
+    productsRepository: productsRepository,
     codeScanner: scanner,
   );
   await tester.pumpWidget(
@@ -246,5 +248,51 @@ void main() {
     expect(repository.deleteCalls, 1);
     expect(find.text(_strings.deleteReceiptSuccessMessage), findsOneWidget);
     expect(find.text(_strings.continueAction), findsOneWidget);
+  });
+
+  testWidgets('assigning a product to an uncertain line submits an assign '
+      'resolution', (tester) async {
+    final repository = FakeNfceRepository();
+    final products = FakeProductRepository()
+      ..searchResult = ProductPage(
+        items: [sampleProduct(id: 42, name: 'Arroz Tipo 1 5kg')],
+      );
+    await pumpScreen(
+      tester,
+      repository: repository,
+      productsRepository: products,
+      mode: NfceEntryMode.key,
+    );
+
+    await tester.enterText(find.byType(TextField), kSampleAccessKey);
+    await tapContinue(tester);
+    expect(find.text('Item sem código'), findsOneWidget);
+
+    await tester.tap(
+      find.widgetWithText(ChoiceChip, _strings.resolutionAssignAction),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(_strings.productPickerTitle), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text,
+      'Item sem código',
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(products.searchRequests.single.q, 'Item sem código');
+
+    await tester.tap(find.text('Arroz Tipo 1 5kg'));
+    await tester.pumpAndSettle();
+    expect(find.text('Arroz Tipo 1 5kg'), findsOneWidget);
+
+    await tester.tap(find.text(_strings.submitConfirmAction));
+    await tester.pumpAndSettle();
+
+    final resolutions = repository.submitRequests.single.resolutions;
+    expect(resolutions, hasLength(1));
+    expect(resolutions.single.line, 2);
+    expect(resolutions.single.action, ResolutionAction.assign);
+    expect(resolutions.single.productId, 42);
   });
 }

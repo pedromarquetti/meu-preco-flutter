@@ -16,6 +16,7 @@ import '../features/auth/auth_session.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/nfce/code_scanner.dart';
 import '../features/nfce/data/nfce_repository.dart';
+import '../features/products/data/product_repository.dart';
 
 /// Composition root for the app.
 ///
@@ -30,6 +31,7 @@ class AppDependencies {
     AuthRepository? authRepository,
     ServerHealthChecker? healthChecker,
     NfceRepository? nfceRepository,
+    ProductRepository? productsRepository,
     CodeScanner? codeScanner,
     http.Client? httpClient,
   }) {
@@ -61,6 +63,8 @@ class AppDependencies {
       authSession: authSession,
       apiClient: apiClient,
       nfceRepository: nfceRepository ?? ApiNfceRepository(client: apiClient),
+      productsRepository:
+          productsRepository ?? ApiProductRepository(client: apiClient),
       codeScanner: codeScanner ?? const UnavailableCodeScanner(),
       healthChecker:
           healthChecker ?? HttpServerHealthChecker(apiClient: transportApi),
@@ -75,6 +79,7 @@ class AppDependencies {
     required this.authSession,
     required this.apiClient,
     required this.nfceRepository,
+    required this.productsRepository,
     required this.codeScanner,
     required this.healthChecker,
   }) : _rawClient = rawClient; // ignore: prefer_initializing_formals
@@ -93,10 +98,32 @@ class AppDependencies {
   /// NFC-e ingestion operations.
   final NfceRepository nfceRepository;
 
+  /// Product catalog search and price history.
+  final ProductRepository productsRepository;
+
   /// Platform seam for camera QR scanning.
   final CodeScanner codeScanner;
 
   final ServerHealthChecker healthChecker;
+
+  /// Health-check outcome for the saved server, captured at boot.
+  ///
+  /// Non-null means the configured origin did not answer `/healthz`, so the app
+  /// falls back to the server selection screen instead of loading a session
+  /// against a host that is gone. Cleared as soon as a server connects again.
+  ServerHealthResult? serverGate;
+
+  /// Confirms the configured origin answers `/healthz`.
+  ///
+  /// Does nothing when no origin has been chosen yet: the server selection
+  /// screen is the entry point in that case.
+  Future<void> verifyServer() async {
+    if (!configController.isConfiguredByUser) return;
+    final result = await healthChecker.check(
+      configController.config.apiOrigin.toString(),
+    );
+    serverGate = result.ok ? null : result;
+  }
 
   /// The currently active configuration.
   AppConfig get config => configController.config;
@@ -116,6 +143,7 @@ class AppDependencies {
       configController: configController,
       credentialStore: SecureCredentialStore.create(),
     );
+    await dependencies.verifyServer();
     await dependencies.authSession.restore();
     // Confirm the restored session in the background; the optimistic state is
     // enough to render and route the first frame.

@@ -79,7 +79,7 @@ void main() {
     expect(find.text(_strings.loginTitle), findsNothing);
   });
 
-  testWidgets('a persisted server origin is restored on cold boot', (
+  testWidgets('a persisted server origin skips the server selection screen', (
     tester,
   ) async {
     final store = InMemoryKeyValueStore();
@@ -93,7 +93,68 @@ void main() {
     await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
     await tester.pumpAndSettle();
 
-    expect(find.text('https://saved.example.com'), findsOneWidget);
+    expect(
+      dependencies.configController.config.apiOrigin.toString(),
+      'https://saved.example.com',
+    );
+    expect(find.text(_strings.serverConfigTitle), findsNothing);
+    expect(find.text(_strings.loginTitle), findsOneWidget);
+  });
+
+  testWidgets(
+    'a saved server that fails its health check returns to the server selection screen',
+    (tester) async {
+      final store = InMemoryKeyValueStore();
+      await store.writeString(
+        AppConfigController.apiOriginKey,
+        'https://saved.example.com',
+      );
+      final dependencies = buildTestDependencies(store: store);
+      await dependencies.configController.load();
+      dependencies.serverGate = const ServerHealthResult.failed(
+        errorCode: 'unreachable',
+      );
+
+      await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
+      await tester.pumpAndSettle();
+
+      expect(find.text(_strings.serverConfigTitle), findsOneWidget);
+      expect(find.text('https://saved.example.com'), findsOneWidget);
+      expect(find.text(_strings.serverConnectionFailure), findsOneWidget);
+    },
+  );
+
+  testWidgets('a restored session on a reachable server boots into home', (
+    tester,
+  ) async {
+    final store = InMemoryKeyValueStore();
+    await store.writeString(
+      AppConfigController.apiOriginKey,
+      'https://saved.example.com',
+    );
+    final dependencies = buildTestDependencies(
+      store: store,
+      credentialStore: InMemoryCredentialStore(
+        const StoredSession(
+          accessToken: 'access-1',
+          refreshToken: 'refresh-1',
+          user: User(
+            id: 1,
+            name: 'Ada',
+            email: 'user@example.com',
+            role: UserRole.user,
+          ),
+        ),
+      ),
+    );
+    await dependencies.configController.load();
+    await dependencies.authSession.restore();
+
+    await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_strings.homeTitle), findsOneWidget);
+    expect(find.text(_strings.serverConfigTitle), findsNothing);
   });
 
   testWidgets('invalid server address is rejected locally', (tester) async {

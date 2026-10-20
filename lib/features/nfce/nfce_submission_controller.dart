@@ -34,6 +34,7 @@ class NfceSubmissionController extends ChangeNotifier {
   AppException? _error;
   bool _busy = false;
   final Map<int, Resolution> _resolutions = <int, Resolution>{};
+  final Map<int, ProductView> _assignments = <int, ProductView>{};
 
   NfceStage get stage => _stage;
   NfceInput? get input => _input;
@@ -58,6 +59,9 @@ class NfceSubmissionController extends ChangeNotifier {
   Resolution resolutionFor(int line) =>
       _resolutions[line] ??
       Resolution(line: line, action: ResolutionAction.needsReview);
+
+  /// The product assigned to an uncertain [line], when one was selected.
+  ProductView? assignmentFor(int line) => _assignments[line];
 
   /// The per-line resolutions sent with a submit, one per uncertain line.
   List<Resolution> get resolutions =>
@@ -199,6 +203,25 @@ class NfceSubmissionController extends ChangeNotifier {
       action: action,
       productId: productId,
     );
+    if (action != ResolutionAction.assign) {
+      _assignments.remove(line);
+    }
+    notifyListeners();
+  }
+
+  /// Links an existing catalog product to an uncertain [line].
+  ///
+  /// Products without an id cannot be assigned: the server requires a positive
+  /// `product_id` for an `assign` resolution.
+  void assignProduct(int line, ProductView product) {
+    final id = product.id;
+    if (id == null || id <= 0) return;
+    _assignments[line] = product;
+    _resolutions[line] = Resolution(
+      line: line,
+      action: ResolutionAction.assign,
+      productId: id,
+    );
     notifyListeners();
   }
 
@@ -237,6 +260,7 @@ class NfceSubmissionController extends ChangeNotifier {
     _captchaFeedback = null;
     _challenge = null;
     _resolutions.clear();
+    _assignments.clear();
     for (final item in preview.items) {
       if (item.status == PreviewItemStatus.uidUncertain) {
         _resolutions[item.line] = Resolution(
@@ -278,6 +302,7 @@ class NfceSubmissionController extends ChangeNotifier {
     _deletion = null;
     _error = null;
     _resolutions.clear();
+    _assignments.clear();
   }
 
   void _setBusy(bool value) {

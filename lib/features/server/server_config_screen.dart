@@ -31,6 +31,8 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
     _controller = TextEditingController(
       text: context.appDependencies.config.apiOrigin.toString(),
     );
+    // Surface a saved server that failed its boot-time health check.
+    _result = context.appDependencies.serverGate;
   }
 
   @override
@@ -79,6 +81,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
       return;
     }
     await deps.configController.saveOrigin(_controller.text);
+    deps.serverGate = null;
     if (!mounted) return;
     setState(() => _busy = false);
     context.go(AppRoutes.login);

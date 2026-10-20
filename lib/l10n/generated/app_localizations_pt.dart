@@ -170,6 +170,106 @@ class AppLocalizationsPt extends AppLocalizations {
   String get productDetailTitle => 'Produto';
 
   @override
+  String get productSearchHint => 'Nome, GTIN ou marca';
+
+  @override
+  String get productSearchPrompt => 'Digite para buscar produtos';
+
+  @override
+  String get productSearchNoResults => 'Nenhum produto encontrado';
+
+  @override
+  String get productSearchLoading => 'Buscando produtos';
+
+  @override
+  String get productBrandLabel => 'Marca';
+
+  @override
+  String get productGtinLabel => 'GTIN';
+
+  @override
+  String get productUnitLabel => 'Unidade';
+
+  @override
+  String get productNotFound => 'Produto não encontrado.';
+
+  @override
+  String get productHistoryTitle => 'Histórico de preços';
+
+  @override
+  String get productHistoryEmpty => 'Sem histórico de preços';
+
+  @override
+  String get productHistoryFromLabel => 'De';
+
+  @override
+  String get productHistoryToLabel => 'Até';
+
+  @override
+  String get productHistoryClearRangeAction => 'Limpar período';
+
+  @override
+  String get productHistoryApplyRangeAction => 'Aplicar';
+
+  @override
+  String get productSupermarketLabel => 'Mercado';
+
+  @override
+  String get productLoggedAtLabel => 'Data';
+
+  @override
+  String get productQtyLabel => 'Quantidade';
+
+  @override
+  String get productPricePerUnitLabel => 'Preço por unidade';
+
+  @override
+  String get productUnitPriceLabel => 'Preço da unidade';
+
+  @override
+  String get productTotalPriceLabel => 'Total';
+
+  @override
+  String get productAggregateTitle => 'Resumo por unidade';
+
+  @override
+  String get productAggregateCountLabel => 'Registros';
+
+  @override
+  String get productAggregateMinLabel => 'Mínimo';
+
+  @override
+  String get productAggregateAvgLabel => 'Média';
+
+  @override
+  String get productAggregateMaxLabel => 'Máximo';
+
+  @override
+  String get productAggregateLastLabel => 'Último';
+
+  @override
+  String get invalidDateRangeError =>
+      'A data inicial deve ser anterior ou igual à final.';
+
+  @override
+  String get productPriceGraphLabel => 'Evolução do preço';
+
+  @override
+  String get priceChartTooShort =>
+      'Histórico curto demais para montar o gráfico.';
+
+  @override
+  String get priceChartMinLabel => 'Mínimo';
+
+  @override
+  String get priceChartMaxLabel => 'Máximo';
+
+  @override
+  String priceChartSemantics(String min, String max, String unit) {
+    return 'Gráfico de preços de $min a $max por $unit.';
+  }
+
+  @override
   String get supermarketsTitle => 'Supermercados';
 
   @override
@@ -386,6 +486,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get resolutionSkipAction => 'Ignorar';
+
+  @override
+  String get resolutionAssignAction => 'Vincular produto';
+
+  @override
+  String get assignedProductLabel => 'Produto vinculado';
+
+  @override
+  String get changeProductAction => 'Trocar';
+
+  @override
+  String get clearProductAction => 'Remover vínculo';
+
+  @override
+  String get productPickerTitle => 'Selecionar produto';
 
   @override
   String get submitDryRunAction => 'Simular envio';

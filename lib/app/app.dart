@@ -22,6 +22,11 @@ class MeuPrecoApp extends StatefulWidget {
 class _MeuPrecoAppState extends State<MeuPrecoApp> {
   late final GoRouter _router = createRouter(
     authSession: widget.dependencies.authSession,
+    initialLocation: bootLocation(
+      serverConfigured: widget.dependencies.configController.isConfiguredByUser,
+      serverUnreachable: widget.dependencies.serverGate != null,
+      authenticated: widget.dependencies.authSession.isAuthenticated,
+    ),
   );
 
   @override

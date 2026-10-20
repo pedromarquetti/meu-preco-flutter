@@ -400,6 +400,198 @@ abstract class AppLocalizations {
   /// **'Produto'**
   String get productDetailTitle;
 
+  /// No description provided for @productSearchHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome, GTIN ou marca'**
+  String get productSearchHint;
+
+  /// No description provided for @productSearchPrompt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Digite para buscar produtos'**
+  String get productSearchPrompt;
+
+  /// No description provided for @productSearchNoResults.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum produto encontrado'**
+  String get productSearchNoResults;
+
+  /// No description provided for @productSearchLoading.
+  ///
+  /// In pt, this message translates to:
+  /// **'Buscando produtos'**
+  String get productSearchLoading;
+
+  /// No description provided for @productBrandLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Marca'**
+  String get productBrandLabel;
+
+  /// No description provided for @productGtinLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'GTIN'**
+  String get productGtinLabel;
+
+  /// No description provided for @productUnitLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Unidade'**
+  String get productUnitLabel;
+
+  /// No description provided for @productNotFound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Produto não encontrado.'**
+  String get productNotFound;
+
+  /// No description provided for @productHistoryTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico de preços'**
+  String get productHistoryTitle;
+
+  /// No description provided for @productHistoryEmpty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem histórico de preços'**
+  String get productHistoryEmpty;
+
+  /// No description provided for @productHistoryFromLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'De'**
+  String get productHistoryFromLabel;
+
+  /// No description provided for @productHistoryToLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Até'**
+  String get productHistoryToLabel;
+
+  /// No description provided for @productHistoryClearRangeAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar período'**
+  String get productHistoryClearRangeAction;
+
+  /// No description provided for @productHistoryApplyRangeAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aplicar'**
+  String get productHistoryApplyRangeAction;
+
+  /// No description provided for @productSupermarketLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mercado'**
+  String get productSupermarketLabel;
+
+  /// No description provided for @productLoggedAtLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data'**
+  String get productLoggedAtLabel;
+
+  /// No description provided for @productQtyLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quantidade'**
+  String get productQtyLabel;
+
+  /// No description provided for @productPricePerUnitLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preço por unidade'**
+  String get productPricePerUnitLabel;
+
+  /// No description provided for @productUnitPriceLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preço da unidade'**
+  String get productUnitPriceLabel;
+
+  /// No description provided for @productTotalPriceLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total'**
+  String get productTotalPriceLabel;
+
+  /// No description provided for @productAggregateTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resumo por unidade'**
+  String get productAggregateTitle;
+
+  /// No description provided for @productAggregateCountLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registros'**
+  String get productAggregateCountLabel;
+
+  /// No description provided for @productAggregateMinLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mínimo'**
+  String get productAggregateMinLabel;
+
+  /// No description provided for @productAggregateAvgLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Média'**
+  String get productAggregateAvgLabel;
+
+  /// No description provided for @productAggregateMaxLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Máximo'**
+  String get productAggregateMaxLabel;
+
+  /// No description provided for @productAggregateLastLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Último'**
+  String get productAggregateLastLabel;
+
+  /// No description provided for @invalidDateRangeError.
+  ///
+  /// In pt, this message translates to:
+  /// **'A data inicial deve ser anterior ou igual à final.'**
+  String get invalidDateRangeError;
+
+  /// No description provided for @productPriceGraphLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Evolução do preço'**
+  String get productPriceGraphLabel;
+
+  /// No description provided for @priceChartTooShort.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico curto demais para montar o gráfico.'**
+  String get priceChartTooShort;
+
+  /// No description provided for @priceChartMinLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mínimo'**
+  String get priceChartMinLabel;
+
+  /// No description provided for @priceChartMaxLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Máximo'**
+  String get priceChartMaxLabel;
+
+  /// No description provided for @priceChartSemantics.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gráfico de preços de {min} a {max} por {unit}.'**
+  String priceChartSemantics(String min, String max, String unit);
+
   /// No description provided for @supermarketsTitle.
   ///
   /// In pt, this message translates to:
@@ -813,6 +1005,36 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Ignorar'**
   String get resolutionSkipAction;
+
+  /// No description provided for @resolutionAssignAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vincular produto'**
+  String get resolutionAssignAction;
+
+  /// No description provided for @assignedProductLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Produto vinculado'**
+  String get assignedProductLabel;
+
+  /// No description provided for @changeProductAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Trocar'**
+  String get changeProductAction;
+
+  /// No description provided for @clearProductAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Remover vínculo'**
+  String get clearProductAction;
+
+  /// No description provided for @productPickerTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecionar produto'**
+  String get productPickerTitle;
 
   /// No description provided for @submitDryRunAction.
   ///

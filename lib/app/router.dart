@@ -44,9 +44,12 @@ abstract final class AppRoutes {
 /// before showing authenticated screens. [authSession] drives the redirect
 /// guards, so reaching a protected route without a valid session is impossible
 /// through navigation or a deep link.
-GoRouter createRouter({required AuthSession authSession}) {
+GoRouter createRouter({
+  required AuthSession authSession,
+  String initialLocation = AppRoutes.server,
+}) {
   return GoRouter(
-    initialLocation: AppRoutes.server,
+    initialLocation: initialLocation,
     refreshListenable: authSession,
     redirect: (context, state) =>
         authRedirect(authSession, state.matchedLocation),
@@ -108,6 +111,20 @@ GoRouter createRouter({required AuthSession authSession}) {
       ),
     ],
   );
+}
+
+/// Resolves the cold-boot entry point.
+///
+/// A configured server that answers `/healthz` skips selection entirely;
+/// anything else (fresh install, or a saved origin that no longer responds)
+/// opens the server screen so the user can fix it.
+String bootLocation({
+  required bool serverConfigured,
+  required bool serverUnreachable,
+  required bool authenticated,
+}) {
+  if (!serverConfigured || serverUnreachable) return AppRoutes.server;
+  return authenticated ? AppRoutes.home : AppRoutes.login;
 }
 
 /// Resolves where a given [location] should be sent for the current session.

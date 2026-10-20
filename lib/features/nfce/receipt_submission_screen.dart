@@ -10,6 +10,7 @@ import 'nfce_entry_mode.dart';
 import 'nfce_error_messages.dart';
 import 'nfce_input.dart';
 import 'nfce_submission_controller.dart';
+import 'widgets/product_picker_sheet.dart';
 
 /// NFC-e ingestion flow: capture an identifier, draft the receipt, clear any
 /// captcha, review the plan, then dry-run or commit it.
@@ -364,9 +365,15 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
                   strings: strings,
                   item: item,
                   resolution: _controller.resolutionFor(item.line),
+                  assignedProduct: _controller.assignmentFor(item.line),
                   enabled: !_controller.busy,
                   onResolution: (action) =>
                       _controller.setResolution(item.line, action),
+                  onAssign: () => _pickProduct(item),
+                  onClearAssignment: () => _controller.setResolution(
+                    item.line,
+                    ResolutionAction.needsReview,
+                  ),
                 ),
               if (dryRun != null) ...[
                 const SizedBox(height: 16),
@@ -378,6 +385,15 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
         _previewActions(strings, expired),
       ],
     );
+  }
+
+  Future<void> _pickProduct(PreviewItem item) async {
+    final product = await showProductPickerSheet(
+      context,
+      initialQuery: item.description,
+    );
+    if (product == null || !mounted) return;
+    _controller.assignProduct(item.line, product);
   }
 
   Widget _previewActions(AppLocalizations strings, bool expired) {
@@ -725,15 +741,21 @@ class _PreviewItemCard extends StatelessWidget {
     required this.strings,
     required this.item,
     required this.resolution,
+    required this.assignedProduct,
     required this.enabled,
     required this.onResolution,
+    required this.onAssign,
+    required this.onClearAssignment,
   });
 
   final AppLocalizations strings;
   final PreviewItem item;
   final Resolution resolution;
+  final ProductView? assignedProduct;
   final bool enabled;
   final ValueChanged<ResolutionAction> onResolution;
+  final VoidCallback onAssign;
+  final VoidCallback onClearAssignment;
 
   @override
   Widget build(BuildContext context) {
@@ -825,21 +847,48 @@ class _PreviewItemCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(strings.itemUncertainHelp, style: theme.textTheme.bodySmall),
               const SizedBox(height: 8),
-              SegmentedButton<ResolutionAction>(
-                segments: [
-                  ButtonSegment(
-                    value: ResolutionAction.needsReview,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ChoiceChip(
                     label: Text(strings.resolutionNeedsReviewAction),
+                    selected: resolution.action == ResolutionAction.needsReview,
+                    onSelected: enabled
+                        ? (_) => onResolution(ResolutionAction.needsReview)
+                        : null,
                   ),
-                  ButtonSegment(
-                    value: ResolutionAction.skip,
+                  ChoiceChip(
                     label: Text(strings.resolutionSkipAction),
+                    selected: resolution.action == ResolutionAction.skip,
+                    onSelected: enabled
+                        ? (_) => onResolution(ResolutionAction.skip)
+                        : null,
                   ),
+                  ChoiceChip(
+                    avatar: const Icon(Icons.link, size: 18),
+                    label: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 220),
+                      child: Text(
+                        assignedProduct == null
+                            ? strings.resolutionAssignAction
+                            : assignedProduct!.name ??
+                                  assignedProduct!.gtin ??
+                                  '—',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    selected: resolution.action == ResolutionAction.assign,
+                    onSelected: enabled ? (_) => onAssign() : null,
+                  ),
+                  if (assignedProduct != null)
+                    TextButton.icon(
+                      onPressed: enabled ? onClearAssignment : null,
+                      icon: const Icon(Icons.link_off, size: 18),
+                      label: Text(strings.clearProductAction),
+                    ),
                 ],
-                selected: {resolution.action},
-                onSelectionChanged: enabled
-                    ? (selection) => onResolution(selection.first)
-                    : null,
               ),
             ],
           ],
