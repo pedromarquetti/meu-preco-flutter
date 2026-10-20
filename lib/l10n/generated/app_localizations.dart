@@ -94,493 +94,499 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('pt')];
 
-  /// No description provided for @appTitle.
+  /// AppTitle
   ///
   /// In pt, this message translates to:
   /// **'Meu Preço'**
   String get appTitle;
 
-  /// No description provided for @appDescription.
+  /// AppDescription
   ///
   /// In pt, this message translates to:
   /// **'Compare preços de produtos entre supermercados.'**
   String get appDescription;
 
-  /// No description provided for @serverConfigTitle.
+  /// ServerConfigTitle
   ///
   /// In pt, this message translates to:
   /// **'Configurar servidor'**
   String get serverConfigTitle;
 
-  /// No description provided for @serverConfigDescription.
+  /// ServerConfigDescription
   ///
   /// In pt, this message translates to:
   /// **'Informe o endereço do servidor Meu Preço que deseja utilizar.'**
   String get serverConfigDescription;
 
-  /// No description provided for @serverAddressLabel.
+  /// ServerAddress
   ///
   /// In pt, this message translates to:
   /// **'Endereço do servidor'**
   String get serverAddressLabel;
 
-  /// No description provided for @serverAddressHint.
+  /// ServerAddressHint
   ///
   /// In pt, this message translates to:
   /// **'https://meu-preco.exemplo.com'**
   String get serverAddressHint;
 
-  /// No description provided for @serverAddressHelp.
+  /// ServerAddressHelp
   ///
   /// In pt, this message translates to:
   /// **'Pode ser informado com ou sem o prefixo /api/v1.'**
   String get serverAddressHelp;
 
-  /// No description provided for @testConnection.
+  /// TestConnection
   ///
   /// In pt, this message translates to:
   /// **'Testar conexão'**
   String get testConnection;
 
-  /// No description provided for @saveAndContinue.
+  /// SaveAndContinue
   ///
   /// In pt, this message translates to:
   /// **'Salvar e continuar'**
   String get saveAndContinue;
 
-  /// No description provided for @serverConnectionSuccess.
+  /// ServerConnectionSuccess
   ///
   /// In pt, this message translates to:
   /// **'Servidor disponível'**
   String get serverConnectionSuccess;
 
-  /// No description provided for @serverConnectionFailure.
+  /// ServerConnectionFailure
   ///
   /// In pt, this message translates to:
   /// **'Não foi possível conectar ao servidor'**
   String get serverConnectionFailure;
 
-  /// No description provided for @serverConnectionTimeout.
+  /// ServerConnectionTimeout
   ///
   /// In pt, this message translates to:
   /// **'O servidor demorou demais para responder'**
   String get serverConnectionTimeout;
 
-  /// No description provided for @invalidServerUrl.
+  /// InvalidServerUrl
   ///
   /// In pt, this message translates to:
   /// **'Informe uma URL válida, começando com http:// ou https://'**
   String get invalidServerUrl;
 
-  /// No description provided for @continueAction.
+  /// Continue
   ///
   /// In pt, this message translates to:
   /// **'Continuar'**
   String get continueAction;
 
-  /// No description provided for @loginTitle.
+  /// LoginTitle
   ///
   /// In pt, this message translates to:
   /// **'Entrar'**
   String get loginTitle;
 
-  /// No description provided for @loginDescription.
+  /// LoginDescription
   ///
   /// In pt, this message translates to:
   /// **'Entre com seu e-mail ou nome de usuário.'**
   String get loginDescription;
 
-  /// No description provided for @loginIdentifierLabel.
+  /// LoginIdentifier
   ///
   /// In pt, this message translates to:
   /// **'E-mail ou nome'**
   String get loginIdentifierLabel;
 
-  /// No description provided for @emailLabel.
+  /// Email
   ///
   /// In pt, this message translates to:
   /// **'E-mail'**
   String get emailLabel;
 
-  /// No description provided for @nameLabel.
+  /// Name
   ///
   /// In pt, this message translates to:
   /// **'Nome'**
   String get nameLabel;
 
-  /// No description provided for @passwordLabel.
+  /// Password
   ///
   /// In pt, this message translates to:
   /// **'Senha'**
   String get passwordLabel;
 
-  /// No description provided for @confirmPasswordLabel.
+  /// ConfirmPassword
   ///
   /// In pt, this message translates to:
   /// **'Confirmar senha'**
   String get confirmPasswordLabel;
 
-  /// No description provided for @signInAction.
+  /// SignIn
   ///
   /// In pt, this message translates to:
   /// **'Fazer login'**
   String get signInAction;
 
-  /// No description provided for @registerTitle.
+  /// RegisterTitle
   ///
   /// In pt, this message translates to:
   /// **'Criar conta'**
   String get registerTitle;
 
-  /// No description provided for @registerDescription.
+  /// RegisterDescription
   ///
   /// In pt, this message translates to:
   /// **'Crie uma conta para começar a usar o Meu Preço.'**
   String get registerDescription;
 
-  /// No description provided for @createAccountAction.
+  /// CreateAccount
   ///
   /// In pt, this message translates to:
   /// **'Criar conta'**
   String get createAccountAction;
 
-  /// No description provided for @needAccountAction.
+  /// NeedAccount
   ///
   /// In pt, this message translates to:
   /// **'Criar uma conta'**
   String get needAccountAction;
 
-  /// No description provided for @alreadyHaveAccountAction.
+  /// AlreadyHaveAccount
   ///
   /// In pt, this message translates to:
   /// **'Já tenho uma conta'**
   String get alreadyHaveAccountAction;
 
-  /// No description provided for @passwordsDoNotMatch.
+  /// PasswordsDoNotMatch
   ///
   /// In pt, this message translates to:
   /// **'As senhas não coincidem'**
   String get passwordsDoNotMatch;
 
-  /// No description provided for @invalidIdentifierError.
+  /// InvalidIdentifier
   ///
   /// In pt, this message translates to:
   /// **'Informe um e-mail ou nome'**
   String get invalidIdentifierError;
 
-  /// No description provided for @invalidNameError.
+  /// InvalidName
   ///
   /// In pt, this message translates to:
   /// **'Informe um nome de até 100 caracteres'**
   String get invalidNameError;
 
-  /// No description provided for @invalidEmailError.
+  /// InvalidEmail
   ///
   /// In pt, this message translates to:
   /// **'Informe um e-mail válido'**
   String get invalidEmailError;
 
-  /// No description provided for @weakPasswordError.
+  /// WeakPassword
   ///
   /// In pt, this message translates to:
   /// **'A senha deve ter pelo menos 8 caracteres'**
   String get weakPasswordError;
 
-  /// No description provided for @invalidCredentialsError.
+  /// InvalidCredentials
   ///
   /// In pt, this message translates to:
   /// **'E-mail ou senha inválidos'**
   String get invalidCredentialsError;
 
-  /// No description provided for @userExistsError.
+  /// UserExists
   ///
   /// In pt, this message translates to:
   /// **'Este e-mail já está cadastrado'**
   String get userExistsError;
 
-  /// No description provided for @rateLimitedError.
+  /// RateLimited
   ///
   /// In pt, this message translates to:
   /// **'Muitas tentativas. Tente novamente em instantes'**
   String get rateLimitedError;
 
-  /// No description provided for @networkErrorMessage.
+  /// Network
   ///
   /// In pt, this message translates to:
   /// **'Não foi possível conectar ao servidor'**
   String get networkErrorMessage;
 
-  /// No description provided for @sessionExpiredMessage.
+  /// SessionExpired
   ///
   /// In pt, this message translates to:
   /// **'Sua sessão expirou. Entre novamente.'**
   String get sessionExpiredMessage;
 
-  /// No description provided for @accountSection.
+  /// AccountSection
   ///
   /// In pt, this message translates to:
   /// **'Conta'**
   String get accountSection;
 
-  /// No description provided for @currentUserLabel.
+  /// CurrentUser
   ///
   /// In pt, this message translates to:
   /// **'Usuário'**
   String get currentUserLabel;
 
-  /// No description provided for @roleLabel.
+  /// Role
   ///
   /// In pt, this message translates to:
   /// **'Perfil'**
   String get roleLabel;
 
-  /// No description provided for @adminRoleLabel.
+  /// AdminRole
   ///
   /// In pt, this message translates to:
   /// **'Administrador'**
   String get adminRoleLabel;
 
-  /// No description provided for @userRoleLabel.
+  /// UserRole
   ///
   /// In pt, this message translates to:
   /// **'Usuário'**
   String get userRoleLabel;
 
-  /// No description provided for @notAuthenticatedLabel.
+  /// NotAuthenticated
   ///
   /// In pt, this message translates to:
   /// **'Não autenticado'**
   String get notAuthenticatedLabel;
 
-  /// No description provided for @signOutSuccessMessage.
+  /// SignOutSuccess
   ///
   /// In pt, this message translates to:
   /// **'Sessão encerrada'**
   String get signOutSuccessMessage;
 
-  /// No description provided for @homeTitle.
+  /// HomeTitle
   ///
   /// In pt, this message translates to:
   /// **'Início'**
   String get homeTitle;
 
-  /// No description provided for @homeGreeting.
+  /// HomeGreeting
   ///
   /// In pt, this message translates to:
   /// **'Bem-vindo(a) de volta'**
   String get homeGreeting;
 
-  /// No description provided for @scanReceiptAction.
+  /// ScanReceipt
   ///
   /// In pt, this message translates to:
   /// **'Escanear NFC-e'**
   String get scanReceiptAction;
 
-  /// No description provided for @searchProductAction.
+  /// SearchProduct
   ///
   /// In pt, this message translates to:
   /// **'Buscar produto'**
   String get searchProductAction;
 
-  /// No description provided for @receiptSubmissionTitle.
+  /// ReceiptSubmissionTitle
   ///
   /// In pt, this message translates to:
   /// **'Nova NFC-e'**
   String get receiptSubmissionTitle;
 
-  /// No description provided for @productSearchTitle.
+  /// ProductSearchTitle
   ///
   /// In pt, this message translates to:
   /// **'Produtos'**
   String get productSearchTitle;
 
-  /// No description provided for @productDetailTitle.
+  /// ProductDetailTitle
   ///
   /// In pt, this message translates to:
   /// **'Produto'**
   String get productDetailTitle;
 
-  /// No description provided for @productSearchHint.
+  /// ProductSearchHint
   ///
   /// In pt, this message translates to:
   /// **'Nome, GTIN ou marca'**
   String get productSearchHint;
 
-  /// No description provided for @productSearchPrompt.
+  /// ProductSearchPrompt
   ///
   /// In pt, this message translates to:
   /// **'Digite para buscar produtos'**
   String get productSearchPrompt;
 
-  /// No description provided for @productSearchNoResults.
+  /// ProductSearchNoResults
   ///
   /// In pt, this message translates to:
   /// **'Nenhum produto encontrado'**
   String get productSearchNoResults;
 
-  /// No description provided for @productSearchLoading.
+  /// ProductSearchLoading
   ///
   /// In pt, this message translates to:
   /// **'Buscando produtos'**
   String get productSearchLoading;
 
-  /// No description provided for @productBrandLabel.
+  /// ProductBrand
   ///
   /// In pt, this message translates to:
   /// **'Marca'**
   String get productBrandLabel;
 
-  /// No description provided for @productGtinLabel.
+  /// ProductGtin
   ///
   /// In pt, this message translates to:
   /// **'GTIN'**
   String get productGtinLabel;
 
-  /// No description provided for @productUnitLabel.
+  /// ProductUnit
   ///
   /// In pt, this message translates to:
   /// **'Unidade'**
   String get productUnitLabel;
 
-  /// No description provided for @productNotFound.
+  /// ProductNotFound
   ///
   /// In pt, this message translates to:
   /// **'Produto não encontrado.'**
   String get productNotFound;
 
-  /// No description provided for @productHistoryTitle.
+  /// ProductHistoryTitle
   ///
   /// In pt, this message translates to:
   /// **'Histórico de preços'**
   String get productHistoryTitle;
 
-  /// No description provided for @productHistoryEmpty.
+  /// ProductHistoryEmpty
   ///
   /// In pt, this message translates to:
   /// **'Sem histórico de preços'**
   String get productHistoryEmpty;
 
-  /// No description provided for @productHistoryFromLabel.
+  /// ProductHistoryFrom
   ///
   /// In pt, this message translates to:
   /// **'De'**
   String get productHistoryFromLabel;
 
-  /// No description provided for @productHistoryToLabel.
+  /// ProductHistoryTo
   ///
   /// In pt, this message translates to:
   /// **'Até'**
   String get productHistoryToLabel;
 
-  /// No description provided for @productHistoryClearRangeAction.
+  /// ProductHistoryClearRange
   ///
   /// In pt, this message translates to:
   /// **'Limpar período'**
   String get productHistoryClearRangeAction;
 
-  /// No description provided for @productHistoryApplyRangeAction.
+  /// ProductHistoryApplyRange
   ///
   /// In pt, this message translates to:
   /// **'Aplicar'**
   String get productHistoryApplyRangeAction;
 
-  /// No description provided for @productSupermarketLabel.
+  /// ProductSupermarket
   ///
   /// In pt, this message translates to:
   /// **'Mercado'**
   String get productSupermarketLabel;
 
-  /// No description provided for @productLoggedAtLabel.
+  /// ProductLoggedAt
   ///
   /// In pt, this message translates to:
   /// **'Data'**
   String get productLoggedAtLabel;
 
-  /// No description provided for @productQtyLabel.
+  /// ProductQty
   ///
   /// In pt, this message translates to:
   /// **'Quantidade'**
   String get productQtyLabel;
 
-  /// No description provided for @productPricePerUnitLabel.
+  /// ProductPricePerUnit
   ///
   /// In pt, this message translates to:
   /// **'Preço por unidade'**
   String get productPricePerUnitLabel;
 
-  /// No description provided for @productUnitPriceLabel.
+  /// ProductUnitPrice
   ///
   /// In pt, this message translates to:
   /// **'Preço da unidade'**
   String get productUnitPriceLabel;
 
-  /// No description provided for @productTotalPriceLabel.
+  /// ProductTotalPrice
   ///
   /// In pt, this message translates to:
   /// **'Total'**
   String get productTotalPriceLabel;
 
-  /// No description provided for @productAggregateTitle.
+  /// ProductAggregateTitle
   ///
   /// In pt, this message translates to:
   /// **'Resumo por unidade'**
   String get productAggregateTitle;
 
-  /// No description provided for @productAggregateCountLabel.
+  /// ProductAggregateCount
   ///
   /// In pt, this message translates to:
   /// **'Registros'**
   String get productAggregateCountLabel;
 
-  /// No description provided for @productAggregateMinLabel.
+  /// ProductUpdated
+  ///
+  /// In pt, this message translates to:
+  /// **'Produto atualizado'**
+  String get productUpdated;
+
+  /// ProductAggregateMin
   ///
   /// In pt, this message translates to:
   /// **'Mínimo'**
   String get productAggregateMinLabel;
 
-  /// No description provided for @productAggregateAvgLabel.
+  /// ProductAggregateAvg
   ///
   /// In pt, this message translates to:
   /// **'Média'**
   String get productAggregateAvgLabel;
 
-  /// No description provided for @productAggregateMaxLabel.
+  /// ProductAggregateMax
   ///
   /// In pt, this message translates to:
   /// **'Máximo'**
   String get productAggregateMaxLabel;
 
-  /// No description provided for @productAggregateLastLabel.
+  /// ProductAggregateLast
   ///
   /// In pt, this message translates to:
   /// **'Último'**
   String get productAggregateLastLabel;
 
-  /// No description provided for @invalidDateRangeError.
+  /// InvalidDateRange
   ///
   /// In pt, this message translates to:
   /// **'A data inicial deve ser anterior ou igual à final.'**
   String get invalidDateRangeError;
 
-  /// No description provided for @productPriceGraphLabel.
+  /// ProductPriceGraph
   ///
   /// In pt, this message translates to:
   /// **'Evolução do preço'**
   String get productPriceGraphLabel;
 
-  /// No description provided for @priceChartTooShort.
+  /// PriceChartTooShort
   ///
   /// In pt, this message translates to:
   /// **'Histórico curto demais para montar o gráfico.'**
   String get priceChartTooShort;
 
-  /// No description provided for @priceChartMinLabel.
+  /// PriceChartMin
   ///
   /// In pt, this message translates to:
   /// **'Mínimo'**
   String get priceChartMinLabel;
 
-  /// No description provided for @priceChartMaxLabel.
+  /// PriceChartMax
   ///
   /// In pt, this message translates to:
   /// **'Máximo'**
@@ -592,337 +598,337 @@ abstract class AppLocalizations {
   /// **'Gráfico de preços de {min} a {max} por {unit}.'**
   String priceChartSemantics(String min, String max, String unit);
 
-  /// No description provided for @supermarketsTitle.
+  /// SupermarketsTitle
   ///
   /// In pt, this message translates to:
   /// **'Supermercados'**
   String get supermarketsTitle;
 
-  /// No description provided for @adminTitle.
+  /// AdminTitle
   ///
   /// In pt, this message translates to:
   /// **'Administração'**
   String get adminTitle;
 
-  /// No description provided for @settingsTitle.
+  /// SettingsTitle
   ///
   /// In pt, this message translates to:
   /// **'Configurações'**
   String get settingsTitle;
 
-  /// No description provided for @settingsServerSection.
+  /// SettingsServerSection
   ///
   /// In pt, this message translates to:
   /// **'Servidor'**
   String get settingsServerSection;
 
-  /// No description provided for @connectivitySection.
+  /// ConnectivitySection
   ///
   /// In pt, this message translates to:
   /// **'Conectividade'**
   String get connectivitySection;
 
-  /// No description provided for @checkConnectivityAction.
+  /// CheckConnectivity
   ///
   /// In pt, this message translates to:
   /// **'Verificar conexão'**
   String get checkConnectivityAction;
 
-  /// No description provided for @healthStatusLabel.
+  /// HealthStatus
   ///
   /// In pt, this message translates to:
   /// **'Servidor'**
   String get healthStatusLabel;
 
-  /// No description provided for @readinessStatusLabel.
+  /// ReadinessStatus
   ///
   /// In pt, this message translates to:
   /// **'Prontidão'**
   String get readinessStatusLabel;
 
-  /// No description provided for @readinessHealthyLabel.
+  /// ReadinessHealthy
   ///
   /// In pt, this message translates to:
   /// **'Pronto para uso'**
   String get readinessHealthyLabel;
 
-  /// No description provided for @readinessUnavailableLabel.
+  /// ReadinessUnavailable
   ///
   /// In pt, this message translates to:
   /// **'Indisponível'**
   String get readinessUnavailableLabel;
 
-  /// No description provided for @settingsResetToDefault.
+  /// SettingsResetToDefault
   ///
   /// In pt, this message translates to:
   /// **'Restaurar padrão'**
   String get settingsResetToDefault;
 
-  /// No description provided for @logoutAction.
+  /// Logout
   ///
   /// In pt, this message translates to:
   /// **'Sair'**
   String get logoutAction;
 
-  /// No description provided for @loadingLabel.
+  /// Loading
   ///
   /// In pt, this message translates to:
   /// **'Carregando...'**
   String get loadingLabel;
 
-  /// No description provided for @emptyLabel.
+  /// Empty
   ///
   /// In pt, this message translates to:
   /// **'Nada por aqui ainda'**
   String get emptyLabel;
 
-  /// No description provided for @errorLabel.
+  /// Error
   ///
   /// In pt, this message translates to:
   /// **'Algo deu errado'**
   String get errorLabel;
 
-  /// No description provided for @retryAction.
+  /// Retry
   ///
   /// In pt, this message translates to:
   /// **'Tentar novamente'**
   String get retryAction;
 
-  /// No description provided for @comingSoonLabel.
+  /// ComingSoon
   ///
   /// In pt, this message translates to:
   /// **'Em breve'**
   String get comingSoonLabel;
 
-  /// No description provided for @notImplementedLabel.
+  /// NotImplemented
   ///
   /// In pt, this message translates to:
   /// **'Esta funcionalidade ainda não está disponível.'**
   String get notImplementedLabel;
 
-  /// No description provided for @currentHostLabel.
+  /// CurrentHost
   ///
   /// In pt, this message translates to:
   /// **'Servidor atual'**
   String get currentHostLabel;
 
-  /// No description provided for @apiPrefixLabel.
+  /// ApiPrefix
   ///
   /// In pt, this message translates to:
   /// **'Prefixo da API'**
   String get apiPrefixLabel;
 
-  /// No description provided for @notConfiguredLabel.
+  /// NotConfigured
   ///
   /// In pt, this message translates to:
   /// **'Não configurado'**
   String get notConfiguredLabel;
 
-  /// No description provided for @scanQrAction.
+  /// ScanQr
   ///
   /// In pt, this message translates to:
   /// **'Escanear QR'**
   String get scanQrAction;
 
-  /// No description provided for @pasteNfceKeyAction.
+  /// PasteNfceKey
   ///
   /// In pt, this message translates to:
   /// **'Colar chave da NFC-e'**
   String get pasteNfceKeyAction;
 
-  /// No description provided for @scanWithCameraAction.
+  /// ScanWithCamera
   ///
   /// In pt, this message translates to:
   /// **'Escanear com a câmera'**
   String get scanWithCameraAction;
 
-  /// No description provided for @scanQrHelp.
+  /// ScanQrHelp
   ///
   /// In pt, this message translates to:
   /// **'Aponte a câmera para o QR Code do cupom.'**
   String get scanQrHelp;
 
-  /// No description provided for @scanQrUnavailable.
+  /// ScanQrUnavailable
   ///
   /// In pt, this message translates to:
   /// **'A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.'**
   String get scanQrUnavailable;
 
-  /// No description provided for @scanReceiptTitle.
+  /// ScanReceiptTitle
   ///
   /// In pt, this message translates to:
   /// **'Escanear NFC-e'**
   String get scanReceiptTitle;
 
-  /// No description provided for @scannerPreparingLabel.
+  /// ScannerPreparing
   ///
   /// In pt, this message translates to:
   /// **'Preparando câmera'**
   String get scannerPreparingLabel;
 
-  /// No description provided for @scannerInstruction.
+  /// ScannerInstruction
   ///
   /// In pt, this message translates to:
   /// **'Alinhe o QR Code da NFC-e dentro do quadrado.'**
   String get scannerInstruction;
 
-  /// No description provided for @cameraUnavailableTitle.
+  /// CameraUnavailableTitle
   ///
   /// In pt, this message translates to:
   /// **'Câmera indisponível'**
   String get cameraUnavailableTitle;
 
-  /// No description provided for @cameraUnsupportedMessage.
+  /// CameraUnsupported
   ///
   /// In pt, this message translates to:
   /// **'A leitura com câmera não é suportada neste dispositivo ou plataforma.'**
   String get cameraUnsupportedMessage;
 
-  /// No description provided for @cameraNoCameraMessage.
+  /// CameraNoCamera
   ///
   /// In pt, this message translates to:
   /// **'Nenhuma câmera foi encontrada neste dispositivo.'**
   String get cameraNoCameraMessage;
 
-  /// No description provided for @cameraErrorMessage.
+  /// Camera
   ///
   /// In pt, this message translates to:
   /// **'Não foi possível abrir a câmera. Tente novamente.'**
   String get cameraErrorMessage;
 
-  /// No description provided for @cameraPermissionTitle.
+  /// CameraPermissionTitle
   ///
   /// In pt, this message translates to:
   /// **'Permissão da câmera'**
   String get cameraPermissionTitle;
 
-  /// No description provided for @cameraPermissionDeniedMessage.
+  /// CameraPermissionDenied
   ///
   /// In pt, this message translates to:
   /// **'É necessário permitir o acesso à câmera para escanear o QR Code.'**
   String get cameraPermissionDeniedMessage;
 
-  /// No description provided for @cameraPermissionForeverMessage.
+  /// CameraPermissionForever
   ///
   /// In pt, this message translates to:
   /// **'O acesso à câmera foi negado permanentemente. Abra as configurações do app para habilitá-lo.'**
   String get cameraPermissionForeverMessage;
 
-  /// No description provided for @cameraPermissionRetryAction.
+  /// CameraPermissionRetry
   ///
   /// In pt, this message translates to:
   /// **'Solicitar permissão'**
   String get cameraPermissionRetryAction;
 
-  /// No description provided for @openSettingsAction.
+  /// OpenSettings
   ///
   /// In pt, this message translates to:
   /// **'Abrir configurações'**
   String get openSettingsAction;
 
-  /// No description provided for @accessKeyLabel.
+  /// AccessKey
   ///
   /// In pt, this message translates to:
   /// **'Chave de acesso'**
   String get accessKeyLabel;
 
-  /// No description provided for @accessKeyHint.
+  /// AccessKeyHint
   ///
   /// In pt, this message translates to:
   /// **'44 dígitos'**
   String get accessKeyHint;
 
-  /// No description provided for @accessKeyHelp.
+  /// AccessKeyHelp
   ///
   /// In pt, this message translates to:
   /// **'Fica no rodapé do cupom fiscal.'**
   String get accessKeyHelp;
 
-  /// No description provided for @qrPayloadLabel.
+  /// QrPayload
   ///
   /// In pt, this message translates to:
   /// **'Conteúdo do QR Code'**
   String get qrPayloadLabel;
 
-  /// No description provided for @qrPayloadHint.
+  /// QrPayloadHint
   ///
   /// In pt, this message translates to:
   /// **'Cole aqui o link do QR Code do cupom'**
   String get qrPayloadHint;
 
-  /// No description provided for @invalidAccessKeyError.
+  /// InvalidAccessKey
   ///
   /// In pt, this message translates to:
   /// **'Informe os 44 dígitos da chave de acesso'**
   String get invalidAccessKeyError;
 
-  /// No description provided for @invalidQrPayloadError.
+  /// InvalidQrPayload
   ///
   /// In pt, this message translates to:
   /// **'Informe um QR Code válido'**
   String get invalidQrPayloadError;
 
-  /// No description provided for @extractAccessKeyFromQrAction.
+  /// Extract access key from QR
   ///
   /// In pt, this message translates to:
   /// **'Extrair chave de acesso do QR Code'**
   String get extractAccessKeyFromQrAction;
 
-  /// No description provided for @extractAccessKeyFromQrNoMatchError.
+  /// No 44-digit key found in QR
   ///
   /// In pt, this message translates to:
   /// **'Não foi possível extrair uma chave de 44 dígitos do conteúdo do QR Code.'**
   String get extractAccessKeyFromQrNoMatchError;
 
-  /// No description provided for @draftingReceiptLabel.
+  /// DraftingReceipt
   ///
   /// In pt, this message translates to:
   /// **'Processando o cupom...'**
   String get draftingReceiptLabel;
 
-  /// No description provided for @submittingReceiptLabel.
+  /// SubmittingReceipt
   ///
   /// In pt, this message translates to:
   /// **'Enviando o cupom...'**
   String get submittingReceiptLabel;
 
-  /// No description provided for @captchaTitle.
+  /// CaptchaTitle
   ///
   /// In pt, this message translates to:
   /// **'Verificação de segurança'**
   String get captchaTitle;
 
-  /// No description provided for @captchaDescription.
+  /// CaptchaDescription
   ///
   /// In pt, this message translates to:
   /// **'Digite os caracteres da imagem para continuar.'**
   String get captchaDescription;
 
-  /// No description provided for @captchaSolutionLabel.
+  /// CaptchaSolution
   ///
   /// In pt, this message translates to:
   /// **'Resposta'**
   String get captchaSolutionLabel;
 
-  /// No description provided for @captchaSolveAction.
+  /// CaptchaSolve
   ///
   /// In pt, this message translates to:
   /// **'Confirmar'**
   String get captchaSolveAction;
 
-  /// No description provided for @captchaReloadAction.
+  /// CaptchaReload
   ///
   /// In pt, this message translates to:
   /// **'Recarregar imagem'**
   String get captchaReloadAction;
 
-  /// No description provided for @captchaImageUnavailable.
+  /// CaptchaImageUnavailable
   ///
   /// In pt, this message translates to:
   /// **'Não foi possível carregar a imagem.'**
   String get captchaImageUnavailable;
 
-  /// No description provided for @captchaWrongSolutionError.
+  /// CaptchaWrongSolution
   ///
   /// In pt, this message translates to:
   /// **'Resposta incorreta. Tente novamente.'**
@@ -934,37 +940,37 @@ abstract class AppLocalizations {
   /// **'Tentativas restantes: {count}'**
   String captchaAttemptsLeft(int count);
 
-  /// No description provided for @captchaExpiredError.
+  /// CaptchaExpired
   ///
   /// In pt, this message translates to:
   /// **'Este desafio expirou. Leia o cupom novamente.'**
   String get captchaExpiredError;
 
-  /// No description provided for @captchaLockedError.
+  /// CaptchaLocked
   ///
   /// In pt, this message translates to:
   /// **'Muitas respostas incorretas. Leia o cupom novamente.'**
   String get captchaLockedError;
 
-  /// No description provided for @captchaUsedError.
+  /// CaptchaUsed
   ///
   /// In pt, this message translates to:
   /// **'Este desafio já foi utilizado.'**
   String get captchaUsedError;
 
-  /// No description provided for @captchaNotFoundError.
+  /// CaptchaNotFound
   ///
   /// In pt, this message translates to:
   /// **'Desafio não encontrado.'**
   String get captchaNotFoundError;
 
-  /// No description provided for @previewTitle.
+  /// PreviewTitle
   ///
   /// In pt, this message translates to:
   /// **'Confira os dados do cupom'**
   String get previewTitle;
 
-  /// No description provided for @previewAccessKeyLabel.
+  /// PreviewAccessKey
   ///
   /// In pt, this message translates to:
   /// **'Chave de acesso'**
@@ -976,287 +982,413 @@ abstract class AppLocalizations {
   /// **'Expira em {time}'**
   String previewExpiresAtLabel(String time);
 
-  /// No description provided for @previewExpiredLabel.
+  /// PreviewExpired
   ///
   /// In pt, this message translates to:
   /// **'Prévia expirada'**
   String get previewExpiredLabel;
 
-  /// No description provided for @previewItemsTitle.
+  /// PreviewItemsTitle
   ///
   /// In pt, this message translates to:
   /// **'Itens'**
   String get previewItemsTitle;
 
-  /// No description provided for @previewTotalsTitle.
+  /// PreviewTotalsTitle
   ///
   /// In pt, this message translates to:
   /// **'Resumo'**
   String get previewTotalsTitle;
 
-  /// No description provided for @previewItemsCountLabel.
+  /// PreviewItemsCount
   ///
   /// In pt, this message translates to:
   /// **'Itens lidos'**
   String get previewItemsCountLabel;
 
-  /// No description provided for @previewAutoSaveLabel.
+  /// PreviewAutoSave
   ///
   /// In pt, this message translates to:
   /// **'Salvos automaticamente'**
   String get previewAutoSaveLabel;
 
-  /// No description provided for @previewNeedsReviewLabel.
+  /// PreviewNeedsReview
   ///
   /// In pt, this message translates to:
   /// **'Precisam de revisão'**
   String get previewNeedsReviewLabel;
 
-  /// No description provided for @previewParseErrorsLabel.
+  /// PreviewParses
   ///
   /// In pt, this message translates to:
   /// **'Com erro de leitura'**
   String get previewParseErrorsLabel;
 
-  /// No description provided for @previewEstimatedTotalLabel.
+  /// PreviewEstimatedTotal
   ///
   /// In pt, this message translates to:
   /// **'Total estimado'**
   String get previewEstimatedTotalLabel;
 
-  /// No description provided for @previewPriceLabel.
+  /// PreviewPrice
   ///
   /// In pt, this message translates to:
   /// **'Preço'**
   String get previewPriceLabel;
 
-  /// No description provided for @itemStatusGtinKnown.
+  /// ItemStatusGtinKnown
   ///
   /// In pt, this message translates to:
   /// **'Produto reconhecido'**
   String get itemStatusGtinKnown;
 
-  /// No description provided for @itemStatusGtinNew.
+  /// ItemStatusGtinNew
   ///
   /// In pt, this message translates to:
   /// **'Produto novo'**
   String get itemStatusGtinNew;
 
-  /// No description provided for @itemStatusCommodity.
+  /// ItemStatusCommodity
   ///
   /// In pt, this message translates to:
   /// **'Produto a granel'**
   String get itemStatusCommodity;
 
-  /// No description provided for @itemStatusUncertain.
+  /// ItemStatusUncertain
   ///
   /// In pt, this message translates to:
   /// **'Código incerto'**
   String get itemStatusUncertain;
 
-  /// No description provided for @itemStatusParseError.
+  /// ItemStatusParse
   ///
   /// In pt, this message translates to:
   /// **'Erro de leitura'**
   String get itemStatusParseError;
 
-  /// No description provided for @itemUncertainHelp.
+  /// ItemUncertainHelp
   ///
   /// In pt, this message translates to:
   /// **'Escolha como tratar este item.'**
   String get itemUncertainHelp;
 
-  /// No description provided for @itemApiMessageTitle.
+  /// ItemApiTitle
   ///
   /// In pt, this message translates to:
   /// **'Mensagem da API'**
   String get itemApiMessageTitle;
 
-  /// No description provided for @closeAction.
+  /// Close
   ///
   /// In pt, this message translates to:
   /// **'Fechar'**
   String get closeAction;
 
-  /// No description provided for @resolutionNeedsReviewAction.
+  /// ResolutionNeedsReview
   ///
   /// In pt, this message translates to:
   /// **'Revisar depois'**
   String get resolutionNeedsReviewAction;
 
-  /// No description provided for @resolutionSkipAction.
+  /// ResolutionSkip
   ///
   /// In pt, this message translates to:
   /// **'Ignorar'**
   String get resolutionSkipAction;
 
-  /// No description provided for @resolutionAssignAction.
+  /// ResolutionAssign
   ///
   /// In pt, this message translates to:
   /// **'Vincular produto'**
   String get resolutionAssignAction;
 
-  /// No description provided for @assignedProductLabel.
+  /// AssignedProduct
   ///
   /// In pt, this message translates to:
   /// **'Produto vinculado'**
   String get assignedProductLabel;
 
-  /// No description provided for @changeProductAction.
+  /// ChangeProduct
   ///
   /// In pt, this message translates to:
   /// **'Trocar'**
   String get changeProductAction;
 
-  /// No description provided for @clearProductAction.
+  /// ClearProduct
   ///
   /// In pt, this message translates to:
   /// **'Remover vínculo'**
   String get clearProductAction;
 
-  /// No description provided for @productPickerTitle.
+  /// ProductPickerTitle
   ///
   /// In pt, this message translates to:
   /// **'Selecionar produto'**
   String get productPickerTitle;
 
-  /// No description provided for @submitDryRunAction.
+  /// SubmitDryRun
   ///
   /// In pt, this message translates to:
   /// **'Simular envio'**
   String get submitDryRunAction;
 
-  /// No description provided for @submitConfirmAction.
+  /// SubmitConfirm
   ///
   /// In pt, this message translates to:
   /// **'Enviar cupom'**
   String get submitConfirmAction;
 
-  /// No description provided for @commitResultTitle.
+  /// CommitResultTitle
   ///
   /// In pt, this message translates to:
   /// **'Cupom enviado'**
   String get commitResultTitle;
 
-  /// No description provided for @commitWrittenLabel.
+  /// CommitWritten
   ///
   /// In pt, this message translates to:
   /// **'Itens registrados'**
   String get commitWrittenLabel;
 
-  /// No description provided for @commitAutoSavedLabel.
+  /// CommitAutoSaved
   ///
   /// In pt, this message translates to:
   /// **'Salvos automaticamente'**
   String get commitAutoSavedLabel;
 
-  /// No description provided for @commitSkippedLabel.
+  /// CommitSkipped
   ///
   /// In pt, this message translates to:
   /// **'Itens ignorados'**
   String get commitSkippedLabel;
 
-  /// No description provided for @commitNeedsReviewLabel.
+  /// CommitNeedsReview
   ///
   /// In pt, this message translates to:
   /// **'Para revisão'**
   String get commitNeedsReviewLabel;
 
-  /// No description provided for @commitAssignedLabel.
+  /// CommitAssigned
   ///
   /// In pt, this message translates to:
   /// **'Associados'**
   String get commitAssignedLabel;
 
-  /// No description provided for @doneAction.
+  /// Done
   ///
   /// In pt, this message translates to:
   /// **'Concluir'**
   String get doneAction;
 
-  /// No description provided for @deleteReceiptAction.
+  /// DeleteReceipt
   ///
   /// In pt, this message translates to:
   /// **'Excluir cupom'**
   String get deleteReceiptAction;
 
-  /// No description provided for @deleteReceiptConfirmTitle.
+  /// DeleteReceiptConfirmTitle
   ///
   /// In pt, this message translates to:
   /// **'Excluir cupom?'**
   String get deleteReceiptConfirmTitle;
 
-  /// No description provided for @deleteReceiptConfirmMessage.
+  /// DeleteReceiptConfirm
   ///
   /// In pt, this message translates to:
   /// **'Os preços deste cupom serão removidos. Esta ação não pode ser desfeita.'**
   String get deleteReceiptConfirmMessage;
 
-  /// No description provided for @deleteReceiptSuccessMessage.
+  /// DeleteReceiptSuccess
   ///
   /// In pt, this message translates to:
   /// **'Cupom excluído'**
   String get deleteReceiptSuccessMessage;
 
-  /// No description provided for @cancelAction.
+  /// Cancel
   ///
   /// In pt, this message translates to:
   /// **'Cancelar'**
   String get cancelAction;
 
-  /// No description provided for @deleteAction.
+  /// Delete
   ///
   /// In pt, this message translates to:
   /// **'Excluir'**
   String get deleteAction;
 
-  /// No description provided for @startOverAction.
+  /// StartOver
   ///
   /// In pt, this message translates to:
   /// **'Ler outro cupom'**
   String get startOverAction;
 
-  /// No description provided for @receiptNotFoundError.
+  /// ReceiptNotFound
   ///
   /// In pt, this message translates to:
   /// **'Cupom não encontrado.'**
   String get receiptNotFoundError;
 
-  /// No description provided for @unsupportedUfError.
+  /// UnsupportedUf
   ///
   /// In pt, this message translates to:
   /// **'Estado (UF) não suportado.'**
   String get unsupportedUfError;
 
-  /// No description provided for @upstreamErrorMessage.
+  /// Upstream
   ///
   /// In pt, this message translates to:
   /// **'O portal da SEFAZ não respondeu. Tente novamente.'**
   String get upstreamErrorMessage;
 
-  /// No description provided for @previewExpiredError.
+  /// PreviewExpired
   ///
   /// In pt, this message translates to:
   /// **'Esta prévia expirou. Leia o cupom novamente.'**
   String get previewExpiredError;
 
-  /// No description provided for @previewNotFoundError.
+  /// PreviewNotFound
   ///
   /// In pt, this message translates to:
   /// **'Prévia não encontrada. Leia o cupom novamente.'**
   String get previewNotFoundError;
 
-  /// No description provided for @alreadyCommittedError.
+  /// AlreadyCommitted
   ///
   /// In pt, this message translates to:
   /// **'Este cupom já foi registrado.'**
   String get alreadyCommittedError;
 
-  /// No description provided for @invalidResolutionError.
+  /// InvalidResolution
   ///
   /// In pt, this message translates to:
   /// **'Não foi possível aplicar as escolhas dos itens.'**
   String get invalidResolutionError;
+
+  /// Admin users tab
+  ///
+  /// In pt, this message translates to:
+  /// **'Usuários'**
+  String get adminUsers;
+
+  /// Admin review queue tab
+  ///
+  /// In pt, this message translates to:
+  /// **'Fila de revisão'**
+  String get adminReviewQueue;
+
+  /// Admin role label
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil'**
+  String get adminRole;
+
+  /// Promote user to admin
+  ///
+  /// In pt, this message translates to:
+  /// **'Tornar administrador'**
+  String get adminPromoteToAdmin;
+
+  /// Demote admin to user
+  ///
+  /// In pt, this message translates to:
+  /// **'Rebaixar para usuário'**
+  String get adminDemoteToUser;
+
+  /// Change role action
+  ///
+  /// In pt, this message translates to:
+  /// **'Alterar perfil'**
+  String get adminChangeRole;
+
+  /// Confirm role change dialog
+  ///
+  /// In pt, this message translates to:
+  /// **'Confirmar alteração de perfil?'**
+  String get adminConfirmRoleChange;
+
+  /// Cannot change own role message
+  ///
+  /// In pt, this message translates to:
+  /// **'Não é possível alterar o próprio perfil'**
+  String get adminCannotChangeOwnRole;
+
+  /// Batch assign action
+  ///
+  /// In pt, this message translates to:
+  /// **'Atribuir em lote'**
+  String get adminBatchAssign;
+
+  /// Select all
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecionar todos'**
+  String get adminSelectAll;
+
+  /// Clear selection
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar seleção'**
+  String get adminClearSelection;
+
+  /// Assign to existing product
+  ///
+  /// In pt, this message translates to:
+  /// **'Atribuir a produto existente'**
+  String get adminAssignToExisting;
+
+  /// Create new product
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar novo produto'**
+  String get adminCreateProduct;
+
+  /// No items selected
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum item selecionado'**
+  String get adminNoSelection;
+
+  /// Assigned count
+  ///
+  /// In pt, this message translates to:
+  /// **'Atribuídos'**
+  String get adminAssigned;
+
+  /// Created count
+  ///
+  /// In pt, this message translates to:
+  /// **'Criados'**
+  String get adminCreated;
+
+  /// Refresh
+  ///
+  /// In pt, this message translates to:
+  /// **'Atualizar'**
+  String get adminRefresh;
+
+  /// User ID
+  ///
+  /// In pt, this message translates to:
+  /// **'ID'**
+  String get adminUserId;
+
+  /// User name
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome'**
+  String get adminUserName;
+
+  /// User email
+  ///
+  /// In pt, this message translates to:
+  /// **'E-mail'**
+  String get adminUserEmail;
+
+  /// AdminCreatedAt
+  ///
+  /// In pt, this message translates to:
+  /// **'Criado em'**
+  String get adminCreatedAt;
 }
 
 class _AppLocalizationsDelegate

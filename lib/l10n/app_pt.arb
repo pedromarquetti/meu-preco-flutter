@@ -1,224 +1,885 @@
 {
-	"@@locale": "pt",
-	"appTitle": "Meu Preço",
-	"appDescription": "Compare preços de produtos entre supermercados.",
-	"serverConfigTitle": "Configurar servidor",
-	"serverConfigDescription": "Informe o endereço do servidor Meu Preço que deseja utilizar.",
-	"serverAddressLabel": "Endereço do servidor",
-	"serverAddressHint": "https://meu-preco.exemplo.com",
-	"serverAddressHelp": "Pode ser informado com ou sem o prefixo /api/v1.",
-	"testConnection": "Testar conexão",
-	"saveAndContinue": "Salvar e continuar",
-	"serverConnectionSuccess": "Servidor disponível",
-	"serverConnectionFailure": "Não foi possível conectar ao servidor",
-	"serverConnectionTimeout": "O servidor demorou demais para responder",
-	"invalidServerUrl": "Informe uma URL válida, começando com http:// ou https://",
-	"continueAction": "Continuar",
-	"loginTitle": "Entrar",
-	"loginDescription": "Entre com seu e-mail ou nome de usuário.",
-	"loginIdentifierLabel": "E-mail ou nome",
-	"emailLabel": "E-mail",
-	"nameLabel": "Nome",
-	"passwordLabel": "Senha",
-	"confirmPasswordLabel": "Confirmar senha",
-	"signInAction": "Fazer login",
-	"registerTitle": "Criar conta",
-	"registerDescription": "Crie uma conta para começar a usar o Meu Preço.",
-	"createAccountAction": "Criar conta",
-	"needAccountAction": "Criar uma conta",
-	"alreadyHaveAccountAction": "Já tenho uma conta",
-	"passwordsDoNotMatch": "As senhas não coincidem",
-	"invalidIdentifierError": "Informe um e-mail ou nome",
-	"invalidNameError": "Informe um nome de até 100 caracteres",
-	"invalidEmailError": "Informe um e-mail válido",
-	"weakPasswordError": "A senha deve ter pelo menos 8 caracteres",
-	"invalidCredentialsError": "E-mail ou senha inválidos",
-	"userExistsError": "Este e-mail já está cadastrado",
-	"rateLimitedError": "Muitas tentativas. Tente novamente em instantes",
-	"networkErrorMessage": "Não foi possível conectar ao servidor",
-	"sessionExpiredMessage": "Sua sessão expirou. Entre novamente.",
-	"accountSection": "Conta",
-	"currentUserLabel": "Usuário",
-	"roleLabel": "Perfil",
-	"adminRoleLabel": "Administrador",
-	"userRoleLabel": "Usuário",
-	"notAuthenticatedLabel": "Não autenticado",
-	"signOutSuccessMessage": "Sessão encerrada",
-	"homeTitle": "Início",
-	"homeGreeting": "Bem-vindo(a) de volta",
-	"scanReceiptAction": "Escanear NFC-e",
-	"searchProductAction": "Buscar produto",
-	"receiptSubmissionTitle": "Nova NFC-e",
-	"productSearchTitle": "Produtos",
-	"productDetailTitle": "Produto",
-	"productSearchHint": "Nome, GTIN ou marca",
-	"productSearchPrompt": "Digite para buscar produtos",
-	"productSearchNoResults": "Nenhum produto encontrado",
-	"productSearchLoading": "Buscando produtos",
-	"productBrandLabel": "Marca",
-	"productGtinLabel": "GTIN",
-	"productUnitLabel": "Unidade",
-	"productNotFound": "Produto não encontrado.",
-	"productHistoryTitle": "Histórico de preços",
-	"productHistoryEmpty": "Sem histórico de preços",
-	"productHistoryFromLabel": "De",
-	"productHistoryToLabel": "Até",
-	"productHistoryClearRangeAction": "Limpar período",
-	"productHistoryApplyRangeAction": "Aplicar",
-	"productSupermarketLabel": "Mercado",
-	"productLoggedAtLabel": "Data",
-	"productQtyLabel": "Quantidade",
-	"productPricePerUnitLabel": "Preço por unidade",
-	"productUnitPriceLabel": "Preço da unidade",
-	"productTotalPriceLabel": "Total",
-	"productAggregateTitle": "Resumo por unidade",
-	"productAggregateCountLabel": "Registros",
-	"productAggregateMinLabel": "Mínimo",
-	"productAggregateAvgLabel": "Média",
-	"productAggregateMaxLabel": "Máximo",
-	"productAggregateLastLabel": "Último",
-	"invalidDateRangeError": "A data inicial deve ser anterior ou igual à final.",
-	"productPriceGraphLabel": "Evolução do preço",
-	"priceChartTooShort": "Histórico curto demais para montar o gráfico.",
-	"priceChartMinLabel": "Mínimo",
-	"priceChartMaxLabel": "Máximo",
-	"priceChartSemantics": "Gráfico de preços de {min} a {max} por {unit}.",
-	"@priceChartSemantics": {
-		"placeholders": {
-			"min": {
-				"type": "String"
-			},
-			"max": {
-				"type": "String"
-			},
-			"unit": {
-				"type": "String"
-			}
-		}
-	},
-	"supermarketsTitle": "Supermercados",
-	"adminTitle": "Administração",
-	"settingsTitle": "Configurações",
-	"settingsServerSection": "Servidor",
-	"connectivitySection": "Conectividade",
-	"checkConnectivityAction": "Verificar conexão",
-	"healthStatusLabel": "Servidor",
-	"readinessStatusLabel": "Prontidão",
-	"readinessHealthyLabel": "Pronto para uso",
-	"readinessUnavailableLabel": "Indisponível",
-	"settingsResetToDefault": "Restaurar padrão",
-	"logoutAction": "Sair",
-	"loadingLabel": "Carregando...",
-	"emptyLabel": "Nada por aqui ainda",
-	"errorLabel": "Algo deu errado",
-	"retryAction": "Tentar novamente",
-	"comingSoonLabel": "Em breve",
-	"notImplementedLabel": "Esta funcionalidade ainda não está disponível.",
-	"currentHostLabel": "Servidor atual",
-	"apiPrefixLabel": "Prefixo da API",
-	"notConfiguredLabel": "Não configurado",
-	"scanQrAction": "Escanear QR",
-	"pasteNfceKeyAction": "Colar chave da NFC-e",
-	"scanWithCameraAction": "Escanear com a câmera",
-	"scanQrHelp": "Aponte a câmera para o QR Code do cupom.",
-	"scanQrUnavailable": "A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.",
-	"scanReceiptTitle": "Escanear NFC-e",
-	"scannerPreparingLabel": "Preparando câmera",
-	"scannerInstruction": "Alinhe o QR Code da NFC-e dentro do quadrado.",
-	"cameraUnavailableTitle": "Câmera indisponível",
-	"cameraUnsupportedMessage": "A leitura com câmera não é suportada neste dispositivo ou plataforma.",
-	"cameraNoCameraMessage": "Nenhuma câmera foi encontrada neste dispositivo.",
-	"cameraErrorMessage": "Não foi possível abrir a câmera. Tente novamente.",
-	"cameraPermissionTitle": "Permissão da câmera",
-	"cameraPermissionDeniedMessage": "É necessário permitir o acesso à câmera para escanear o QR Code.",
-	"cameraPermissionForeverMessage": "O acesso à câmera foi negado permanentemente. Abra as configurações do app para habilitá-lo.",
-	"cameraPermissionRetryAction": "Solicitar permissão",
-	"openSettingsAction": "Abrir configurações",
-	"accessKeyLabel": "Chave de acesso",
-	"accessKeyHint": "44 dígitos",
-	"accessKeyHelp": "Fica no rodapé do cupom fiscal.",
-	"qrPayloadLabel": "Conteúdo do QR Code",
-	"qrPayloadHint": "Cole aqui o link do QR Code do cupom",
-	"invalidAccessKeyError": "Informe os 44 dígitos da chave de acesso",
-	"invalidQrPayloadError": "Informe um QR Code válido",
-	"extractAccessKeyFromQrAction": "Extrair chave de acesso do QR Code",
-	"extractAccessKeyFromQrNoMatchError": "Não foi possível extrair uma chave de 44 dígitos do conteúdo do QR Code.",
-	"draftingReceiptLabel": "Processando o cupom...",
-	"submittingReceiptLabel": "Enviando o cupom...",
-	"captchaTitle": "Verificação de segurança",
-	"captchaDescription": "Digite os caracteres da imagem para continuar.",
-	"captchaSolutionLabel": "Resposta",
-	"captchaSolveAction": "Confirmar",
-	"captchaReloadAction": "Recarregar imagem",
-	"captchaImageUnavailable": "Não foi possível carregar a imagem.",
-	"captchaWrongSolutionError": "Resposta incorreta. Tente novamente.",
-	"captchaAttemptsLeft": "Tentativas restantes: {count}",
-	"@captchaAttemptsLeft": {
-		"placeholders": {
-			"count": {
-				"type": "int"
-			}
-		}
-	},
-	"captchaExpiredError": "Este desafio expirou. Leia o cupom novamente.",
-	"captchaLockedError": "Muitas respostas incorretas. Leia o cupom novamente.",
-	"captchaUsedError": "Este desafio já foi utilizado.",
-	"captchaNotFoundError": "Desafio não encontrado.",
-	"previewTitle": "Confira os dados do cupom",
-	"previewAccessKeyLabel": "Chave de acesso",
-	"previewExpiresAtLabel": "Expira em {time}",
-	"@previewExpiresAtLabel": {
-		"placeholders": {
-			"time": {
-				"type": "String"
-			}
-		}
-	},
-	"previewExpiredLabel": "Prévia expirada",
-	"previewItemsTitle": "Itens",
-	"previewTotalsTitle": "Resumo",
-	"previewItemsCountLabel": "Itens lidos",
-	"previewAutoSaveLabel": "Salvos automaticamente",
-	"previewNeedsReviewLabel": "Precisam de revisão",
-	"previewParseErrorsLabel": "Com erro de leitura",
-	"previewEstimatedTotalLabel": "Total estimado",
-	"previewPriceLabel": "Preço",
-	"itemStatusGtinKnown": "Produto reconhecido",
-	"itemStatusGtinNew": "Produto novo",
-	"itemStatusCommodity": "Produto a granel",
-	"itemStatusUncertain": "Código incerto",
-	"itemStatusParseError": "Erro de leitura",
-	"itemUncertainHelp": "Escolha como tratar este item.",
-	"itemApiMessageTitle": "Mensagem da API",
-	"closeAction": "Fechar",
-	"resolutionNeedsReviewAction": "Revisar depois",
-	"resolutionSkipAction": "Ignorar",
-	"resolutionAssignAction": "Vincular produto",
-	"assignedProductLabel": "Produto vinculado",
-	"changeProductAction": "Trocar",
-	"clearProductAction": "Remover vínculo",
-	"productPickerTitle": "Selecionar produto",
-	"submitDryRunAction": "Simular envio",
-	"submitConfirmAction": "Enviar cupom",
-	"commitResultTitle": "Cupom enviado",
-	"commitWrittenLabel": "Itens registrados",
-	"commitAutoSavedLabel": "Salvos automaticamente",
-	"commitSkippedLabel": "Itens ignorados",
-	"commitNeedsReviewLabel": "Para revisão",
-	"commitAssignedLabel": "Associados",
-	"doneAction": "Concluir",
-	"deleteReceiptAction": "Excluir cupom",
-	"deleteReceiptConfirmTitle": "Excluir cupom?",
-	"deleteReceiptConfirmMessage": "Os preços deste cupom serão removidos. Esta ação não pode ser desfeita.",
-	"deleteReceiptSuccessMessage": "Cupom excluído",
-	"cancelAction": "Cancelar",
-	"deleteAction": "Excluir",
-	"startOverAction": "Ler outro cupom",
-	"receiptNotFoundError": "Cupom não encontrado.",
-	"unsupportedUfError": "Estado (UF) não suportado.",
-	"upstreamErrorMessage": "O portal da SEFAZ não respondeu. Tente novamente.",
-	"previewExpiredError": "Esta prévia expirou. Leia o cupom novamente.",
-	"previewNotFoundError": "Prévia não encontrada. Leia o cupom novamente.",
-	"alreadyCommittedError": "Este cupom já foi registrado.",
-	"invalidResolutionError": "Não foi possível aplicar as escolhas dos itens."
+  "@@locale": "pt",
+  "appTitle": "Meu Preço",
+  "appDescription": "Compare preços de produtos entre supermercados.",
+  "serverConfigTitle": "Configurar servidor",
+  "serverConfigDescription": "Informe o endereço do servidor Meu Preço que deseja utilizar.",
+  "serverAddressLabel": "Endereço do servidor",
+  "serverAddressHint": "https://meu-preco.exemplo.com",
+  "serverAddressHelp": "Pode ser informado com ou sem o prefixo /api/v1.",
+  "testConnection": "Testar conexão",
+  "saveAndContinue": "Salvar e continuar",
+  "serverConnectionSuccess": "Servidor disponível",
+  "serverConnectionFailure": "Não foi possível conectar ao servidor",
+  "serverConnectionTimeout": "O servidor demorou demais para responder",
+  "invalidServerUrl": "Informe uma URL válida, começando com http:// ou https://",
+  "continueAction": "Continuar",
+  "loginTitle": "Entrar",
+  "loginDescription": "Entre com seu e-mail ou nome de usuário.",
+  "loginIdentifierLabel": "E-mail ou nome",
+  "emailLabel": "E-mail",
+  "nameLabel": "Nome",
+  "passwordLabel": "Senha",
+  "confirmPasswordLabel": "Confirmar senha",
+  "signInAction": "Fazer login",
+  "registerTitle": "Criar conta",
+  "registerDescription": "Crie uma conta para começar a usar o Meu Preço.",
+  "createAccountAction": "Criar conta",
+  "needAccountAction": "Criar uma conta",
+  "alreadyHaveAccountAction": "Já tenho uma conta",
+  "passwordsDoNotMatch": "As senhas não coincidem",
+  "invalidIdentifierError": "Informe um e-mail ou nome",
+  "invalidNameError": "Informe um nome de até 100 caracteres",
+  "invalidEmailError": "Informe um e-mail válido",
+  "weakPasswordError": "A senha deve ter pelo menos 8 caracteres",
+  "invalidCredentialsError": "E-mail ou senha inválidos",
+  "userExistsError": "Este e-mail já está cadastrado",
+  "rateLimitedError": "Muitas tentativas. Tente novamente em instantes",
+  "networkErrorMessage": "Não foi possível conectar ao servidor",
+  "sessionExpiredMessage": "Sua sessão expirou. Entre novamente.",
+  "accountSection": "Conta",
+  "currentUserLabel": "Usuário",
+  "roleLabel": "Perfil",
+  "adminRoleLabel": "Administrador",
+  "userRoleLabel": "Usuário",
+  "notAuthenticatedLabel": "Não autenticado",
+  "signOutSuccessMessage": "Sessão encerrada",
+  "homeTitle": "Início",
+  "homeGreeting": "Bem-vindo(a) de volta",
+  "scanReceiptAction": "Escanear NFC-e",
+  "searchProductAction": "Buscar produto",
+  "receiptSubmissionTitle": "Nova NFC-e",
+  "productSearchTitle": "Produtos",
+  "productDetailTitle": "Produto",
+  "productSearchHint": "Nome, GTIN ou marca",
+  "productSearchPrompt": "Digite para buscar produtos",
+  "productSearchNoResults": "Nenhum produto encontrado",
+  "productSearchLoading": "Buscando produtos",
+  "productBrandLabel": "Marca",
+  "productGtinLabel": "GTIN",
+  "productUnitLabel": "Unidade",
+  "productNotFound": "Produto não encontrado.",
+  "productHistoryTitle": "Histórico de preços",
+  "productHistoryEmpty": "Sem histórico de preços",
+  "productHistoryFromLabel": "De",
+  "productHistoryToLabel": "Até",
+  "productHistoryClearRangeAction": "Limpar período",
+  "productHistoryApplyRangeAction": "Aplicar",
+  "productSupermarketLabel": "Mercado",
+  "productLoggedAtLabel": "Data",
+  "productQtyLabel": "Quantidade",
+  "productPricePerUnitLabel": "Preço por unidade",
+  "productUnitPriceLabel": "Preço da unidade",
+  "productTotalPriceLabel": "Total",
+  "productAggregateTitle": "Resumo por unidade",
+  "productAggregateCountLabel": "Registros",
+  "productUpdated": "Produto atualizado",
+  "productAggregateMinLabel": "Mínimo",
+  "productAggregateAvgLabel": "Média",
+  "productAggregateMaxLabel": "Máximo",
+  "productAggregateLastLabel": "Último",
+  "invalidDateRangeError": "A data inicial deve ser anterior ou igual à final.",
+  "productPriceGraphLabel": "Evolução do preço",
+  "priceChartTooShort": "Histórico curto demais para montar o gráfico.",
+  "priceChartMinLabel": "Mínimo",
+  "priceChartMaxLabel": "Máximo",
+  "priceChartSemantics": "Gráfico de preços de {min} a {max} por {unit}.",
+  "@priceChartSemantics": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "supermarketsTitle": "Supermercados",
+  "adminTitle": "Administração",
+  "settingsTitle": "Configurações",
+  "settingsServerSection": "Servidor",
+  "connectivitySection": "Conectividade",
+  "checkConnectivityAction": "Verificar conexão",
+  "healthStatusLabel": "Servidor",
+  "readinessStatusLabel": "Prontidão",
+  "readinessHealthyLabel": "Pronto para uso",
+  "readinessUnavailableLabel": "Indisponível",
+  "settingsResetToDefault": "Restaurar padrão",
+  "logoutAction": "Sair",
+  "loadingLabel": "Carregando...",
+  "emptyLabel": "Nada por aqui ainda",
+  "errorLabel": "Algo deu errado",
+  "retryAction": "Tentar novamente",
+  "comingSoonLabel": "Em breve",
+  "notImplementedLabel": "Esta funcionalidade ainda não está disponível.",
+  "currentHostLabel": "Servidor atual",
+  "apiPrefixLabel": "Prefixo da API",
+  "notConfiguredLabel": "Não configurado",
+  "scanQrAction": "Escanear QR",
+  "pasteNfceKeyAction": "Colar chave da NFC-e",
+  "scanWithCameraAction": "Escanear com a câmera",
+  "scanQrHelp": "Aponte a câmera para o QR Code do cupom.",
+  "scanQrUnavailable": "A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.",
+  "scanReceiptTitle": "Escanear NFC-e",
+  "scannerPreparingLabel": "Preparando câmera",
+  "scannerInstruction": "Alinhe o QR Code da NFC-e dentro do quadrado.",
+  "cameraUnavailableTitle": "Câmera indisponível",
+  "cameraUnsupportedMessage": "A leitura com câmera não é suportada neste dispositivo ou plataforma.",
+  "cameraNoCameraMessage": "Nenhuma câmera foi encontrada neste dispositivo.",
+  "cameraErrorMessage": "Não foi possível abrir a câmera. Tente novamente.",
+  "cameraPermissionTitle": "Permissão da câmera",
+  "cameraPermissionDeniedMessage": "É necessário permitir o acesso à câmera para escanear o QR Code.",
+  "cameraPermissionForeverMessage": "O acesso à câmera foi negado permanentemente. Abra as configurações do app para habilitá-lo.",
+  "cameraPermissionRetryAction": "Solicitar permissão",
+  "openSettingsAction": "Abrir configurações",
+  "accessKeyLabel": "Chave de acesso",
+  "accessKeyHint": "44 dígitos",
+  "accessKeyHelp": "Fica no rodapé do cupom fiscal.",
+  "qrPayloadLabel": "Conteúdo do QR Code",
+  "qrPayloadHint": "Cole aqui o link do QR Code do cupom",
+  "invalidAccessKeyError": "Informe os 44 dígitos da chave de acesso",
+  "invalidQrPayloadError": "Informe um QR Code válido",
+  "extractAccessKeyFromQrAction": "Extrair chave de acesso do QR Code",
+  "@extractAccessKeyFromQrAction": {
+    "description": "Extract access key from QR"
+  },
+  "extractAccessKeyFromQrNoMatchError": "Não foi possível extrair uma chave de 44 dígitos do conteúdo do QR Code.",
+  "@extractAccessKeyFromQrNoMatchError": {
+    "description": "No 44-digit key found in QR"
+  },
+  "draftingReceiptLabel": "Processando o cupom...",
+  "submittingReceiptLabel": "Enviando o cupom...",
+  "captchaTitle": "Verificação de segurança",
+  "captchaDescription": "Digite os caracteres da imagem para continuar.",
+  "captchaSolutionLabel": "Resposta",
+  "captchaSolveAction": "Confirmar",
+  "captchaReloadAction": "Recarregar imagem",
+  "captchaImageUnavailable": "Não foi possível carregar a imagem.",
+  "captchaWrongSolutionError": "Resposta incorreta. Tente novamente.",
+  "captchaAttemptsLeft": "Tentativas restantes: {count}",
+  "@captchaAttemptsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "captchaExpiredError": "Este desafio expirou. Leia o cupom novamente.",
+  "captchaLockedError": "Muitas respostas incorretas. Leia o cupom novamente.",
+  "captchaUsedError": "Este desafio já foi utilizado.",
+  "captchaNotFoundError": "Desafio não encontrado.",
+  "previewTitle": "Confira os dados do cupom",
+  "previewAccessKeyLabel": "Chave de acesso",
+  "previewExpiresAtLabel": "Expira em {time}",
+  "@previewExpiresAtLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "previewExpiredLabel": "Prévia expirada",
+  "previewItemsTitle": "Itens",
+  "previewTotalsTitle": "Resumo",
+  "previewItemsCountLabel": "Itens lidos",
+  "previewAutoSaveLabel": "Salvos automaticamente",
+  "previewNeedsReviewLabel": "Precisam de revisão",
+  "previewParseErrorsLabel": "Com erro de leitura",
+  "previewEstimatedTotalLabel": "Total estimado",
+  "previewPriceLabel": "Preço",
+  "itemStatusGtinKnown": "Produto reconhecido",
+  "itemStatusGtinNew": "Produto novo",
+  "itemStatusCommodity": "Produto a granel",
+  "itemStatusUncertain": "Código incerto",
+  "itemStatusParseError": "Erro de leitura",
+  "itemUncertainHelp": "Escolha como tratar este item.",
+  "itemApiMessageTitle": "Mensagem da API",
+  "closeAction": "Fechar",
+  "resolutionNeedsReviewAction": "Revisar depois",
+  "resolutionSkipAction": "Ignorar",
+  "resolutionAssignAction": "Vincular produto",
+  "assignedProductLabel": "Produto vinculado",
+  "changeProductAction": "Trocar",
+  "clearProductAction": "Remover vínculo",
+  "productPickerTitle": "Selecionar produto",
+  "submitDryRunAction": "Simular envio",
+  "submitConfirmAction": "Enviar cupom",
+  "commitResultTitle": "Cupom enviado",
+  "commitWrittenLabel": "Itens registrados",
+  "commitAutoSavedLabel": "Salvos automaticamente",
+  "commitSkippedLabel": "Itens ignorados",
+  "commitNeedsReviewLabel": "Para revisão",
+  "commitAssignedLabel": "Associados",
+  "doneAction": "Concluir",
+  "deleteReceiptAction": "Excluir cupom",
+  "deleteReceiptConfirmTitle": "Excluir cupom?",
+  "deleteReceiptConfirmMessage": "Os preços deste cupom serão removidos. Esta ação não pode ser desfeita.",
+  "deleteReceiptSuccessMessage": "Cupom excluído",
+  "cancelAction": "Cancelar",
+  "deleteAction": "Excluir",
+  "startOverAction": "Ler outro cupom",
+  "receiptNotFoundError": "Cupom não encontrado.",
+  "unsupportedUfError": "Estado (UF) não suportado.",
+  "upstreamErrorMessage": "O portal da SEFAZ não respondeu. Tente novamente.",
+  "previewExpiredError": "Esta prévia expirou. Leia o cupom novamente.",
+  "previewNotFoundError": "Prévia não encontrada. Leia o cupom novamente.",
+  "alreadyCommittedError": "Este cupom já foi registrado.",
+  "invalidResolutionError": "Não foi possível aplicar as escolhas dos itens.",
+  "adminUsers": "Usuários",
+  "@adminUsers": {
+    "description": "Admin users tab"
+  },
+  "adminReviewQueue": "Fila de revisão",
+  "@adminReviewQueue": {
+    "description": "Admin review queue tab"
+  },
+  "adminRole": "Perfil",
+  "@adminRole": {
+    "description": "Admin role label"
+  },
+  "adminPromoteToAdmin": "Tornar administrador",
+  "@adminPromoteToAdmin": {
+    "description": "Promote user to admin"
+  },
+  "adminDemoteToUser": "Rebaixar para usuário",
+  "@adminDemoteToUser": {
+    "description": "Demote admin to user"
+  },
+  "adminChangeRole": "Alterar perfil",
+  "@adminChangeRole": {
+    "description": "Change role action"
+  },
+  "adminConfirmRoleChange": "Confirmar alteração de perfil?",
+  "@adminConfirmRoleChange": {
+    "description": "Confirm role change dialog"
+  },
+  "adminCannotChangeOwnRole": "Não é possível alterar o próprio perfil",
+  "@adminCannotChangeOwnRole": {
+    "description": "Cannot change own role message"
+  },
+  "adminBatchAssign": "Atribuir em lote",
+  "@adminBatchAssign": {
+    "description": "Batch assign action"
+  },
+  "adminSelectAll": "Selecionar todos",
+  "@adminSelectAll": {
+    "description": "Select all"
+  },
+  "adminClearSelection": "Limpar seleção",
+  "@adminClearSelection": {
+    "description": "Clear selection"
+  },
+  "adminAssignToExisting": "Atribuir a produto existente",
+  "@adminAssignToExisting": {
+    "description": "Assign to existing product"
+  },
+  "adminCreateProduct": "Criar novo produto",
+  "@adminCreateProduct": {
+    "description": "Create new product"
+  },
+  "adminNoSelection": "Nenhum item selecionado",
+  "@adminNoSelection": {
+    "description": "No items selected"
+  },
+  "adminAssigned": "Atribuídos",
+  "@adminAssigned": {
+    "description": "Assigned count"
+  },
+  "adminCreated": "Criados",
+  "@adminCreated": {
+    "description": "Created count"
+  },
+  "adminRefresh": "Atualizar",
+  "@adminRefresh": {
+    "description": "Refresh"
+  },
+  "adminUserId": "ID",
+  "@adminUserId": {
+    "description": "User ID"
+  },
+  "adminUserName": "Nome",
+  "@adminUserName": {
+    "description": "User name"
+  },
+  "adminUserEmail": "E-mail",
+  "@adminUserEmail": {
+    "description": "User email"
+  },
+  "adminCreatedAt": "Criado em",
+  "@appTitle": {
+    "description": "AppTitle"
+  },
+  "@appDescription": {
+    "description": "AppDescription"
+  },
+  "@serverConfigTitle": {
+    "description": "ServerConfigTitle"
+  },
+  "@serverConfigDescription": {
+    "description": "ServerConfigDescription"
+  },
+  "@serverAddressLabel": {
+    "description": "ServerAddress"
+  },
+  "@serverAddressHint": {
+    "description": "ServerAddressHint"
+  },
+  "@serverAddressHelp": {
+    "description": "ServerAddressHelp"
+  },
+  "@testConnection": {
+    "description": "TestConnection"
+  },
+  "@saveAndContinue": {
+    "description": "SaveAndContinue"
+  },
+  "@serverConnectionSuccess": {
+    "description": "ServerConnectionSuccess"
+  },
+  "@serverConnectionFailure": {
+    "description": "ServerConnectionFailure"
+  },
+  "@serverConnectionTimeout": {
+    "description": "ServerConnectionTimeout"
+  },
+  "@invalidServerUrl": {
+    "description": "InvalidServerUrl"
+  },
+  "@continueAction": {
+    "description": "Continue"
+  },
+  "@loginTitle": {
+    "description": "LoginTitle"
+  },
+  "@loginDescription": {
+    "description": "LoginDescription"
+  },
+  "@loginIdentifierLabel": {
+    "description": "LoginIdentifier"
+  },
+  "@emailLabel": {
+    "description": "Email"
+  },
+  "@nameLabel": {
+    "description": "Name"
+  },
+  "@passwordLabel": {
+    "description": "Password"
+  },
+  "@confirmPasswordLabel": {
+    "description": "ConfirmPassword"
+  },
+  "@signInAction": {
+    "description": "SignIn"
+  },
+  "@registerTitle": {
+    "description": "RegisterTitle"
+  },
+  "@registerDescription": {
+    "description": "RegisterDescription"
+  },
+  "@createAccountAction": {
+    "description": "CreateAccount"
+  },
+  "@needAccountAction": {
+    "description": "NeedAccount"
+  },
+  "@alreadyHaveAccountAction": {
+    "description": "AlreadyHaveAccount"
+  },
+  "@passwordsDoNotMatch": {
+    "description": "PasswordsDoNotMatch"
+  },
+  "@invalidIdentifierError": {
+    "description": "InvalidIdentifier"
+  },
+  "@invalidNameError": {
+    "description": "InvalidName"
+  },
+  "@invalidEmailError": {
+    "description": "InvalidEmail"
+  },
+  "@weakPasswordError": {
+    "description": "WeakPassword"
+  },
+  "@invalidCredentialsError": {
+    "description": "InvalidCredentials"
+  },
+  "@userExistsError": {
+    "description": "UserExists"
+  },
+  "@rateLimitedError": {
+    "description": "RateLimited"
+  },
+  "@networkErrorMessage": {
+    "description": "Network"
+  },
+  "@sessionExpiredMessage": {
+    "description": "SessionExpired"
+  },
+  "@accountSection": {
+    "description": "AccountSection"
+  },
+  "@currentUserLabel": {
+    "description": "CurrentUser"
+  },
+  "@roleLabel": {
+    "description": "Role"
+  },
+  "@adminRoleLabel": {
+    "description": "AdminRole"
+  },
+  "@userRoleLabel": {
+    "description": "UserRole"
+  },
+  "@notAuthenticatedLabel": {
+    "description": "NotAuthenticated"
+  },
+  "@signOutSuccessMessage": {
+    "description": "SignOutSuccess"
+  },
+  "@homeTitle": {
+    "description": "HomeTitle"
+  },
+  "@homeGreeting": {
+    "description": "HomeGreeting"
+  },
+  "@scanReceiptAction": {
+    "description": "ScanReceipt"
+  },
+  "@searchProductAction": {
+    "description": "SearchProduct"
+  },
+  "@receiptSubmissionTitle": {
+    "description": "ReceiptSubmissionTitle"
+  },
+  "@productSearchTitle": {
+    "description": "ProductSearchTitle"
+  },
+  "@productDetailTitle": {
+    "description": "ProductDetailTitle"
+  },
+  "@productSearchHint": {
+    "description": "ProductSearchHint"
+  },
+  "@productSearchPrompt": {
+    "description": "ProductSearchPrompt"
+  },
+  "@productSearchNoResults": {
+    "description": "ProductSearchNoResults"
+  },
+  "@productSearchLoading": {
+    "description": "ProductSearchLoading"
+  },
+  "@productBrandLabel": {
+    "description": "ProductBrand"
+  },
+  "@productGtinLabel": {
+    "description": "ProductGtin"
+  },
+  "@productUnitLabel": {
+    "description": "ProductUnit"
+  },
+  "@productNotFound": {
+    "description": "ProductNotFound"
+  },
+  "@productHistoryTitle": {
+    "description": "ProductHistoryTitle"
+  },
+  "@productHistoryEmpty": {
+    "description": "ProductHistoryEmpty"
+  },
+  "@productHistoryFromLabel": {
+    "description": "ProductHistoryFrom"
+  },
+  "@productHistoryToLabel": {
+    "description": "ProductHistoryTo"
+  },
+  "@productHistoryClearRangeAction": {
+    "description": "ProductHistoryClearRange"
+  },
+  "@productHistoryApplyRangeAction": {
+    "description": "ProductHistoryApplyRange"
+  },
+  "@productSupermarketLabel": {
+    "description": "ProductSupermarket"
+  },
+  "@productLoggedAtLabel": {
+    "description": "ProductLoggedAt"
+  },
+  "@productQtyLabel": {
+    "description": "ProductQty"
+  },
+  "@productPricePerUnitLabel": {
+    "description": "ProductPricePerUnit"
+  },
+  "@productUnitPriceLabel": {
+    "description": "ProductUnitPrice"
+  },
+  "@productTotalPriceLabel": {
+    "description": "ProductTotalPrice"
+  },
+  "@productAggregateTitle": {
+    "description": "ProductAggregateTitle"
+  },
+  "@productAggregateCountLabel": {
+    "description": "ProductAggregateCount"
+  },
+  "@productUpdated": {
+    "description": "ProductUpdated"
+  },
+  "@productAggregateMinLabel": {
+    "description": "ProductAggregateMin"
+  },
+  "@productAggregateAvgLabel": {
+    "description": "ProductAggregateAvg"
+  },
+  "@productAggregateMaxLabel": {
+    "description": "ProductAggregateMax"
+  },
+  "@productAggregateLastLabel": {
+    "description": "ProductAggregateLast"
+  },
+  "@invalidDateRangeError": {
+    "description": "InvalidDateRange"
+  },
+  "@productPriceGraphLabel": {
+    "description": "ProductPriceGraph"
+  },
+  "@priceChartTooShort": {
+    "description": "PriceChartTooShort"
+  },
+  "@priceChartMinLabel": {
+    "description": "PriceChartMin"
+  },
+  "@priceChartMaxLabel": {
+    "description": "PriceChartMax"
+  },
+  "@supermarketsTitle": {
+    "description": "SupermarketsTitle"
+  },
+  "@adminTitle": {
+    "description": "AdminTitle"
+  },
+  "@settingsTitle": {
+    "description": "SettingsTitle"
+  },
+  "@settingsServerSection": {
+    "description": "SettingsServerSection"
+  },
+  "@connectivitySection": {
+    "description": "ConnectivitySection"
+  },
+  "@checkConnectivityAction": {
+    "description": "CheckConnectivity"
+  },
+  "@healthStatusLabel": {
+    "description": "HealthStatus"
+  },
+  "@readinessStatusLabel": {
+    "description": "ReadinessStatus"
+  },
+  "@readinessHealthyLabel": {
+    "description": "ReadinessHealthy"
+  },
+  "@readinessUnavailableLabel": {
+    "description": "ReadinessUnavailable"
+  },
+  "@settingsResetToDefault": {
+    "description": "SettingsResetToDefault"
+  },
+  "@logoutAction": {
+    "description": "Logout"
+  },
+  "@loadingLabel": {
+    "description": "Loading"
+  },
+  "@emptyLabel": {
+    "description": "Empty"
+  },
+  "@errorLabel": {
+    "description": "Error"
+  },
+  "@retryAction": {
+    "description": "Retry"
+  },
+  "@comingSoonLabel": {
+    "description": "ComingSoon"
+  },
+  "@notImplementedLabel": {
+    "description": "NotImplemented"
+  },
+  "@currentHostLabel": {
+    "description": "CurrentHost"
+  },
+  "@apiPrefixLabel": {
+    "description": "ApiPrefix"
+  },
+  "@notConfiguredLabel": {
+    "description": "NotConfigured"
+  },
+  "@scanQrAction": {
+    "description": "ScanQr"
+  },
+  "@pasteNfceKeyAction": {
+    "description": "PasteNfceKey"
+  },
+  "@scanWithCameraAction": {
+    "description": "ScanWithCamera"
+  },
+  "@scanQrHelp": {
+    "description": "ScanQrHelp"
+  },
+  "@scanQrUnavailable": {
+    "description": "ScanQrUnavailable"
+  },
+  "@scanReceiptTitle": {
+    "description": "ScanReceiptTitle"
+  },
+  "@scannerPreparingLabel": {
+    "description": "ScannerPreparing"
+  },
+  "@scannerInstruction": {
+    "description": "ScannerInstruction"
+  },
+  "@cameraUnavailableTitle": {
+    "description": "CameraUnavailableTitle"
+  },
+  "@cameraUnsupportedMessage": {
+    "description": "CameraUnsupported"
+  },
+  "@cameraNoCameraMessage": {
+    "description": "CameraNoCamera"
+  },
+  "@cameraErrorMessage": {
+    "description": "Camera"
+  },
+  "@cameraPermissionTitle": {
+    "description": "CameraPermissionTitle"
+  },
+  "@cameraPermissionDeniedMessage": {
+    "description": "CameraPermissionDenied"
+  },
+  "@cameraPermissionForeverMessage": {
+    "description": "CameraPermissionForever"
+  },
+  "@cameraPermissionRetryAction": {
+    "description": "CameraPermissionRetry"
+  },
+  "@openSettingsAction": {
+    "description": "OpenSettings"
+  },
+  "@accessKeyLabel": {
+    "description": "AccessKey"
+  },
+  "@accessKeyHint": {
+    "description": "AccessKeyHint"
+  },
+  "@accessKeyHelp": {
+    "description": "AccessKeyHelp"
+  },
+  "@qrPayloadLabel": {
+    "description": "QrPayload"
+  },
+  "@qrPayloadHint": {
+    "description": "QrPayloadHint"
+  },
+  "@invalidAccessKeyError": {
+    "description": "InvalidAccessKey"
+  },
+  "@invalidQrPayloadError": {
+    "description": "InvalidQrPayload"
+  },
+  "@draftingReceiptLabel": {
+    "description": "DraftingReceipt"
+  },
+  "@submittingReceiptLabel": {
+    "description": "SubmittingReceipt"
+  },
+  "@captchaTitle": {
+    "description": "CaptchaTitle"
+  },
+  "@captchaDescription": {
+    "description": "CaptchaDescription"
+  },
+  "@captchaSolutionLabel": {
+    "description": "CaptchaSolution"
+  },
+  "@captchaSolveAction": {
+    "description": "CaptchaSolve"
+  },
+  "@captchaReloadAction": {
+    "description": "CaptchaReload"
+  },
+  "@captchaImageUnavailable": {
+    "description": "CaptchaImageUnavailable"
+  },
+  "@captchaWrongSolutionError": {
+    "description": "CaptchaWrongSolution"
+  },
+  "@captchaExpiredError": {
+    "description": "CaptchaExpired"
+  },
+  "@captchaLockedError": {
+    "description": "CaptchaLocked"
+  },
+  "@captchaUsedError": {
+    "description": "CaptchaUsed"
+  },
+  "@captchaNotFoundError": {
+    "description": "CaptchaNotFound"
+  },
+  "@previewTitle": {
+    "description": "PreviewTitle"
+  },
+  "@previewAccessKeyLabel": {
+    "description": "PreviewAccessKey"
+  },
+  "@previewExpiredLabel": {
+    "description": "PreviewExpired"
+  },
+  "@previewItemsTitle": {
+    "description": "PreviewItemsTitle"
+  },
+  "@previewTotalsTitle": {
+    "description": "PreviewTotalsTitle"
+  },
+  "@previewItemsCountLabel": {
+    "description": "PreviewItemsCount"
+  },
+  "@previewAutoSaveLabel": {
+    "description": "PreviewAutoSave"
+  },
+  "@previewNeedsReviewLabel": {
+    "description": "PreviewNeedsReview"
+  },
+  "@previewParseErrorsLabel": {
+    "description": "PreviewParses"
+  },
+  "@previewEstimatedTotalLabel": {
+    "description": "PreviewEstimatedTotal"
+  },
+  "@previewPriceLabel": {
+    "description": "PreviewPrice"
+  },
+  "@itemStatusGtinKnown": {
+    "description": "ItemStatusGtinKnown"
+  },
+  "@itemStatusGtinNew": {
+    "description": "ItemStatusGtinNew"
+  },
+  "@itemStatusCommodity": {
+    "description": "ItemStatusCommodity"
+  },
+  "@itemStatusUncertain": {
+    "description": "ItemStatusUncertain"
+  },
+  "@itemStatusParseError": {
+    "description": "ItemStatusParse"
+  },
+  "@itemUncertainHelp": {
+    "description": "ItemUncertainHelp"
+  },
+  "@itemApiMessageTitle": {
+    "description": "ItemApiTitle"
+  },
+  "@closeAction": {
+    "description": "Close"
+  },
+  "@resolutionNeedsReviewAction": {
+    "description": "ResolutionNeedsReview"
+  },
+  "@resolutionSkipAction": {
+    "description": "ResolutionSkip"
+  },
+  "@resolutionAssignAction": {
+    "description": "ResolutionAssign"
+  },
+  "@assignedProductLabel": {
+    "description": "AssignedProduct"
+  },
+  "@changeProductAction": {
+    "description": "ChangeProduct"
+  },
+  "@clearProductAction": {
+    "description": "ClearProduct"
+  },
+  "@productPickerTitle": {
+    "description": "ProductPickerTitle"
+  },
+  "@submitDryRunAction": {
+    "description": "SubmitDryRun"
+  },
+  "@submitConfirmAction": {
+    "description": "SubmitConfirm"
+  },
+  "@commitResultTitle": {
+    "description": "CommitResultTitle"
+  },
+  "@commitWrittenLabel": {
+    "description": "CommitWritten"
+  },
+  "@commitAutoSavedLabel": {
+    "description": "CommitAutoSaved"
+  },
+  "@commitSkippedLabel": {
+    "description": "CommitSkipped"
+  },
+  "@commitNeedsReviewLabel": {
+    "description": "CommitNeedsReview"
+  },
+  "@commitAssignedLabel": {
+    "description": "CommitAssigned"
+  },
+  "@doneAction": {
+    "description": "Done"
+  },
+  "@deleteReceiptAction": {
+    "description": "DeleteReceipt"
+  },
+  "@deleteReceiptConfirmTitle": {
+    "description": "DeleteReceiptConfirmTitle"
+  },
+  "@deleteReceiptConfirmMessage": {
+    "description": "DeleteReceiptConfirm"
+  },
+  "@deleteReceiptSuccessMessage": {
+    "description": "DeleteReceiptSuccess"
+  },
+  "@cancelAction": {
+    "description": "Cancel"
+  },
+  "@deleteAction": {
+    "description": "Delete"
+  },
+  "@startOverAction": {
+    "description": "StartOver"
+  },
+  "@receiptNotFoundError": {
+    "description": "ReceiptNotFound"
+  },
+  "@unsupportedUfError": {
+    "description": "UnsupportedUf"
+  },
+  "@upstreamErrorMessage": {
+    "description": "Upstream"
+  },
+  "@previewExpiredError": {
+    "description": "PreviewExpired"
+  },
+  "@previewNotFoundError": {
+    "description": "PreviewNotFound"
+  },
+  "@alreadyCommittedError": {
+    "description": "AlreadyCommitted"
+  },
+  "@invalidResolutionError": {
+    "description": "InvalidResolution"
+  },
+  "@adminCreatedAt": {
+    "description": "AdminCreatedAt"
+  }
 }

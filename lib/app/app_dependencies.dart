@@ -17,6 +17,7 @@ import '../features/auth/data/auth_repository.dart';
 import '../features/nfce/code_scanner.dart';
 import '../features/nfce/data/nfce_repository.dart';
 import '../features/products/data/product_repository.dart';
+import '../features/admin/data/admin_repository.dart';
 
 /// Composition root for the app.
 ///
@@ -32,6 +33,7 @@ class AppDependencies {
     ServerHealthChecker? healthChecker,
     NfceRepository? nfceRepository,
     ProductRepository? productsRepository,
+    AdminRepository? adminRepository,
     CodeScanner? codeScanner,
     http.Client? httpClient,
   }) {
@@ -65,6 +67,7 @@ class AppDependencies {
       nfceRepository: nfceRepository ?? ApiNfceRepository(client: apiClient),
       productsRepository:
           productsRepository ?? ApiProductRepository(client: apiClient),
+      adminRepository: adminRepository ?? ApiAdminRepository(client: apiClient),
       codeScanner:
           codeScanner ??
           () {
@@ -88,6 +91,7 @@ class AppDependencies {
     required this.apiClient,
     required this.nfceRepository,
     required this.productsRepository,
+    required this.adminRepository,
     required this.codeScanner,
     required this.healthChecker,
   }) : _rawClient = rawClient; // ignore: prefer_initializing_formals
@@ -108,6 +112,9 @@ class AppDependencies {
 
   /// Product catalog search and price history.
   final ProductRepository productsRepository;
+
+  /// Admin operations.
+  final AdminRepository adminRepository;
 
   /// Platform seam for camera QR scanning.
   final CodeScanner codeScanner;

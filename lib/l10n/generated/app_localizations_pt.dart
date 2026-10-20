@@ -236,6 +236,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get productAggregateCountLabel => 'Registros';
 
   @override
+  String get productUpdated => 'Produto atualizado';
+
+  @override
   String get productAggregateMinLabel => 'Mínimo';
 
   @override
@@ -625,4 +628,68 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get invalidResolutionError =>
       'Não foi possível aplicar as escolhas dos itens.';
+
+  @override
+  String get adminUsers => 'Usuários';
+
+  @override
+  String get adminReviewQueue => 'Fila de revisão';
+
+  @override
+  String get adminRole => 'Perfil';
+
+  @override
+  String get adminPromoteToAdmin => 'Tornar administrador';
+
+  @override
+  String get adminDemoteToUser => 'Rebaixar para usuário';
+
+  @override
+  String get adminChangeRole => 'Alterar perfil';
+
+  @override
+  String get adminConfirmRoleChange => 'Confirmar alteração de perfil?';
+
+  @override
+  String get adminCannotChangeOwnRole =>
+      'Não é possível alterar o próprio perfil';
+
+  @override
+  String get adminBatchAssign => 'Atribuir em lote';
+
+  @override
+  String get adminSelectAll => 'Selecionar todos';
+
+  @override
+  String get adminClearSelection => 'Limpar seleção';
+
+  @override
+  String get adminAssignToExisting => 'Atribuir a produto existente';
+
+  @override
+  String get adminCreateProduct => 'Criar novo produto';
+
+  @override
+  String get adminNoSelection => 'Nenhum item selecionado';
+
+  @override
+  String get adminAssigned => 'Atribuídos';
+
+  @override
+  String get adminCreated => 'Criados';
+
+  @override
+  String get adminRefresh => 'Atualizar';
+
+  @override
+  String get adminUserId => 'ID';
+
+  @override
+  String get adminUserName => 'Nome';
+
+  @override
+  String get adminUserEmail => 'E-mail';
+
+  @override
+  String get adminCreatedAt => 'Criado em';
 }

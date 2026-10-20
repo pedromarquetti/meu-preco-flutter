@@ -87,6 +87,25 @@ class ApiClient {
     );
   }
 
+  Future<dynamic> patch(
+    String path, {
+    Object? body,
+    bool useApiPrefix = true,
+    Map<String, String>? headers,
+    Map<String, String>? query,
+    AppConfig? config,
+  }) {
+    return _send(
+      'PATCH',
+      path,
+      useApiPrefix: useApiPrefix,
+      headers: headers,
+      query: query,
+      body: body,
+      config: config,
+    );
+  }
+
   Future<dynamic> put(
     String path, {
     Object? body,
