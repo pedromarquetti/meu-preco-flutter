@@ -748,6 +748,78 @@ abstract class AppLocalizations {
   /// **'A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.'**
   String get scanQrUnavailable;
 
+  /// No description provided for @scanReceiptTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escanear NFC-e'**
+  String get scanReceiptTitle;
+
+  /// No description provided for @scannerPreparingLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preparando câmera'**
+  String get scannerPreparingLabel;
+
+  /// No description provided for @scannerInstruction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alinhe o QR Code da NFC-e dentro do quadrado.'**
+  String get scannerInstruction;
+
+  /// No description provided for @cameraUnavailableTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Câmera indisponível'**
+  String get cameraUnavailableTitle;
+
+  /// No description provided for @cameraUnsupportedMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'A leitura com câmera não é suportada neste dispositivo ou plataforma.'**
+  String get cameraUnsupportedMessage;
+
+  /// No description provided for @cameraNoCameraMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma câmera foi encontrada neste dispositivo.'**
+  String get cameraNoCameraMessage;
+
+  /// No description provided for @cameraErrorMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível abrir a câmera. Tente novamente.'**
+  String get cameraErrorMessage;
+
+  /// No description provided for @cameraPermissionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Permissão da câmera'**
+  String get cameraPermissionTitle;
+
+  /// No description provided for @cameraPermissionDeniedMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'É necessário permitir o acesso à câmera para escanear o QR Code.'**
+  String get cameraPermissionDeniedMessage;
+
+  /// No description provided for @cameraPermissionForeverMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'O acesso à câmera foi negado permanentemente. Abra as configurações do app para habilitá-lo.'**
+  String get cameraPermissionForeverMessage;
+
+  /// No description provided for @cameraPermissionRetryAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Solicitar permissão'**
+  String get cameraPermissionRetryAction;
+
+  /// No description provided for @openSettingsAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Abrir configurações'**
+  String get openSettingsAction;
+
   /// No description provided for @accessKeyLabel.
   ///
   /// In pt, this message translates to:
@@ -789,6 +861,18 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Informe um QR Code válido'**
   String get invalidQrPayloadError;
+
+  /// No description provided for @extractAccessKeyFromQrAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Extrair chave de acesso do QR Code'**
+  String get extractAccessKeyFromQrAction;
+
+  /// No description provided for @extractAccessKeyFromQrNoMatchError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível extrair uma chave de 44 dígitos do conteúdo do QR Code.'**
+  String get extractAccessKeyFromQrNoMatchError;
 
   /// No description provided for @draftingReceiptLabel.
   ///

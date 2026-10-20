@@ -350,6 +350,48 @@ class AppLocalizationsPt extends AppLocalizations {
       'A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.';
 
   @override
+  String get scanReceiptTitle => 'Escanear NFC-e';
+
+  @override
+  String get scannerPreparingLabel => 'Preparando câmera';
+
+  @override
+  String get scannerInstruction =>
+      'Alinhe o QR Code da NFC-e dentro do quadrado.';
+
+  @override
+  String get cameraUnavailableTitle => 'Câmera indisponível';
+
+  @override
+  String get cameraUnsupportedMessage =>
+      'A leitura com câmera não é suportada neste dispositivo ou plataforma.';
+
+  @override
+  String get cameraNoCameraMessage =>
+      'Nenhuma câmera foi encontrada neste dispositivo.';
+
+  @override
+  String get cameraErrorMessage =>
+      'Não foi possível abrir a câmera. Tente novamente.';
+
+  @override
+  String get cameraPermissionTitle => 'Permissão da câmera';
+
+  @override
+  String get cameraPermissionDeniedMessage =>
+      'É necessário permitir o acesso à câmera para escanear o QR Code.';
+
+  @override
+  String get cameraPermissionForeverMessage =>
+      'O acesso à câmera foi negado permanentemente. Abra as configurações do app para habilitá-lo.';
+
+  @override
+  String get cameraPermissionRetryAction => 'Solicitar permissão';
+
+  @override
+  String get openSettingsAction => 'Abrir configurações';
+
+  @override
   String get accessKeyLabel => 'Chave de acesso';
 
   @override
@@ -370,6 +412,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get invalidQrPayloadError => 'Informe um QR Code válido';
+
+  @override
+  String get extractAccessKeyFromQrAction =>
+      'Extrair chave de acesso do QR Code';
+
+  @override
+  String get extractAccessKeyFromQrNoMatchError =>
+      'Não foi possível extrair uma chave de 44 dígitos do conteúdo do QR Code.';
 
   @override
   String get draftingReceiptLabel => 'Processando o cupom...';

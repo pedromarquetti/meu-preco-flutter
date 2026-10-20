@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart' hide Page;
 import 'package:meu_preco_frontend/core/http/auth_token_source.dart';
 import 'package:meu_preco_frontend/core/http/server_health_service.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
@@ -10,6 +11,7 @@ import 'package:meu_preco_frontend/core/storage/key_value_store.dart';
 import 'package:meu_preco_frontend/features/auth/data/auth_repository.dart';
 import 'package:meu_preco_frontend/features/nfce/code_scanner.dart';
 import 'package:meu_preco_frontend/features/nfce/data/nfce_repository.dart';
+import 'package:meu_preco_frontend/features/nfce/scanner_status.dart';
 import 'package:meu_preco_frontend/features/products/data/product_repository.dart';
 
 /// In-memory [KeyValueStore] so tests never touch platform storage.
@@ -377,17 +379,40 @@ class FakeCodeScanner implements CodeScanner {
   FakeCodeScanner({this.isAvailable = false, this.payload});
 
   @override
+  bool get isSupported => isAvailable;
+
   final bool isAvailable;
 
   String? payload;
   Object? error;
   int scanCalls = 0;
+  int prepareCalls = 0;
+  int openSettingsCalls = 0;
+
+  @override
+  Future<ScannerStatus> prepare() async {
+    prepareCalls++;
+    if (error != null) throw error!;
+    return isAvailable
+        ? const ScannerStatus.ready()
+        : const ScannerStatus(ScannerAvailability.unavailable);
+  }
 
   @override
   Future<String?> scan() async {
     scanCalls++;
     if (error != null) throw error!;
     return payload;
+  }
+
+  @override
+  Widget buildPreview({required ValueChanged<String> onDetected}) =>
+      const SizedBox.shrink();
+
+  @override
+  Future<bool> openSettings() async {
+    openSettingsCalls++;
+    return true;
   }
 }
 

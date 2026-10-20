@@ -1,5 +1,7 @@
 import 'package:go_router/go_router.dart';
 
+import '../features/nfce/receipt_scanner_screen.dart';
+
 import '../features/admin/admin_screen.dart';
 import '../features/auth/auth_session.dart';
 import '../features/auth/login_screen.dart';
@@ -20,6 +22,7 @@ abstract final class AppRoutes {
   static const String register = '/register';
   static const String home = '/home';
   static const String receiptSubmission = '/receipts/new';
+  static const String receiptScanner = '/receipts/scan';
   static const String productSearch = '/products';
   static const String productDetail = '/products/:id';
   static const String supermarkets = '/supermarkets';
@@ -82,6 +85,11 @@ GoRouter createRouter({
             state.uri.queryParameters['mode'],
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.receiptScanner,
+        name: 'receiptScanner',
+        builder: (context, state) => const ReceiptScannerScreen(),
       ),
       GoRoute(
         path: AppRoutes.productSearch,

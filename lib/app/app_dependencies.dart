@@ -65,7 +65,15 @@ class AppDependencies {
       nfceRepository: nfceRepository ?? ApiNfceRepository(client: apiClient),
       productsRepository:
           productsRepository ?? ApiProductRepository(client: apiClient),
-      codeScanner: codeScanner ?? const UnavailableCodeScanner(),
+      codeScanner:
+          codeScanner ??
+          () {
+            try {
+              return CameraCodeScanner();
+            } catch (e) {
+              return const UnavailableCodeScanner();
+            }
+          }(),
       healthChecker:
           healthChecker ?? HttpServerHealthChecker(apiClient: transportApi),
     );

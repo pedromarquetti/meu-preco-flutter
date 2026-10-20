@@ -6,6 +6,7 @@ import '../../core/models/models.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'code_scanner.dart';
+import 'receipt_scanner_screen.dart';
 import 'nfce_entry_mode.dart';
 import 'nfce_error_messages.dart';
 import 'nfce_input.dart';
@@ -124,6 +125,16 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
                   ),
                 ),
               ],
+              if (_inputError != null &&
+                  _mode == NfceEntryMode.scan &&
+                  _controller.error?.code == 'invalid_qr_payload') ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _controller.busy ? null : _extractAccessKeyFromQr,
+                  icon: const Icon(Icons.content_copy),
+                  label: Text(strings.extractAccessKeyFromQrAction),
+                ),
+              ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _controller.busy ? null : _submitInput,
@@ -139,7 +150,7 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
   List<Widget> _scanFields(AppLocalizations strings) {
     final scanner = _scanner;
     return [
-      if (scanner.isAvailable) ...[
+      if (scanner.isSupported) ...[
         OutlinedButton.icon(
           onPressed: _controller.busy ? null : _scan,
           icon: const Icon(Icons.qr_code_scanner),
@@ -191,6 +202,26 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
     ];
   }
 
+  Future<void> _extractAccessKeyFromQr() async {
+    final strings = AppLocalizations.of(context);
+    final raw = _qrController.text;
+    final cleaned = raw.replaceAll(RegExp(r'\s+'), '');
+    final match = RegExp(r'(\d{44})').firstMatch(cleaned);
+    if (match == null) {
+      setState(() {
+        _inputError = strings.extractAccessKeyFromQrNoMatchError;
+      });
+      return;
+    }
+    final key = match.group(1)!;
+    await Clipboard.setData(ClipboardData(text: key));
+    setState(() {
+      _mode = NfceEntryMode.key;
+      _inputError = null;
+      _keyController.text = key;
+    });
+  }
+
   Future<void> _submitInput() async {
     final strings = AppLocalizations.of(context);
     final raw = _mode == NfceEntryMode.scan
@@ -220,7 +251,17 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
   }
 
   Future<void> _scan() async {
-    final payload = await _scanner.scan();
+    if (!_scanner.isSupported) {
+      final payload = await _scanner.scan();
+      if (!mounted || payload == null || payload.trim().isEmpty) return;
+      _qrController.text = payload;
+      final input = NfceInput.tryParse(payload);
+      if (input != null) await _controller.start(input);
+      return;
+    }
+    final payload = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const ReceiptScannerScreen()),
+    );
     if (!mounted || payload == null || payload.trim().isEmpty) return;
     _qrController.text = payload;
     final input = NfceInput.tryParse(payload);
