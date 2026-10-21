@@ -7,6 +7,7 @@
   - [UI Flow](#ui-flow)
   - [API docs](#api-docs)
   - [Configuration](#configuration)
+  - [Visual system and icons](#visual-system-and-icons)
   - [Local validation](#local-validation)
     - [Start a local API](#start-a-local-api)
     - [Quality gates](#quality-gates)
@@ -33,6 +34,8 @@ with iOS build validation kept available.
 - [x] Product search, product details, exact decimal price history, and graph.
 - [x] Admin users, role management, review queue, and batch assignment.
 - [x] Light/Dark/System theme selection with persisted preference.
+- [x] Centralized Material 3 visual system seeded from the brand icon, with
+      Android/Web/iOS/macOS launcher icons generated from `assets/main_icon.png`.
 - [x] Portuguese localization, responsive layouts, and accessibility-oriented
       loading/error/empty states.
 - [x] Code-quality, accessibility, localization, and release audit.
@@ -88,6 +91,31 @@ flutter build apk \
 
 The versioned prefix `/api/v1` is applied automatically; a pasted origin that
 already contains it is normalized so it is never duplicated.
+
+## Visual system and icons
+
+The Material 3 color schemes, typography, shape, spacing, elevation, input,
+button, and focus styles are centralized in `lib/core/theme/app_theme.dart`.
+Feature widgets use `Theme.of(context)` roles and never introduce raw brand
+colors of their own. The palette is derived from the app icon
+(`assets/main_icon.svg`), whose background is a green-to-blue gradient:
+
+- `AppTheme.brandGreen` `#00C853` (gradient start)
+- `AppTheme.brandBlue` `#0091EA` (gradient end, used as the Material 3 seed)
+- `AppTheme.brandGradient` — the brand's signature green→blue gradient
+
+Light and dark schemes are both generated from the brand seed. `ThemeMode.system`
+is the default; the user's System/Light/Dark choice is persisted and survives a
+cold start. `AppTheme.cameraOverlay` is the single overlay color for content drawn
+on top of the live camera preview.
+
+Launcher icons for Android (including adaptive icons), Web (favicon + PWA
+icons), iOS, macOS, and Windows are generated from `assets/main_icon.png` using
+`flutter_launcher_icons`. Regenerate them after changing the source icon:
+
+```sh
+dart run flutter_launcher_icons
+```
 
 ## Local validation
 

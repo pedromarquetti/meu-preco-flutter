@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_scope.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'code_scanner.dart';
@@ -112,7 +113,9 @@ class _ScannerOverlay extends StatelessWidget {
             child: Text(
               strings.scannerInstruction,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppTheme.cameraOverlay,
+              ),
             ),
           ),
           Center(
@@ -121,7 +124,7 @@ class _ScannerOverlay extends StatelessWidget {
               height: side,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(color: AppTheme.cameraOverlay, width: 3),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),

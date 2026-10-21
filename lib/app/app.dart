@@ -55,7 +55,7 @@ class _MeuPrecoAppState extends State<MeuPrecoApp> {
       child: Consumer<ThemeController>(
         builder: (context, themeController, _) {
           return MaterialApp.router(
-            title: 'Meu Preço',
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),

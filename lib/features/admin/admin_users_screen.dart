@@ -98,7 +98,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     if (_error != null) {
       return ErrorView(message: _error!, onRetry: _load);
     }
-    if (_users.isEmpty) return const EmptyView(title: '');
+    if (_users.isEmpty) return EmptyView(title: strings.emptyLabel);
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(

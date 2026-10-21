@@ -127,7 +127,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           ),
         if (_loading && _results.isEmpty) const Expanded(child: LoadingView()),
         if (!_loading && _results.isEmpty && _searchController.text.isNotEmpty)
-          const Expanded(child: EmptyView(title: '')),
+          Expanded(child: EmptyView(title: strings.emptyLabel)),
         Expanded(
           child: ListView.builder(
             itemCount: _results.length,

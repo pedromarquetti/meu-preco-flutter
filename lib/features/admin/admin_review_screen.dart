@@ -95,7 +95,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     if (_error != null) {
       return ErrorView(message: _error!, onRetry: _load);
     }
-    if (_items.isEmpty) return const EmptyView(title: '');
+    if (_items.isEmpty) return EmptyView(title: strings.emptyLabel);
     return Column(
       children: [
         Padding(

@@ -27,6 +27,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -36,9 +37,30 @@ flutter:
   uses-material-design: true
   generate: true
 
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/main_icon.png
+
+# Platform launcher icons generated from the Meu Preço brand icon.
+# Regenerate with `dart run flutter_launcher_icons`.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/main_icon.png
+  adaptive_icon_background: "#00C853"
+  adaptive_icon_foreground: assets/main_icon.png
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: assets/main_icon.png
+    background_color: "#00C853"
+    theme_color: "#0091EA"
+  macos:
+    generate: true
+    image_path: assets/main_icon.png
+  windows:
+    generate: true
+    image_path: assets/main_icon.png
+    icon_size: 256
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
