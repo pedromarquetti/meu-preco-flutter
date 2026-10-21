@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Production network policy: HTTPS only. The app's API origin must be an
+     https:// address; plain HTTP is never trusted in release builds. Local
+     development over http://localhost is permitted in debug builds through the
+     debug-variant overlay of this file. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

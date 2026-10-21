@@ -8,6 +8,12 @@
   - [API docs](#api-docs)
   - [Configuration](#configuration)
   - [Local validation](#local-validation)
+    - [Start a local API](#start-a-local-api)
+    - [Quality gates](#quality-gates)
+    - [Builds](#builds)
+    - [Android signing](#android-signing)
+    - [Release assumptions](#release-assumptions)
+    - [Web limitations](#web-limitations)
   - [GitHub Actions and releases](#github-actions-and-releases)
   - [Architecture](#architecture)
   - [Documentation](#documentation)
@@ -29,10 +35,10 @@ with iOS build validation kept available.
 - [x] Light/Dark/System theme selection with persisted preference.
 - [x] Portuguese localization, responsive layouts, and accessibility-oriented
       loading/error/empty states.
-- [ ] Code-quality, accessibility, localization, and release audit.
+- [x] Code-quality, accessibility, localization, and release audit.
 - [ ] Consistent screen/component animations with reduced-motion support.
-- [ ] GitHub Actions CI, Android/Web artifacts, and optional iOS validation.
-- [ ] Android production signing and protected release deployment.
+- [ ] Local and GitHub Actions signed Android APK builds.
+- [ ] GitHub Actions CI, Web artifacts, and optional iOS validation.
 
 ## UI Flow
 
@@ -82,6 +88,31 @@ already contains it is normalized so it is never duplicated.
 
 ## Local validation
 
+### Start a local API
+
+The app expects a [Meu Preço API](https://github.com/pedromarquetti/meu-preco)
+on a single origin and only proceeds past the **select server** screen after
+`GET /healthz` succeeds. Run the backend locally (default
+`http://localhost:8080`) and point the app at it on first boot, or bake it in
+with `--dart-define=API_ORIGIN=...`.
+
+The test suite ships a complete in-process fake API
+(`test/fake_api_server.dart`) bound to a loopback port, so integration tests
+never require the real backend. To run only the fake-server integration tests:
+
+```sh
+flutter test test/fake_server_integration_test.dart
+```
+
+The fake server seeds a known account used by the integration tests:
+
+- **Identifier:** `ada@example.com` (also accepted as the account name)
+- **Password:** `secret123`
+
+These are test-only fixtures and must never be reused in a real deployment.
+
+### Quality gates
+
 Run the same quality gates used by CI:
 
 ```sh
@@ -89,6 +120,8 @@ dart format --set-exit-if-changed lib test
 flutter analyze
 flutter test
 ```
+
+### Builds
 
 Build Android and Web validation artifacts with an explicit API origin:
 
@@ -100,24 +133,91 @@ flutter build web \
   --dart-define=API_ORIGIN=https://api.meupreco.example
 ```
 
+Host the Web build under a sub-path by passing the base href:
+
+```sh
+flutter build web \
+  --base-href=/meupreco/ \
+  --dart-define=API_ORIGIN=https://api.meupreco.example
+```
+
 The debug APK does not require a project release keystore and is suitable for
-development or device testing. A production release APK/AAB requires a stable
-Android upload/release key. The keystore, `android/key.properties`, passwords,
-and signing secrets must never be committed.
+development or device testing. The first release target is a directly
+installable signed APK, not Google Play. A release APK requires a stable Android
+upload/release key.
+
+### Android signing
+
+Release signing reads `android/key.properties`, which is ignored by Git and must
+never be committed alongside the keystore, passwords, or signing secrets. When
+the file is absent the release build falls back to the debug signing key and
+emits a build warning, so local and CI debug builds keep working without
+secrets. `key.properties` should define:
+
+```properties
+storeFile=/absolute/path/to/upload-keystore.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+Version code and version name are read from `pubspec.yaml` and must increase
+monotonically for Play releases.
+
+Before adding GitHub Actions release jobs, verify the signed local build:
+
+```sh
+flutter clean
+flutter pub get
+flutter build apk --release \
+  --dart-define=API_ORIGIN=https://api.meupreco.example
+```
+
+R8 may report missing Google Play Core classes from Flutter's deferred component
+integration. Because this app does not currently use deferred components, the
+Android release configuration must contain only the minimal, reviewed
+suppression rules needed for those optional references, or a compatible Play
+Core dependency if the selected Flutter embedding requires it. Do not blindly
+commit generated `missing_rules.txt`; verify the release APK build and runtime
+first.
+
+### Release assumptions
+
+- Production builds talk to an explicitly configured HTTPS origin; the release
+  network security configuration trusts only system certificate authorities and
+  blocks cleartext. The debug build allows cleartext to `localhost`,
+  `127.0.0.1`, and `10.0.2.2` for local development.
+- Android Google Play releases should use a stable upload key with Google Play
+  App Signing enabled; GitHub Actions should build an AAB, while an APK targets
+  direct installation/testing.
+- No credentials or environment secrets are committed;
+  `/android/key.properties`, keystores, and `.env` files are ignored.
+
+### Web limitations
+
+- **CORS** — the backend must allow the hosting origin; the browser enforces
+  cross-origin rules the app cannot bypass.
+- **Camera** — browser camera access requires a secure (HTTPS) context and a
+  user grant; when it is unavailable the app falls back to pasting the QR
+  payload or typing the access key manually.
+- **Browser storage** — session and preferences use browser storage
+  (localStorage-backed), which is per-origin and can be cleared by the user or
+  the browser, unlike the platform keystore used on Android.
 
 ## GitHub Actions and releases
 
 The GH workflows will provide:
 
 - Pull-request formatting, analysis, tests, Android debug build, and Web build.
-- Tagged release Android AAB/APK and Web artifacts.
+- Tagged signed Android APK and Web artifacts.
 - macOS iOS unsigned build validation, with signed App Store deployment only
   after Apple Developer credentials and provisioning are configured.
 - Protected production environments for signing and deployment secrets.
 
-Android Google Play releases should use a stable upload key with Google Play App
-Signing enabled. GitHub Actions should build an AAB for Play distribution; an
-APK is intended for direct installation or testing.
+Google Play publishing is deliberately deferred. The first CI/CD milestone is a
+signed APK that can be installed directly. App Bundle generation, Play App
+Signing, Play Console upload, and store release automation will be planned
+separately after the APK pipeline is stable.
 
 ## Architecture
 

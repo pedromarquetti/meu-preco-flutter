@@ -44,5 +44,17 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing material — keystores, key.properties, and passwords must
+# never be committed (see README "Android signing").
+/android/key.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Environment files
+.env
+.env.*
+
 # Widget Preview related
 .widget_preview/

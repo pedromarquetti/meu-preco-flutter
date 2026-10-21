@@ -9,6 +9,7 @@ import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/core/storage/credential_store.dart';
 import 'package:meu_preco_frontend/core/storage/key_value_store.dart';
 import 'package:meu_preco_frontend/features/auth/data/auth_repository.dart';
+import 'package:meu_preco_frontend/features/admin/data/admin_repository.dart';
 import 'package:meu_preco_frontend/features/nfce/code_scanner.dart';
 import 'package:meu_preco_frontend/features/nfce/data/nfce_repository.dart';
 import 'package:meu_preco_frontend/features/nfce/scanner_status.dart';
@@ -371,6 +372,94 @@ class FakeNfceRepository implements NfceRepository {
           logsDeleted: 1,
           previewsDeleted: 1,
         );
+  }
+}
+
+/// Scriptable [AdminRepository] that never touches the network.
+class FakeAdminRepository implements AdminRepository {
+  UserPage? usersResult;
+  ReviewQueuePage? needsReviewResult;
+  BatchAssignResult? batchAssignResult;
+  ProductPage? searchResult;
+
+  Object? listUsersError;
+  Object? updateUserRoleError;
+  Object? needsReviewError;
+  Object? batchAssignError;
+  Object? updateProductError;
+
+  int listUsersCalls = 0;
+  int updateUserRoleCalls = 0;
+  int needsReviewCalls = 0;
+  int batchAssignCalls = 0;
+  int searchProductsCalls = 0;
+
+  @override
+  Future<UserPage> listUsers({int page = 1, int pageSize = 50}) async {
+    listUsersCalls++;
+    if (listUsersError != null) throw listUsersError!;
+    return usersResult ??
+        UserPage(
+          items: const [
+            UserView(
+              id: 1,
+              name: 'Ada',
+              email: 'ada@example.com',
+              role: UserRole.user,
+            ),
+          ],
+          page: const Page(total: 1, totalPages: 1),
+        );
+  }
+
+  @override
+  Future<UserView> updateUserRole({
+    required int userId,
+    required UserRole role,
+  }) async {
+    updateUserRoleCalls++;
+    if (updateUserRoleError != null) throw updateUserRoleError!;
+    return UserView(
+      id: userId,
+      name: 'Ada',
+      email: 'ada@example.com',
+      role: role,
+    );
+  }
+
+  @override
+  Future<ReviewQueuePage> listNeedsReview({
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    needsReviewCalls++;
+    if (needsReviewError != null) throw needsReviewError!;
+    return needsReviewResult ??
+        ReviewQueuePage(items: const [], page: const Page());
+  }
+
+  @override
+  Future<BatchAssignResult> batchAssign(List<Assignment> assignments) async {
+    batchAssignCalls++;
+    if (batchAssignError != null) throw batchAssignError!;
+    return batchAssignResult ??
+        const BatchAssignResult(assigned: 0, created: 0);
+  }
+
+  @override
+  Future<ProductView> updateProduct(int id, ProductPatch patch) async {
+    if (updateProductError != null) throw updateProductError!;
+    return sampleProduct(id: id);
+  }
+
+  @override
+  Future<ProductPage> searchProducts({
+    String? q,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    searchProductsCalls++;
+    return searchResult ?? ProductPage(items: const [], page: const Page());
   }
 }
 
