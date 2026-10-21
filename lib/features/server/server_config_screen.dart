@@ -106,70 +106,75 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.serverConfigTitle)),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Padding(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    strings.appDescription,
-                    style: theme.textTheme.bodyLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _controller,
-                    enabled: !_busy,
-                    keyboardType: TextInputType.url,
-                    textInputAction: TextInputAction.done,
-                    autocorrect: false,
-                    decoration: InputDecoration(
-                      labelText: strings.serverAddressLabel,
-                      hintText: strings.serverAddressHint,
-                      helperText: strings.serverAddressHelp,
-                      border: const OutlineInputBorder(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - 48,
+                maxWidth: 480,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      strings.appDescription,
+                      style: theme.textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
                     ),
-                    validator: _validate,
-                    onFieldSubmitted: (_) => _saveAndContinue(),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_result != null) ...[
-                    _StatusBanner(
-                      result: _result!,
-                      text: _messageFor(strings, _result!),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _controller,
+                      enabled: !_busy,
+                      keyboardType: TextInputType.url,
+                      textInputAction: TextInputAction.done,
+                      autocorrect: false,
+                      decoration: InputDecoration(
+                        labelText: strings.serverAddressLabel,
+                        hintText: strings.serverAddressHint,
+                        helperText: strings.serverAddressHelp,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: _validate,
+                      onFieldSubmitted: (_) => _saveAndContinue(),
                     ),
                     const SizedBox(height: 16),
+                    if (_result != null) ...[
+                      _StatusBanner(
+                        result: _result!,
+                        text: _messageFor(strings, _result!),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    FilledButton(
+                      onPressed: _busy
+                          ? null
+                          : () => {
+                              _probe().then(
+                                (_) => _result?.ok == true
+                                    ? _saveAndContinue()
+                                    : null,
+                              ),
+                            },
+                      child: _busy
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(strings.saveAndContinue),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: _busy ? null : _probe,
+                      child: Text(strings.testConnection),
+                    ),
                   ],
-                  FilledButton(
-                    onPressed: _busy
-                        ? null
-                        : () => {
-                            _probe().then(
-                              (_) => _result?.ok == true
-                                  ? _saveAndContinue()
-                                  : null,
-                            ),
-                          },
-                    child: _busy
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(strings.saveAndContinue),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: _busy ? null : _probe,
-                    child: Text(strings.testConnection),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -191,20 +196,25 @@ class _StatusBanner extends StatelessWidget {
     final color = result.ok
         ? theme.colorScheme.primary
         : theme.colorScheme.error;
-    return Row(
-      children: [
-        Icon(
-          result.ok ? Icons.check_circle_outline : Icons.error_outline,
-          color: color,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium?.copyWith(color: color),
+    return Semantics(
+      liveRegion: true,
+      label: text,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            result.ok ? Icons.check_circle_outline : Icons.error_outline,
+            color: color,
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

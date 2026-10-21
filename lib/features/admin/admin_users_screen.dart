@@ -75,7 +75,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('OK'),
+            child: Text(strings.confirmAction),
           ),
         ],
       ),

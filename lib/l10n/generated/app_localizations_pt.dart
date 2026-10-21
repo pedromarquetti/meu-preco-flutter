@@ -285,6 +285,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsServerSection => 'Servidor';
 
   @override
+  String get themeSystemLabel => 'Sistema';
+
+  @override
+  String get themeLightLabel => 'Claro';
+
+  @override
+  String get themeDarkLabel => 'Escuro';
+
+  @override
+  String get confirmAction => 'Confirmar';
+
+  @override
   String get connectivitySection => 'Conectividade';
 
   @override

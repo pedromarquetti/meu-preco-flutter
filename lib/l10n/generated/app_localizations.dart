@@ -622,6 +622,30 @@ abstract class AppLocalizations {
   /// **'Servidor'**
   String get settingsServerSection;
 
+  /// No description provided for @themeSystemLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sistema'**
+  String get themeSystemLabel;
+
+  /// No description provided for @themeLightLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Claro'**
+  String get themeLightLabel;
+
+  /// No description provided for @themeDarkLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escuro'**
+  String get themeDarkLabel;
+
+  /// No description provided for @confirmAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confirmar'**
+  String get confirmAction;
+
   /// ConnectivitySection
   ///
   /// In pt, this message translates to:

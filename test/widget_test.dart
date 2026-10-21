@@ -172,6 +172,29 @@ void main() {
     expect(find.text(_strings.loginTitle), findsNothing);
   });
 
+  testWidgets('server configuration remains usable with large text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 700);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(
+      () => tester.platformDispatcher.clearTextScaleFactorTestValue(),
+    );
+
+    await pumpApp(tester);
+    await tester.enterText(find.byType(TextFormField), 'not-a-url');
+    await tester.tap(
+      find.widgetWithText(FilledButton, _strings.saveAndContinue),
+    );
+    await tester.pump();
+
+    expect(find.text(_strings.invalidServerUrl), findsOneWidget);
+    expect(find.text(_strings.saveAndContinue), findsOneWidget);
+  });
+
   testWidgets('a restored session goes straight to home', (tester) async {
     final store = InMemoryCredentialStore(
       const StoredSession(

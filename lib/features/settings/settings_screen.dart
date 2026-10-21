@@ -203,20 +203,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       SegmentedButton<ThemeMode>(
-                        segments: const [
+                        segments: [
                           ButtonSegment(
                             value: ThemeMode.system,
-                            label: Text('Sistema'),
+                            label: Text(strings.themeSystemLabel),
                             icon: Icon(Icons.brightness_auto),
                           ),
                           ButtonSegment(
                             value: ThemeMode.light,
-                            label: Text('Claro'),
+                            label: Text(strings.themeLightLabel),
                             icon: Icon(Icons.light_mode),
                           ),
                           ButtonSegment(
                             value: ThemeMode.dark,
-                            label: Text('Escuro'),
+                            label: Text(strings.themeDarkLabel),
                             icon: Icon(Icons.dark_mode),
                           ),
                         ],
@@ -358,26 +358,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-              Row(
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
                 children: [
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: _busy ? null : _save,
-                      child: _busy
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(strings.testConnection),
-                    ),
+                  FilledButton(
+                    onPressed: _busy ? null : _save,
+                    child: _busy
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(strings.testConnection),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _busy ? null : _resetToDefault,
-                      child: Text(strings.settingsResetToDefault),
-                    ),
+                  OutlinedButton(
+                    onPressed: _busy ? null : _resetToDefault,
+                    child: Text(strings.settingsResetToDefault),
                   ),
                 ],
               ),
