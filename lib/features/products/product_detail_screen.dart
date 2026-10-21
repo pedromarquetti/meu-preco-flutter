@@ -425,7 +425,7 @@ class _PricePointTile extends StatelessWidget {
                     style: theme.textTheme.bodySmall,
                   ),
                   Text(
-                    point.totalPrice!.amount,
+                    'R\$ ${point.totalPrice!.amount}',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],

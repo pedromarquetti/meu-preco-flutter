@@ -227,7 +227,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get productUnitPriceLabel => 'Preço da unidade';
 
   @override
-  String get productTotalPriceLabel => 'Total';
+  String get productTotalPriceLabel => 'Total pago';
 
   @override
   String get productAggregateTitle => 'Resumo por unidade';
@@ -692,4 +692,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get adminCreatedAt => 'Criado em';
+
+  @override
+  String get themeSettingsSection => 'Tema';
+
+  @override
+  String get themeSystem => 'Sistema';
+
+  @override
+  String get themeLight => 'Claro';
+
+  @override
+  String get themeDark => 'Escuro';
 }

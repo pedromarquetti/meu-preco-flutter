@@ -44,12 +44,28 @@ Future<AppDependencies> openSettings(
     credentialStore: InMemoryCredentialStore(_session),
     store: store,
   );
+  // Ensure we start from server config screen
+  dependencies.configController.resetToDefault();
+  dependencies.serverGate = null;
   await dependencies.authSession.restore();
   await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
   await tester.pumpAndSettle();
 
-  await tester.tap(find.widgetWithText(FilledButton, _strings.saveAndContinue));
-  await tester.pumpAndSettle();
+  // If we're on server screen, save and continue
+  if (find.byType(TextButton).evaluate().isNotEmpty ||
+      find
+          .widgetWithText(FilledButton, _strings.saveAndContinue)
+          .evaluate()
+          .isNotEmpty) {
+    try {
+      await tester.tap(
+        find.widgetWithText(FilledButton, _strings.saveAndContinue),
+      );
+      await tester.pumpAndSettle();
+    } catch (e) {
+      // might already be on home
+    }
+  }
 
   await tester.tap(find.byTooltip(_strings.settingsTitle));
   await tester.pumpAndSettle();

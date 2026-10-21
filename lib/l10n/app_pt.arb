@@ -70,7 +70,7 @@
   "productQtyLabel": "Quantidade",
   "productPricePerUnitLabel": "Preço por unidade",
   "productUnitPriceLabel": "Preço da unidade",
-  "productTotalPriceLabel": "Total",
+  "productTotalPriceLabel": "Total pago",
   "productAggregateTitle": "Resumo por unidade",
   "productAggregateCountLabel": "Registros",
   "productUpdated": "Produto atualizado",
@@ -881,5 +881,9 @@
   },
   "@adminCreatedAt": {
     "description": "AdminCreatedAt"
-  }
+  },
+	"themeSettingsSection": "Tema",
+	"themeSystem": "Sistema",
+	"themeLight": "Claro",
+	"themeDark": "Escuro"
 }

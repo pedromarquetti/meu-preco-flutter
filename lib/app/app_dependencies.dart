@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../core/config/app_config.dart';
 import '../core/config/app_config_controller.dart';
 import '../core/config/config_provider.dart';
+import '../core/theme/theme_controller.dart';
 import '../core/http/api_client.dart';
 import '../core/http/authenticated_client.dart';
 import '../core/http/server_health_service.dart';
@@ -28,6 +29,7 @@ class AppDependencies {
   factory AppDependencies({
     required KeyValueStore store,
     required AppConfigController configController,
+    required ThemeController themeController,
     required CredentialStore credentialStore,
     AuthRepository? authRepository,
     ServerHealthChecker? healthChecker,
@@ -61,6 +63,7 @@ class AppDependencies {
       rawClient: rawClient,
       store: store,
       configController: configController,
+      themeController: themeController,
       credentialStore: credentialStore,
       authSession: authSession,
       apiClient: apiClient,
@@ -86,6 +89,7 @@ class AppDependencies {
     required http.Client rawClient,
     required this.store,
     required this.configController,
+    required this.themeController,
     required this.credentialStore,
     required this.authSession,
     required this.apiClient,
@@ -99,6 +103,7 @@ class AppDependencies {
   final http.Client _rawClient;
   final KeyValueStore store;
   final AppConfigController configController;
+  final ThemeController themeController;
   final CredentialStore credentialStore;
 
   /// Authentication session and current user.
@@ -153,9 +158,12 @@ class AppDependencies {
     final store = await SharedPreferencesKeyValueStore.create();
     final configController = AppConfigController(store: store);
     await configController.load();
+    final themeController = ThemeController(store: store);
+    await themeController.load();
     final dependencies = AppDependencies(
       store: store,
       configController: configController,
+      themeController: themeController,
       credentialStore: SecureCredentialStore.create(),
     );
     await dependencies.verifyServer();

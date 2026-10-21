@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/app_scope.dart';
@@ -6,6 +7,7 @@ import '../../app/router.dart';
 import '../../core/config/app_config.dart';
 import '../../core/http/server_health_service.dart';
 import '../../core/models/models.dart';
+import '../../core/theme/theme_controller.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 /// Frontend configuration: change the API host, reset to defaults, and view
@@ -183,6 +185,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: const Icon(Icons.logout),
                           label: Text(strings.logoutAction),
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        strings.themeSettingsSection,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      SegmentedButton<ThemeMode>(
+                        segments: const [
+                          ButtonSegment(
+                            value: ThemeMode.system,
+                            label: Text('Sistema'),
+                            icon: Icon(Icons.brightness_auto),
+                          ),
+                          ButtonSegment(
+                            value: ThemeMode.light,
+                            label: Text('Claro'),
+                            icon: Icon(Icons.light_mode),
+                          ),
+                          ButtonSegment(
+                            value: ThemeMode.dark,
+                            label: Text('Escuro'),
+                            icon: Icon(Icons.dark_mode),
+                          ),
+                        ],
+                        selected: {context.watch<ThemeController>().mode},
+                        onSelectionChanged: (selection) {
+                          context.read<ThemeController>().setMode(
+                            selection.first,
+                          );
+                        },
                       ),
                     ],
                   ),

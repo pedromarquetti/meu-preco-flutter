@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../core/config/app_config_controller.dart';
 import '../features/auth/auth_session.dart';
+import '../core/theme/app_theme.dart';
+import '../core/theme/theme_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'app_dependencies.dart';
 import 'router.dart';
@@ -46,17 +48,23 @@ class _MeuPrecoAppState extends State<MeuPrecoApp> {
         ChangeNotifierProvider<AuthSession>.value(
           value: widget.dependencies.authSession,
         ),
-      ],
-      child: MaterialApp.router(
-        title: 'Meu Preço',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-          useMaterial3: true,
+        ChangeNotifierProvider<ThemeController>.value(
+          value: widget.dependencies.themeController,
         ),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: _router,
+      ],
+      child: Consumer<ThemeController>(
+        builder: (context, themeController, _) {
+          return MaterialApp.router(
+            title: 'Meu Preço',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: themeController.mode,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: _router,
+          );
+        },
       ),
     );
   }

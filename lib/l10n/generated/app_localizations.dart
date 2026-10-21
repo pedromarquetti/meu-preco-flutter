@@ -517,7 +517,7 @@ abstract class AppLocalizations {
   /// ProductTotalPrice
   ///
   /// In pt, this message translates to:
-  /// **'Total'**
+  /// **'Total pago'**
   String get productTotalPriceLabel;
 
   /// ProductAggregateTitle
@@ -1389,6 +1389,30 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Criado em'**
   String get adminCreatedAt;
+
+  /// No description provided for @themeSettingsSection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tema'**
+  String get themeSettingsSection;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sistema'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In pt, this message translates to:
+  /// **'Claro'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escuro'**
+  String get themeDark;
 }
 
 class _AppLocalizationsDelegate

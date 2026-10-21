@@ -7,6 +7,7 @@ import 'package:meu_preco_frontend/features/auth/data/auth_repository.dart';
 import 'package:meu_preco_frontend/features/nfce/code_scanner.dart';
 import 'package:meu_preco_frontend/features/nfce/data/nfce_repository.dart';
 import 'package:meu_preco_frontend/features/products/data/product_repository.dart';
+import 'package:meu_preco_frontend/core/theme/theme_controller.dart';
 
 import 'fakes.dart';
 
@@ -23,9 +24,15 @@ AppDependencies buildTestDependencies({
 }) {
   final keyValueStore = store ?? InMemoryKeyValueStore();
   final configController = AppConfigController(store: keyValueStore);
-  return AppDependencies(
+  // ignore: discarded_futures
+  configController.load();
+  final themeController = ThemeController(store: keyValueStore);
+  // ignore: discarded_futures
+  themeController.load();
+  final deps = AppDependencies(
     store: keyValueStore,
     configController: configController,
+    themeController: themeController,
     credentialStore: credentialStore ?? InMemoryCredentialStore(),
     authRepository: authRepository ?? FakeAuthRepository(),
     healthChecker: healthChecker ?? FakeServerHealthChecker(),
@@ -33,4 +40,7 @@ AppDependencies buildTestDependencies({
     productsRepository: productsRepository ?? FakeProductRepository(),
     codeScanner: codeScanner ?? const UnavailableCodeScanner(),
   );
+  // Ensure tests start from a predictable boot state
+  deps.serverGate = null;
+  return deps;
 }
