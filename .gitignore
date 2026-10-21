@@ -44,6 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Gradle build output (reports, intermediates)
+/android/build/
+
 # Android signing material — keystores, key.properties, and passwords must
 # never be committed (see README "Android signing").
 /android/key.properties

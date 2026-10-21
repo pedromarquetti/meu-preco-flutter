@@ -9,19 +9,36 @@ plugins {
 
 // Release signing is loaded from android/key.properties when that file exists.
 // The file and its keystore are never committed (see .gitignore); CI generates
-// them from protected environment secrets at release time. Without the file,
-// release builds fall back to the debug key so `flutter run --release` keeps
-// working locally — such builds are not distribution artifacts.
+// them from protected environment secrets at release time.
+//
+// `flutter build apk --debug` never needs secrets. A release build without
+// signing material falls back to the debug key so `flutter run --release` keeps
+// working, but it must not be distributed: pass
+// `-PrequireReleaseSigning=true` (or set the `requireReleaseSigning` Gradle
+// property) to turn that fallback into a hard failure for real release builds.
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 val hasReleaseSigning = keystorePropertiesFile.exists()
+val requireReleaseSigning =
+    (project.findProperty("requireReleaseSigning") as String?)?.toBoolean() ?: false
 
 if (hasReleaseSigning) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-} else {
+}
+
+if (requireReleaseSigning && !hasReleaseSigning) {
+    throw GradleException(
+        "A signed release build was requested but android/key.properties is " +
+            "missing. Provide storeFile, storePassword, keyAlias, and " +
+            "keyPassword before building a release artifact."
+    )
+}
+
+if (!hasReleaseSigning) {
     logger.lifecycle(
         "android/key.properties not found: release builds are signed with the " +
-            "debug key and must not be distributed."
+            "debug key and must not be distributed (pass " +
+            "-PrequireReleaseSigning=true to make this an error)."
     )
 }
 
@@ -54,7 +71,12 @@ android {
             create("release") {
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
+                // Accept an absolute path (developer machine) or a path relative
+                // to the android/ project root (portable, CI workspace).
+                val storePath = keystoreProperties["storeFile"] as String
+                val candidate = file(storePath)
+                storeFile = if (candidate.isAbsolute) candidate
+                else rootProject.file(storePath)
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
@@ -65,6 +87,8 @@ android {
             signingConfig = if (hasReleaseSigning) {
                 signingConfigs.getByName("release")
             } else {
+                // Explicit debug-key fallback for `flutter run --release`; not a
+                // distribution artifact. `requireReleaseSigning=true` forbids it.
                 signingConfigs.getByName("debug")
             }
             isMinifyEnabled = true

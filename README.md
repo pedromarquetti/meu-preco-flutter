@@ -37,8 +37,11 @@ with iOS build validation kept available.
       loading/error/empty states.
 - [x] Code-quality, accessibility, localization, and release audit.
 - [ ] Consistent screen/component animations with reduced-motion support.
-- [ ] Local and GitHub Actions signed Android APK builds.
-- [ ] GitHub Actions CI, Web artifacts, and optional iOS validation.
+- [x] Local signed Android release APK builds with reproducible, secret-free
+      signing configuration.
+- [ ] Google Playstore publish? - This is a maybe step. will check this later
+- [ ] GitHub Actions CI, signed artifact builds, Web artifacts, and optional iOS
+      validation.
 
 ## UI Flow
 
@@ -161,25 +164,53 @@ keyAlias=upload
 keyPassword=...
 ```
 
-Version code and version name are read from `pubspec.yaml` and must increase
-monotonically for Play releases.
+`storeFile` may be an absolute path (developer machine) or a path relative to
+`android/` (portable, CI workspace). Version code and version name are read from
+`pubspec.yaml` and must increase monotonically for distribution.
 
-Before adding GitHub Actions release jobs, verify the signed local build:
+To generate a new upload keystore with `keytool` (use a strong password and
+store it in a password manager; keep an encrypted backup outside the
+repository):
+
+```sh
+keytool -genkeypair -v \
+  -keystore android/upload-keystore.jks \
+  -storetype JKS \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias upload
+```
+
+Build and verify the signed release locally before adding GitHub Actions release
+jobs:
 
 ```sh
 flutter clean
 flutter pub get
 flutter build apk --release \
   --dart-define=API_ORIGIN=https://api.meupreco.example
+scripts/verify_android_apk.sh
 ```
 
-R8 may report missing Google Play Core classes from Flutter's deferred component
-integration. Because this app does not currently use deferred components, the
-Android release configuration must contain only the minimal, reviewed
-suppression rules needed for those optional references, or a compatible Play
-Core dependency if the selected Flutter embedding requires it. Do not blindly
-commit generated `missing_rules.txt`; verify the release APK build and runtime
-first.
+`-PrequireReleaseSigning=true` turns the debug-key fallback into a hard failure,
+which CI should pass so a real release can never be produced without signing
+material:
+
+```sh
+flutter build apk --release \
+  -PrequireReleaseSigning=true \
+  --dart-define=API_ORIGIN=https://api.meupreco.example
+```
+
+R8 reported missing Google Play Core classes from Flutter's deferred component
+integration. This app does not use deferred components (no `deferred-components`
+configuration exists), so only the minimal, reviewed `-dontwarn` suppressions
+are kept in `android/app/proguard-rules.pro`; no Play Core dependency is added
+and no runtime classes are required. Re-review those rules if the Flutter
+embedding is upgraded.
+
+`scripts/verify_android_apk.sh [apk]` checks that the artifact exists, is
+signed, is **not** signed by the Android debug key, and reports/exposes its
+package id, version, and label without printing any secret.
 
 ### Release assumptions
 
@@ -187,9 +218,11 @@ first.
   network security configuration trusts only system certificate authorities and
   blocks cleartext. The debug build allows cleartext to `localhost`,
   `127.0.0.1`, and `10.0.2.2` for local development.
-- Android Google Play releases should use a stable upload key with Google Play
-  App Signing enabled; GitHub Actions should build an AAB, while an APK targets
-  direct installation/testing.
+- Android releases use a stable upload key with the same identity retained for
+  upgrades; losing it prevents updating an already-installed app. Google Play
+  App Signing and Play Console publishing are intentionally deferred — the
+  current release target is a signed, directly installable APK (an AAB is added
+  later in CI).
 - No credentials or environment secrets are committed;
   `/android/key.properties`, keystores, and `.env` files are ignored.
 
