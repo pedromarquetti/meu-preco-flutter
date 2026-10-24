@@ -38,9 +38,12 @@ class ProductResultTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (product.unit != null && product.unit!.isNotEmpty)
-              Chip(
-                label: Text(product.unit!),
-                visualDensity: VisualDensity.compact,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 96),
+                child: Chip(
+                  label: Text(product.unit!, overflow: TextOverflow.ellipsis),
+                  visualDensity: VisualDensity.compact,
+                ),
               ),
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],
             const SizedBox(width: 8),

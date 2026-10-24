@@ -20,10 +20,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get serverConfigTitle => 'Configurar servidor';
 
   @override
-  String get serverConfigDescription =>
-      'Informe o endereço do servidor Meu Preço que deseja utilizar.';
-
-  @override
   String get serverAddressLabel => 'Endereço do servidor';
 
   @override
@@ -125,6 +121,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get networkErrorMessage => 'Não foi possível conectar ao servidor';
 
   @override
+  String get forbiddenError => 'Você não tem permissão para esta ação';
+
+  @override
+  String get notFoundError => 'O recurso solicitado não foi encontrado';
+
+  @override
   String get sessionExpiredMessage => 'Sua sessão expirou. Entre novamente.';
 
   @override
@@ -144,9 +146,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get notAuthenticatedLabel => 'Não autenticado';
-
-  @override
-  String get signOutSuccessMessage => 'Sessão encerrada';
 
   @override
   String get homeTitle => 'Início';
@@ -209,9 +208,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get productHistoryClearRangeAction => 'Limpar período';
 
   @override
-  String get productHistoryApplyRangeAction => 'Aplicar';
-
-  @override
   String get productSupermarketLabel => 'Mercado';
 
   @override
@@ -219,12 +215,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get productQtyLabel => 'Quantidade';
-
-  @override
-  String get productPricePerUnitLabel => 'Preço por unidade';
-
-  @override
-  String get productUnitPriceLabel => 'Preço da unidade';
 
   @override
   String get productTotalPriceLabel => 'Total pago';
@@ -249,10 +239,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get productAggregateLastLabel => 'Último';
-
-  @override
-  String get invalidDateRangeError =>
-      'A data inicial deve ser anterior ou igual à final.';
 
   @override
   String get productPriceGraphLabel => 'Evolução do preço';
@@ -346,13 +332,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get apiPrefixLabel => 'Prefixo da API';
 
   @override
-  String get notConfiguredLabel => 'Não configurado';
-
-  @override
   String get scanQrAction => 'Escanear QR';
-
-  @override
-  String get pasteNfceKeyAction => 'Colar chave da NFC-e';
 
   @override
   String get scanWithCameraAction => 'Escanear com a câmera';
@@ -462,6 +442,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get captchaImageUnavailable => 'Não foi possível carregar a imagem.';
 
   @override
+  String get captchaImageLabel => 'Imagem de verificação de segurança';
+
+  @override
   String get captchaWrongSolutionError =>
       'Resposta incorreta. Tente novamente.';
 
@@ -554,12 +537,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get resolutionAssignAction => 'Vincular produto';
-
-  @override
-  String get assignedProductLabel => 'Produto vinculado';
-
-  @override
-  String get changeProductAction => 'Trocar';
 
   @override
   String get clearProductAction => 'Remover vínculo';
@@ -657,9 +634,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminDemoteToUser => 'Rebaixar para usuário';
 
   @override
-  String get adminChangeRole => 'Alterar perfil';
-
-  @override
   String get adminConfirmRoleChange => 'Confirmar alteração de perfil?';
 
   @override
@@ -676,12 +650,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminClearSelection => 'Limpar seleção';
 
   @override
-  String get adminAssignToExisting => 'Atribuir a produto existente';
-
-  @override
-  String get adminCreateProduct => 'Criar novo produto';
-
-  @override
   String get adminNoSelection => 'Nenhum item selecionado';
 
   @override
@@ -691,29 +659,5 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminCreated => 'Criados';
 
   @override
-  String get adminRefresh => 'Atualizar';
-
-  @override
-  String get adminUserId => 'ID';
-
-  @override
-  String get adminUserName => 'Nome';
-
-  @override
-  String get adminUserEmail => 'E-mail';
-
-  @override
-  String get adminCreatedAt => 'Criado em';
-
-  @override
   String get themeSettingsSection => 'Tema';
-
-  @override
-  String get themeSystem => 'Sistema';
-
-  @override
-  String get themeLight => 'Claro';
-
-  @override
-  String get themeDark => 'Escuro';
 }

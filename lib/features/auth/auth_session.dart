@@ -44,6 +44,12 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   User? _user;
   Future<bool>? _refreshInFlight;
 
+  /// Incremented whenever the session is reset (logout/expiry) or replaced by a
+  /// new sign-in. In-flight refresh/`me` calls capture the value they started
+  /// with and discard their result if the epoch has since changed, so a slow
+  /// response can never resurrect a signed-out session or overwrite a newer one.
+  int _epoch = 0;
+
   /// Current lifecycle state.
   AuthStatus get status => _status;
 
@@ -142,12 +148,14 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
 
   /// Clears all local credentials and cached authenticated state.
   Future<void> logout() async {
+    _epoch++;
+    _refreshInFlight = null;
     _accessToken = null;
     _refreshToken = null;
     _user = null;
-    await _credentialStore.clear();
     _status = AuthStatus.unauthenticated;
     notifyListeners();
+    await _credentialStore.clear();
   }
 
   @override
@@ -164,6 +172,7 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   }
 
   Future<bool> _performRefresh() async {
+    final epoch = _epoch;
     final token = _refreshToken;
     if (token == null || token.isEmpty) {
       await _expire();
@@ -173,24 +182,31 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
       final pair = await _repository.refresh(
         RefreshRequest(refreshToken: token),
       );
+      if (_epoch != epoch) return false;
       await _apply(pair);
       return true;
     } on AppException {
+      if (_epoch != epoch) return false;
       await _expire();
       return false;
     }
   }
 
   Future<void> _loadCurrentUser() async {
+    final epoch = _epoch;
     final token = _accessToken;
     if (token == null) return;
-    _user = await _repository.currentUser(token);
+    final user = await _repository.currentUser(token);
+    if (_epoch != epoch) return;
+    _user = user;
     _status = AuthStatus.authenticated;
     await _persist();
     notifyListeners();
   }
 
   Future<void> _apply(AuthPair pair) async {
+    _epoch++;
+    _refreshInFlight = null;
     _accessToken = pair.accessToken;
     _refreshToken = pair.refreshToken;
     _user = pair.user;
@@ -210,12 +226,14 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   }
 
   Future<void> _expire() async {
+    _epoch++;
+    _refreshInFlight = null;
     _accessToken = null;
     _refreshToken = null;
     _user = null;
-    await _credentialStore.clear();
     _status = AuthStatus.expired;
     notifyListeners();
+    await _credentialStore.clear();
   }
 
   void _validateLogin(String identifier, String password) {

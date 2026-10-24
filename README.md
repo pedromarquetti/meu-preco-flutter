@@ -35,7 +35,8 @@ with iOS build validation kept available.
 - [x] Admin users, role management, review queue, and batch assignment.
 - [x] Light/Dark/System theme selection with persisted preference.
 - [x] Centralized Material 3 visual system seeded from the brand icon, with
-      Android/Web/iOS/macOS launcher icons generated from `assets/main_icon.png`.
+      Android/Web/iOS/macOS launcher icons generated from
+      `assets/main_icon.png`.
 - [x] Portuguese localization, responsive layouts, and accessibility-oriented
       loading/error/empty states.
 - [x] Code-quality, accessibility, localization, and release audit.
@@ -104,10 +105,10 @@ colors of their own. The palette is derived from the app icon
 - `AppTheme.brandBlue` `#0091EA` (gradient end, used as the Material 3 seed)
 - `AppTheme.brandGradient` — the brand's signature green→blue gradient
 
-Light and dark schemes are both generated from the brand seed. `ThemeMode.system`
-is the default; the user's System/Light/Dark choice is persisted and survives a
-cold start. `AppTheme.cameraOverlay` is the single overlay color for content drawn
-on top of the live camera preview.
+Light and dark schemes are both generated from the brand seed.
+`ThemeMode.system` is the default; the user's System/Light/Dark choice is
+persisted and survives a cold start. `AppTheme.cameraOverlay` is the single
+overlay color for content drawn on top of the live camera preview.
 
 Launcher icons for Android (including adaptive icons), Web (favicon + PWA
 icons), iOS, macOS, and Windows are generated from `assets/main_icon.png` using

@@ -111,6 +111,9 @@ class FakeAuthRepository implements AuthRepository {
     this.registerError,
     this.refreshError,
     this.currentUserError,
+    this.refreshDelay = Duration.zero,
+    this.currentUserDelay = Duration.zero,
+    this.loginResult,
   }) : user =
            user ??
            const User(
@@ -125,6 +128,9 @@ class FakeAuthRepository implements AuthRepository {
   Object? registerError;
   Object? refreshError;
   Object? currentUserError;
+  Duration refreshDelay = Duration.zero;
+  Duration currentUserDelay = Duration.zero;
+  AuthPair? loginResult;
 
   int loginCalls = 0;
   int registerCalls = 0;
@@ -150,6 +156,7 @@ class FakeAuthRepository implements AuthRepository {
   Future<AuthPair> login(LoginCredentials credentials) async {
     loginCalls++;
     if (loginError != null) throw loginError!;
+    if (loginResult != null) return loginResult!;
     return _nextPair();
   }
 
@@ -169,6 +176,7 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<AuthPair> refresh(RefreshRequest request) async {
     refreshCalls++;
+    if (refreshDelay > Duration.zero) await Future.delayed(refreshDelay);
     final gate = refreshGate;
     if (gate != null) await gate.future;
     if (refreshError != null) throw refreshError!;
@@ -178,6 +186,8 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<User> currentUser(String accessToken) async {
     currentUserCalls++;
+    if (currentUserDelay > Duration.zero)
+      await Future.delayed(currentUserDelay);
     if (currentUserError != null) throw currentUserError!;
     return user;
   }

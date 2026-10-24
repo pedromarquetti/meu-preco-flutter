@@ -23,6 +23,7 @@ class ProductHistoryController extends ChangeNotifier {
   DateTime? _from;
   DateTime? _to;
   bool _loading = false;
+  bool _disposed = false;
   AppException? _error;
 
   ProductView? get product => _product;
@@ -61,12 +62,12 @@ class ProductHistoryController extends ChangeNotifier {
       _points = List<PricePointView>.unmodifiable(_sorted(history.points));
       _aggregate = List<UnitStats>.unmodifiable(history.aggregate);
     } catch (error) {
-      _error = error is AppException
-          ? error
-          : ServerException(message: '$error');
+      _error = error is AppException ? error : const ServerException();
     } finally {
-      _loading = false;
-      notifyListeners();
+      if (!_disposed) {
+        _loading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -75,6 +76,12 @@ class ProductHistoryController extends ChangeNotifier {
     _from = null;
     _to = null;
     return load();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   /// Orders points oldest-first using the receipt issue time, falling back to

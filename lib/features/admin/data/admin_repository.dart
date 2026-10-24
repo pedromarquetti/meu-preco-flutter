@@ -1,3 +1,4 @@
+import '../../../core/errors/app_exception.dart';
 import '../../../core/http/api_client.dart';
 import '../../../core/models/models.dart';
 
@@ -25,7 +26,7 @@ class ApiAdminRepository implements AdminRepository {
 
   JsonMap _asObject(Object? data) {
     if (data is JsonMap) return data;
-    throw const FormatException('Expected JSON object');
+    throw const SerializationException(message: 'Expected JSON object');
   }
 
   @override

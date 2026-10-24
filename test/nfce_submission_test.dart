@@ -273,7 +273,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text(_strings.productPickerTitle), findsOneWidget);
+    // The picker sheet has the title in its header and as the search field label.
+    // Look for the header text specifically (titleMedium style in the sheet's title row).
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Text &&
+            w.data == _strings.productPickerTitle &&
+            w.style?.fontSize == 16.0, // titleMedium font size
+      ),
+      findsOneWidget,
+    );
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller?.text,
       'Item sem código',

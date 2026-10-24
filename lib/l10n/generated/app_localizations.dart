@@ -112,12 +112,6 @@ abstract class AppLocalizations {
   /// **'Configurar servidor'**
   String get serverConfigTitle;
 
-  /// ServerConfigDescription
-  ///
-  /// In pt, this message translates to:
-  /// **'Informe o endereço do servidor Meu Preço que deseja utilizar.'**
-  String get serverConfigDescription;
-
   /// ServerAddress
   ///
   /// In pt, this message translates to:
@@ -310,6 +304,18 @@ abstract class AppLocalizations {
   /// **'Não foi possível conectar ao servidor'**
   String get networkErrorMessage;
 
+  /// Shown when the server rejects a request with 403
+  ///
+  /// In pt, this message translates to:
+  /// **'Você não tem permissão para esta ação'**
+  String get forbiddenError;
+
+  /// Shown when the server returns 404 for a requested resource
+  ///
+  /// In pt, this message translates to:
+  /// **'O recurso solicitado não foi encontrado'**
+  String get notFoundError;
+
   /// SessionExpired
   ///
   /// In pt, this message translates to:
@@ -351,12 +357,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Não autenticado'**
   String get notAuthenticatedLabel;
-
-  /// SignOutSuccess
-  ///
-  /// In pt, this message translates to:
-  /// **'Sessão encerrada'**
-  String get signOutSuccessMessage;
 
   /// HomeTitle
   ///
@@ -478,12 +478,6 @@ abstract class AppLocalizations {
   /// **'Limpar período'**
   String get productHistoryClearRangeAction;
 
-  /// ProductHistoryApplyRange
-  ///
-  /// In pt, this message translates to:
-  /// **'Aplicar'**
-  String get productHistoryApplyRangeAction;
-
   /// ProductSupermarket
   ///
   /// In pt, this message translates to:
@@ -501,18 +495,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Quantidade'**
   String get productQtyLabel;
-
-  /// ProductPricePerUnit
-  ///
-  /// In pt, this message translates to:
-  /// **'Preço por unidade'**
-  String get productPricePerUnitLabel;
-
-  /// ProductUnitPrice
-  ///
-  /// In pt, this message translates to:
-  /// **'Preço da unidade'**
-  String get productUnitPriceLabel;
 
   /// ProductTotalPrice
   ///
@@ -561,12 +543,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Último'**
   String get productAggregateLastLabel;
-
-  /// InvalidDateRange
-  ///
-  /// In pt, this message translates to:
-  /// **'A data inicial deve ser anterior ou igual à final.'**
-  String get invalidDateRangeError;
 
   /// ProductPriceGraph
   ///
@@ -622,25 +598,25 @@ abstract class AppLocalizations {
   /// **'Servidor'**
   String get settingsServerSection;
 
-  /// No description provided for @themeSystemLabel.
+  /// Segmented button label for system theme mode
   ///
   /// In pt, this message translates to:
   /// **'Sistema'**
   String get themeSystemLabel;
 
-  /// No description provided for @themeLightLabel.
+  /// Segmented button label for light theme mode
   ///
   /// In pt, this message translates to:
   /// **'Claro'**
   String get themeLightLabel;
 
-  /// No description provided for @themeDarkLabel.
+  /// Segmented button label for dark theme mode
   ///
   /// In pt, this message translates to:
   /// **'Escuro'**
   String get themeDarkLabel;
 
-  /// No description provided for @confirmAction.
+  /// Generic confirmation button label
   ///
   /// In pt, this message translates to:
   /// **'Confirmar'**
@@ -742,23 +718,11 @@ abstract class AppLocalizations {
   /// **'Prefixo da API'**
   String get apiPrefixLabel;
 
-  /// NotConfigured
-  ///
-  /// In pt, this message translates to:
-  /// **'Não configurado'**
-  String get notConfiguredLabel;
-
   /// ScanQr
   ///
   /// In pt, this message translates to:
   /// **'Escanear QR'**
   String get scanQrAction;
-
-  /// PasteNfceKey
-  ///
-  /// In pt, this message translates to:
-  /// **'Colar chave da NFC-e'**
-  String get pasteNfceKeyAction;
 
   /// ScanWithCamera
   ///
@@ -952,6 +916,12 @@ abstract class AppLocalizations {
   /// **'Não foi possível carregar a imagem.'**
   String get captchaImageUnavailable;
 
+  /// Screen-reader label for the security-check captcha image
+  ///
+  /// In pt, this message translates to:
+  /// **'Imagem de verificação de segurança'**
+  String get captchaImageLabel;
+
   /// CaptchaWrongSolution
   ///
   /// In pt, this message translates to:
@@ -1125,18 +1095,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Vincular produto'**
   String get resolutionAssignAction;
-
-  /// AssignedProduct
-  ///
-  /// In pt, this message translates to:
-  /// **'Produto vinculado'**
-  String get assignedProductLabel;
-
-  /// ChangeProduct
-  ///
-  /// In pt, this message translates to:
-  /// **'Trocar'**
-  String get changeProductAction;
 
   /// ClearProduct
   ///
@@ -1318,12 +1276,6 @@ abstract class AppLocalizations {
   /// **'Rebaixar para usuário'**
   String get adminDemoteToUser;
 
-  /// Change role action
-  ///
-  /// In pt, this message translates to:
-  /// **'Alterar perfil'**
-  String get adminChangeRole;
-
   /// Confirm role change dialog
   ///
   /// In pt, this message translates to:
@@ -1354,18 +1306,6 @@ abstract class AppLocalizations {
   /// **'Limpar seleção'**
   String get adminClearSelection;
 
-  /// Assign to existing product
-  ///
-  /// In pt, this message translates to:
-  /// **'Atribuir a produto existente'**
-  String get adminAssignToExisting;
-
-  /// Create new product
-  ///
-  /// In pt, this message translates to:
-  /// **'Criar novo produto'**
-  String get adminCreateProduct;
-
   /// No items selected
   ///
   /// In pt, this message translates to:
@@ -1384,59 +1324,11 @@ abstract class AppLocalizations {
   /// **'Criados'**
   String get adminCreated;
 
-  /// Refresh
-  ///
-  /// In pt, this message translates to:
-  /// **'Atualizar'**
-  String get adminRefresh;
-
-  /// User ID
-  ///
-  /// In pt, this message translates to:
-  /// **'ID'**
-  String get adminUserId;
-
-  /// User name
-  ///
-  /// In pt, this message translates to:
-  /// **'Nome'**
-  String get adminUserName;
-
-  /// User email
-  ///
-  /// In pt, this message translates to:
-  /// **'E-mail'**
-  String get adminUserEmail;
-
-  /// AdminCreatedAt
-  ///
-  /// In pt, this message translates to:
-  /// **'Criado em'**
-  String get adminCreatedAt;
-
-  /// No description provided for @themeSettingsSection.
+  /// Settings section header for theme selection
   ///
   /// In pt, this message translates to:
   /// **'Tema'**
   String get themeSettingsSection;
-
-  /// No description provided for @themeSystem.
-  ///
-  /// In pt, this message translates to:
-  /// **'Sistema'**
-  String get themeSystem;
-
-  /// No description provided for @themeLight.
-  ///
-  /// In pt, this message translates to:
-  /// **'Claro'**
-  String get themeLight;
-
-  /// No description provided for @themeDark.
-  ///
-  /// In pt, this message translates to:
-  /// **'Escuro'**
-  String get themeDark;
 }
 
 class _AppLocalizationsDelegate

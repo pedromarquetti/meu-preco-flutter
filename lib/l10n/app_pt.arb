@@ -1,9 +1,7 @@
 {
-  "@@locale": "pt",
   "appTitle": "Meu Preço",
   "appDescription": "Compare preços de produtos entre supermercados.",
   "serverConfigTitle": "Configurar servidor",
-  "serverConfigDescription": "Informe o endereço do servidor Meu Preço que deseja utilizar.",
   "serverAddressLabel": "Endereço do servidor",
   "serverAddressHint": "https://meu-preco.exemplo.com",
   "serverAddressHelp": "Pode ser informado com ou sem o prefixo /api/v1.",
@@ -36,6 +34,8 @@
   "userExistsError": "Este e-mail já está cadastrado",
   "rateLimitedError": "Muitas tentativas. Tente novamente em instantes",
   "networkErrorMessage": "Não foi possível conectar ao servidor",
+  "forbiddenError": "Você não tem permissão para esta ação",
+  "notFoundError": "O recurso solicitado não foi encontrado",
   "sessionExpiredMessage": "Sua sessão expirou. Entre novamente.",
   "accountSection": "Conta",
   "currentUserLabel": "Usuário",
@@ -43,7 +43,6 @@
   "adminRoleLabel": "Administrador",
   "userRoleLabel": "Usuário",
   "notAuthenticatedLabel": "Não autenticado",
-  "signOutSuccessMessage": "Sessão encerrada",
   "homeTitle": "Início",
   "homeGreeting": "Bem-vindo(a) de volta",
   "scanReceiptAction": "Escanear NFC-e",
@@ -64,12 +63,9 @@
   "productHistoryFromLabel": "De",
   "productHistoryToLabel": "Até",
   "productHistoryClearRangeAction": "Limpar período",
-  "productHistoryApplyRangeAction": "Aplicar",
   "productSupermarketLabel": "Mercado",
   "productLoggedAtLabel": "Data",
   "productQtyLabel": "Quantidade",
-  "productPricePerUnitLabel": "Preço por unidade",
-  "productUnitPriceLabel": "Preço da unidade",
   "productTotalPriceLabel": "Total pago",
   "productAggregateTitle": "Resumo por unidade",
   "productAggregateCountLabel": "Registros",
@@ -78,25 +74,11 @@
   "productAggregateAvgLabel": "Média",
   "productAggregateMaxLabel": "Máximo",
   "productAggregateLastLabel": "Último",
-  "invalidDateRangeError": "A data inicial deve ser anterior ou igual à final.",
   "productPriceGraphLabel": "Evolução do preço",
   "priceChartTooShort": "Histórico curto demais para montar o gráfico.",
   "priceChartMinLabel": "Mínimo",
   "priceChartMaxLabel": "Máximo",
   "priceChartSemantics": "Gráfico de preços de {min} a {max} por {unit}.",
-  "@priceChartSemantics": {
-    "placeholders": {
-      "min": {
-        "type": "String"
-      },
-      "max": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "supermarketsTitle": "Supermercados",
   "adminTitle": "Administração",
   "settingsTitle": "Configurações",
@@ -121,9 +103,7 @@
   "notImplementedLabel": "Esta funcionalidade ainda não está disponível.",
   "currentHostLabel": "Servidor atual",
   "apiPrefixLabel": "Prefixo da API",
-  "notConfiguredLabel": "Não configurado",
   "scanQrAction": "Escanear QR",
-  "pasteNfceKeyAction": "Colar chave da NFC-e",
   "scanWithCameraAction": "Escanear com a câmera",
   "scanQrHelp": "Aponte a câmera para o QR Code do cupom.",
   "scanQrUnavailable": "A câmera não está disponível neste dispositivo. Cole o conteúdo do QR Code.",
@@ -147,13 +127,7 @@
   "invalidAccessKeyError": "Informe os 44 dígitos da chave de acesso",
   "invalidQrPayloadError": "Informe um QR Code válido",
   "extractAccessKeyFromQrAction": "Extrair chave de acesso do QR Code",
-  "@extractAccessKeyFromQrAction": {
-    "description": "Extract access key from QR"
-  },
   "extractAccessKeyFromQrNoMatchError": "Não foi possível extrair uma chave de 44 dígitos do conteúdo do QR Code.",
-  "@extractAccessKeyFromQrNoMatchError": {
-    "description": "No 44-digit key found in QR"
-  },
   "draftingReceiptLabel": "Processando o cupom...",
   "submittingReceiptLabel": "Enviando o cupom...",
   "captchaTitle": "Verificação de segurança",
@@ -162,15 +136,9 @@
   "captchaSolveAction": "Confirmar",
   "captchaReloadAction": "Recarregar imagem",
   "captchaImageUnavailable": "Não foi possível carregar a imagem.",
+  "captchaImageLabel": "Imagem de verificação de segurança",
   "captchaWrongSolutionError": "Resposta incorreta. Tente novamente.",
   "captchaAttemptsLeft": "Tentativas restantes: {count}",
-  "@captchaAttemptsLeft": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "captchaExpiredError": "Este desafio expirou. Leia o cupom novamente.",
   "captchaLockedError": "Muitas respostas incorretas. Leia o cupom novamente.",
   "captchaUsedError": "Este desafio já foi utilizado.",
@@ -178,13 +146,6 @@
   "previewTitle": "Confira os dados do cupom",
   "previewAccessKeyLabel": "Chave de acesso",
   "previewExpiresAtLabel": "Expira em {time}",
-  "@previewExpiresAtLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "previewExpiredLabel": "Prévia expirada",
   "previewItemsTitle": "Itens",
   "previewTotalsTitle": "Resumo",
@@ -205,8 +166,6 @@
   "resolutionNeedsReviewAction": "Revisar depois",
   "resolutionSkipAction": "Ignorar",
   "resolutionAssignAction": "Vincular produto",
-  "assignedProductLabel": "Produto vinculado",
-  "changeProductAction": "Trocar",
   "clearProductAction": "Remover vínculo",
   "productPickerTitle": "Selecionar produto",
   "submitDryRunAction": "Simular envio",
@@ -233,86 +192,92 @@
   "alreadyCommittedError": "Este cupom já foi registrado.",
   "invalidResolutionError": "Não foi possível aplicar as escolhas dos itens.",
   "adminUsers": "Usuários",
+  "adminReviewQueue": "Fila de revisão",
+  "adminRole": "Perfil",
+  "adminPromoteToAdmin": "Tornar administrador",
+  "adminDemoteToUser": "Rebaixar para usuário",
+  "adminConfirmRoleChange": "Confirmar alteração de perfil?",
+  "adminCannotChangeOwnRole": "Não é possível alterar o próprio perfil",
+  "adminBatchAssign": "Atribuir em lote",
+  "adminSelectAll": "Selecionar todos",
+  "adminClearSelection": "Limpar seleção",
+  "adminNoSelection": "Nenhum item selecionado",
+  "adminAssigned": "Atribuídos",
+  "adminCreated": "Criados",
+  "themeSettingsSection": "Tema",
+  "@@locale": "pt",
+  "@priceChartSemantics": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@extractAccessKeyFromQrAction": {
+    "description": "Extract access key from QR"
+  },
+  "@extractAccessKeyFromQrNoMatchError": {
+    "description": "No 44-digit key found in QR"
+  },
+  "@captchaAttemptsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@previewExpiresAtLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "@adminUsers": {
     "description": "Admin users tab"
   },
-  "adminReviewQueue": "Fila de revisão",
   "@adminReviewQueue": {
     "description": "Admin review queue tab"
   },
-  "adminRole": "Perfil",
   "@adminRole": {
     "description": "Admin role label"
   },
-  "adminPromoteToAdmin": "Tornar administrador",
   "@adminPromoteToAdmin": {
     "description": "Promote user to admin"
   },
-  "adminDemoteToUser": "Rebaixar para usuário",
   "@adminDemoteToUser": {
     "description": "Demote admin to user"
   },
-  "adminChangeRole": "Alterar perfil",
-  "@adminChangeRole": {
-    "description": "Change role action"
-  },
-  "adminConfirmRoleChange": "Confirmar alteração de perfil?",
   "@adminConfirmRoleChange": {
     "description": "Confirm role change dialog"
   },
-  "adminCannotChangeOwnRole": "Não é possível alterar o próprio perfil",
   "@adminCannotChangeOwnRole": {
     "description": "Cannot change own role message"
   },
-  "adminBatchAssign": "Atribuir em lote",
   "@adminBatchAssign": {
     "description": "Batch assign action"
   },
-  "adminSelectAll": "Selecionar todos",
   "@adminSelectAll": {
     "description": "Select all"
   },
-  "adminClearSelection": "Limpar seleção",
   "@adminClearSelection": {
     "description": "Clear selection"
   },
-  "adminAssignToExisting": "Atribuir a produto existente",
-  "@adminAssignToExisting": {
-    "description": "Assign to existing product"
-  },
-  "adminCreateProduct": "Criar novo produto",
-  "@adminCreateProduct": {
-    "description": "Create new product"
-  },
-  "adminNoSelection": "Nenhum item selecionado",
   "@adminNoSelection": {
     "description": "No items selected"
   },
-  "adminAssigned": "Atribuídos",
   "@adminAssigned": {
     "description": "Assigned count"
   },
-  "adminCreated": "Criados",
   "@adminCreated": {
     "description": "Created count"
   },
-  "adminRefresh": "Atualizar",
-  "@adminRefresh": {
-    "description": "Refresh"
-  },
-  "adminUserId": "ID",
-  "@adminUserId": {
-    "description": "User ID"
-  },
-  "adminUserName": "Nome",
-  "@adminUserName": {
-    "description": "User name"
-  },
-  "adminUserEmail": "E-mail",
-  "@adminUserEmail": {
-    "description": "User email"
-  },
-  "adminCreatedAt": "Criado em",
   "@appTitle": {
     "description": "AppTitle"
   },
@@ -321,9 +286,6 @@
   },
   "@serverConfigTitle": {
     "description": "ServerConfigTitle"
-  },
-  "@serverConfigDescription": {
-    "description": "ServerConfigDescription"
   },
   "@serverAddressLabel": {
     "description": "ServerAddress"
@@ -421,6 +383,12 @@
   "@networkErrorMessage": {
     "description": "Network"
   },
+  "@forbiddenError": {
+    "description": "Shown when the server rejects a request with 403"
+  },
+  "@notFoundError": {
+    "description": "Shown when the server returns 404 for a requested resource"
+  },
   "@sessionExpiredMessage": {
     "description": "SessionExpired"
   },
@@ -441,9 +409,6 @@
   },
   "@notAuthenticatedLabel": {
     "description": "NotAuthenticated"
-  },
-  "@signOutSuccessMessage": {
-    "description": "SignOutSuccess"
   },
   "@homeTitle": {
     "description": "HomeTitle"
@@ -505,9 +470,6 @@
   "@productHistoryClearRangeAction": {
     "description": "ProductHistoryClearRange"
   },
-  "@productHistoryApplyRangeAction": {
-    "description": "ProductHistoryApplyRange"
-  },
   "@productSupermarketLabel": {
     "description": "ProductSupermarket"
   },
@@ -516,12 +478,6 @@
   },
   "@productQtyLabel": {
     "description": "ProductQty"
-  },
-  "@productPricePerUnitLabel": {
-    "description": "ProductPricePerUnit"
-  },
-  "@productUnitPriceLabel": {
-    "description": "ProductUnitPrice"
   },
   "@productTotalPriceLabel": {
     "description": "ProductTotalPrice"
@@ -546,9 +502,6 @@
   },
   "@productAggregateLastLabel": {
     "description": "ProductAggregateLast"
-  },
-  "@invalidDateRangeError": {
-    "description": "InvalidDateRange"
   },
   "@productPriceGraphLabel": {
     "description": "ProductPriceGraph"
@@ -622,14 +575,8 @@
   "@apiPrefixLabel": {
     "description": "ApiPrefix"
   },
-  "@notConfiguredLabel": {
-    "description": "NotConfigured"
-  },
   "@scanQrAction": {
     "description": "ScanQr"
-  },
-  "@pasteNfceKeyAction": {
-    "description": "PasteNfceKey"
   },
   "@scanWithCameraAction": {
     "description": "ScanWithCamera"
@@ -721,6 +668,9 @@
   "@captchaImageUnavailable": {
     "description": "CaptchaImageUnavailable"
   },
+  "@captchaImageLabel": {
+    "description": "Screen-reader label for the security-check captcha image"
+  },
   "@captchaWrongSolutionError": {
     "description": "CaptchaWrongSolution"
   },
@@ -802,12 +752,6 @@
   "@resolutionAssignAction": {
     "description": "ResolutionAssign"
   },
-  "@assignedProductLabel": {
-    "description": "AssignedProduct"
-  },
-  "@changeProductAction": {
-    "description": "ChangeProduct"
-  },
   "@clearProductAction": {
     "description": "ClearProduct"
   },
@@ -883,11 +827,19 @@
   "@invalidResolutionError": {
     "description": "InvalidResolution"
   },
-  "@adminCreatedAt": {
-    "description": "AdminCreatedAt"
+  "@themeSystemLabel": {
+    "description": "Segmented button label for system theme mode"
   },
-	"themeSettingsSection": "Tema",
-	"themeSystem": "Sistema",
-	"themeLight": "Claro",
-	"themeDark": "Escuro"
+  "@themeLightLabel": {
+    "description": "Segmented button label for light theme mode"
+  },
+  "@themeDarkLabel": {
+    "description": "Segmented button label for dark theme mode"
+  },
+  "@confirmAction": {
+    "description": "Generic confirmation button label"
+  },
+  "@themeSettingsSection": {
+    "description": "Settings section header for theme selection"
+  }
 }

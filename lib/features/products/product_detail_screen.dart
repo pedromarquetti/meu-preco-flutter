@@ -4,6 +4,7 @@ import '../../app/app_scope.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/models/models.dart';
 import '../../core/ui/empty_view.dart';
+import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -272,7 +273,7 @@ class _InlineError extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                ErrorView.describeError(error) ?? strings.errorLabel,
+                localizedErrorMessage(strings, error),
                 style: TextStyle(color: theme.colorScheme.onErrorContainer),
               ),
             ),
@@ -400,11 +401,38 @@ class _PricePointTile extends StatelessWidget {
               '${point.unit == null ? '' : ' ${point.unit}'}';
 
     return Card(
-      child: ListTile(
-        title: Text(priceText, style: theme.textTheme.titleMedium),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(priceText, style: theme.textTheme.titleMedium),
+                ),
+                if (point.totalPrice != null) ...[
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        strings.productTotalPriceLabel,
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      Text(
+                        'R\$ ${point.totalPrice!.amount}',
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 4),
             if (store != null && store.isNotEmpty)
               Text('${strings.productSupermarketLabel}: $store'),
             Text(
@@ -414,22 +442,6 @@ class _PricePointTile extends StatelessWidget {
             if (qty != null) Text(qty),
           ],
         ),
-        trailing: point.totalPrice == null
-            ? null
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    strings.productTotalPriceLabel,
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  Text(
-                    'R\$ ${point.totalPrice!.amount}',
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                ],
-              ),
       ),
     );
   }

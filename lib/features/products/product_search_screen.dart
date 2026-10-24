@@ -69,6 +69,7 @@ class _ProductSearchScreenState extends State<ProductSearchScreen> {
               textInputAction: TextInputAction.search,
               autocorrect: false,
               decoration: InputDecoration(
+                labelText: strings.productSearchTitle,
                 hintText: strings.productSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 border: const OutlineInputBorder(),

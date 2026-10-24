@@ -28,6 +28,7 @@ class ProductSearchController extends ChangeNotifier {
 
   Timer? _debounceTimer;
   int _generation = 0;
+  bool _disposed = false;
   String _query = '';
   List<ProductView> _results = const <ProductView>[];
   Page? _pageInfo;
@@ -110,11 +111,9 @@ class ProductSearchController extends ChangeNotifier {
       _error = null;
     } catch (error) {
       if (generation != _generation) return;
-      _error = error is AppException
-          ? error
-          : ServerException(message: '$error');
+      _error = error is AppException ? error : const ServerException();
     } finally {
-      if (generation == _generation) {
+      if (!_disposed && generation == _generation) {
         _loading = false;
         _loadingMore = false;
         notifyListeners();
@@ -124,6 +123,8 @@ class ProductSearchController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _generation++;
     _debounceTimer?.cancel();
     super.dispose();
   }

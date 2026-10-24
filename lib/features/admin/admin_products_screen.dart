@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_scope.dart';
 import '../../core/models/models.dart';
 import '../../core/ui/empty_view.dart';
+import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -24,8 +25,9 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   Timer? _debounce;
   List<ProductView> _results = const [];
   bool _loading = false;
-  String? _error;
+  Object? _error;
   ProductView? _selected;
+  int _searchGeneration = 0;
 
   final _nameController = TextEditingController();
   final _brandController = TextEditingController();
@@ -50,19 +52,22 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   }
 
   Future<void> _search(String value) async {
+    final generation = ++_searchGeneration;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final page = await _repository.searchProducts(q: value);
+      if (!mounted || generation != _searchGeneration) return;
       setState(() {
         _results = page.items;
         _loading = false;
       });
     } catch (e) {
+      if (!mounted || generation != _searchGeneration) return;
       setState(() {
-        _error = e.toString();
+        _error = e;
         _loading = false;
       });
     }
@@ -80,6 +85,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   Future<void> _save() async {
     final product = _selected;
     if (product?.id == null) return;
+    final strings = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _saving = true);
     try {
       final patch = ProductPatch(
@@ -95,10 +102,13 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       );
       await _repository.updateProduct(product!.id!, patch);
       if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(strings.productUpdated)));
+      await _search(_searchController.text);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      messenger.showSnackBar(
+        SnackBar(content: Text(localizedErrorMessage(strings, e))),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -122,72 +132,67 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         ),
         if (_error != null)
           ErrorView(
-            message: _error!,
+            error: _error,
             onRetry: () => _search(_searchController.text),
           ),
-        if (_loading && _results.isEmpty) const Expanded(child: LoadingView()),
-        if (!_loading && _results.isEmpty && _searchController.text.isNotEmpty)
-          Expanded(child: EmptyView(title: strings.emptyLabel)),
         Expanded(
-          child: ListView.builder(
-            itemCount: _results.length,
-            itemBuilder: (context, index) {
-              final product = _results[index];
-              final isSelected = _selected?.id == product.id;
-              return ListTile(
-                selected: isSelected,
-                title: Text(product.name ?? '-'),
-                subtitle: Text(
-                  '${product.brand ?? ''} • ${product.unit ?? ''}'.trim(),
+          child: _results.isEmpty
+              ? (_loading
+                    ? const LoadingView()
+                    : _searchController.text.isEmpty
+                    ? const SizedBox.shrink()
+                    : EmptyView(title: strings.emptyLabel))
+              : ListView.builder(
+                  itemCount: _results.length,
+                  itemBuilder: (context, index) {
+                    final product = _results[index];
+                    final isSelected = _selected?.id == product.id;
+                    return ListTile(
+                      selected: isSelected,
+                      title: Text(product.name ?? '-'),
+                      subtitle: Text(
+                        '${product.brand ?? ''} • ${product.unit ?? ''}'.trim(),
+                      ),
+                      onTap: () => _select(product),
+                    );
+                  },
                 ),
-                onTap: () => _select(product),
-              );
-            },
-          ),
         ),
         if (_selected != null) ...[
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(labelText: strings.nameLabel),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _brandController,
-                  decoration: InputDecoration(
-                    labelText: strings.productBrandLabel,
+          const Divider(height: 1),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: strings.nameLabel),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _unitController,
-                  decoration: InputDecoration(
-                    labelText: strings.productUnitLabel,
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _brandController,
+                    decoration: InputDecoration(
+                      labelText: strings.productBrandLabel,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: _saving
-                      ? null
-                      : () => {
-                          _save().then((_) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(strings.productUpdated)),
-                              );
-                            }
-                          }),
-                        },
-                  child: Text(
-                    _saving ? strings.loadingLabel : strings.saveAndContinue,
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _unitController,
+                    decoration: InputDecoration(
+                      labelText: strings.productUnitLabel,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: _saving ? null : _save,
+                    child: Text(
+                      _saving ? strings.loadingLabel : strings.saveAndContinue,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

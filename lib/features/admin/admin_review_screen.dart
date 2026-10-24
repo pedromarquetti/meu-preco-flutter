@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_scope.dart';
 import '../../core/models/models.dart';
 import '../../core/ui/empty_view.dart';
+import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -20,7 +21,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       context.appDependencies.adminRepository;
   List<ReviewItemView> _items = const [];
   bool _loading = true;
-  String? _error;
+  Object? _error;
   final Set<int> _selected = {};
 
   @override
@@ -37,13 +38,15 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     });
     try {
       final page = await _repository.listNeedsReview();
+      if (!mounted) return;
       setState(() {
         _items = page.items;
         _loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = e;
         _loading = false;
       });
     }
@@ -51,9 +54,9 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
 
   Future<void> _batchAssign() async {
     final strings = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     if (_selected.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
+      messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
       return;
     }
     // For now, create new products for selected items
@@ -73,7 +76,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     try {
       final result = await _repository.batchAssign(assignments);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             '${strings.adminAssigned}: ${result.assigned ?? 0}, ${strings.adminCreated}: ${result.created ?? 0}',
@@ -83,29 +86,41 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      messenger.showSnackBar(
+        SnackBar(content: Text(localizedErrorMessage(strings, e))),
+      );
     }
   }
+
+  /// Number of items that can actually be selected (have a log id).
+  int get _selectableCount =>
+      _items.where((item) => item.priceLogId != null).length;
+
+  bool get _allSelected =>
+      _selectableCount > 0 && _selected.length == _selectableCount;
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     if (_loading) return const LoadingView();
     if (_error != null) {
-      return ErrorView(message: _error!, onRetry: _load);
+      return ErrorView(error: _error, onRetry: _load);
     }
     if (_items.isEmpty) return EmptyView(title: strings.emptyLabel);
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: Row(
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               TextButton(
                 onPressed: () {
                   setState(() {
-                    if (_selected.length == _items.length) {
+                    if (_allSelected) {
                       _selected.clear();
                     } else {
                       for (final item in _items) {
@@ -117,12 +132,11 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                   });
                 },
                 child: Text(
-                  _selected.length == _items.length
+                  _allSelected
                       ? strings.adminClearSelection
                       : strings.adminSelectAll,
                 ),
               ),
-              const Spacer(),
               FilledButton.icon(
                 onPressed: _batchAssign,
                 icon: const Icon(Icons.check),

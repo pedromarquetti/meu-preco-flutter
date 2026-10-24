@@ -357,7 +357,16 @@ void main() {
 
     await tester.tap(find.text(_strings.searchProductAction));
     await tester.pumpAndSettle();
-    expect(find.text(_strings.productSearchTitle), findsOneWidget);
+    // The search screen's AppBar title should match; the TextField also has it as label.
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is AppBar &&
+            w.title is Text &&
+            (w.title as Text).data == _strings.productSearchTitle,
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('registration signs the user in', (tester) async {

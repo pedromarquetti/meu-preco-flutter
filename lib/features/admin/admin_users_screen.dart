@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_scope.dart';
 import '../../core/models/models.dart';
 import '../../core/ui/empty_view.dart';
+import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -20,7 +21,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       context.appDependencies.adminRepository;
   List<UserView> _users = const [];
   bool _loading = true;
-  String? _error;
+  Object? _error;
   int page = 1;
 
   @override
@@ -36,13 +37,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     });
     try {
       final pageResult = await _repository.listUsers(page: page);
+      if (!mounted) return;
       setState(() {
         _users = pageResult.items;
         _loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = e;
         _loading = false;
       });
     }
@@ -50,11 +53,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
   Future<void> _changeRole(UserView user) async {
     final strings = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final session = context.authSession;
     if (user.id == session.user?.id) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(strings.adminCannotChangeOwnRole)));
+      messenger.showSnackBar(
+        SnackBar(content: Text(strings.adminCannotChangeOwnRole)),
+      );
       return;
     }
     final currentRole = user.role ?? UserRole.user;
@@ -80,14 +84,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
     try {
       await _repository.updateUserRole(userId: user.id!, role: newRole);
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      messenger.showSnackBar(
+        SnackBar(content: Text(localizedErrorMessage(strings, e))),
+      );
     }
   }
 
@@ -96,7 +101,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     final strings = AppLocalizations.of(context);
     if (_loading) return const LoadingView();
     if (_error != null) {
-      return ErrorView(message: _error!, onRetry: _load);
+      return ErrorView(error: _error, onRetry: _load);
     }
     if (_users.isEmpty) return EmptyView(title: strings.emptyLabel);
     return RefreshIndicator(
@@ -108,16 +113,37 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           final user = _users[index];
           final isAdmin = user.role == UserRole.admin;
           return Card(
-            child: ListTile(
-              title: Text(user.name ?? user.email ?? '-'),
-              subtitle: Text(user.email ?? ''),
-              trailing: TextButton(
-                onPressed: () => _changeRole(user),
-                child: Text(
-                  isAdmin
-                      ? strings.adminDemoteToUser
-                      : strings.adminPromoteToAdmin,
-                ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name ?? user.email ?? '-',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if ((user.email ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      user.email!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton(
+                      onPressed: () => _changeRole(user),
+                      child: Text(
+                        isAdmin
+                            ? strings.adminDemoteToUser
+                            : strings.adminPromoteToAdmin,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );

@@ -35,37 +35,39 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: const ScanSpeedDial(),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: Padding(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (session.user != null) ...[
-                  Text(
-                    '${strings.homeGreeting}, ${session.user!.name}',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.titleMedium,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (session.user != null) ...[
+                    Text(
+                      '${strings.homeGreeting}, ${session.user!.name}',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  _HomeEntry(
+                    icon: Icons.search,
+                    label: strings.searchProductAction,
+                    onTap: () => context.push(AppRoutes.productSearch),
                   ),
                   const SizedBox(height: 24),
-                ],
-                _HomeEntry(
-                  icon: Icons.search,
-                  label: strings.searchProductAction,
-                  onTap: () => context.push(AppRoutes.productSearch),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  strings.appDescription,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  Text(
+                    strings.appDescription,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -92,15 +94,24 @@ class _HomeEntry extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 40, color: theme.colorScheme.primary),
-              const SizedBox(height: 12),
-              Text(label, style: theme.textTheme.titleMedium),
-            ],
+        focusColor: theme.colorScheme.primary.withValues(alpha: 0.14),
+        child: Semantics(
+          button: true,
+          label: label,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 40, color: theme.colorScheme.primary),
+                const SizedBox(height: 12),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium,
+                ),
+              ],
+            ),
           ),
         ),
       ),

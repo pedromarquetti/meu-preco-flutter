@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
-import '../errors/app_exception.dart';
+import 'error_messages.dart';
 
 /// Full-surface error state with an optional retry action.
+///
+/// Provide a pre-localized [message], or an [error] whose localized text is
+/// resolved at build time. Raw exception text and backend prose are never shown.
 class ErrorView extends StatelessWidget {
   const ErrorView({
     super.key,
     this.title,
     this.message,
+    this.error,
     this.onRetry,
     this.retryLabel,
   });
@@ -19,40 +23,36 @@ class ErrorView extends StatelessWidget {
   /// Problem description shown to the user.
   final String? message;
 
+  /// Failure whose localized message is used when [message] is null.
+  final Object? error;
+
   final VoidCallback? onRetry;
 
   final String? retryLabel;
 
-  /// Builds a message for common [AppException]s, falling back to the raw
-  /// message.
-  factory ErrorView.fromException(
-    Object error, {
-    Key? key,
-    String? title,
-    VoidCallback? onRetry,
-    String? retryLabel,
-  }) {
-    return ErrorView(
-      key: key,
-      title: title,
-      message: describeError(error),
-      onRetry: onRetry,
-      retryLabel: retryLabel,
-    );
-  }
-
-  /// Returns a user-facing description for an [AppException].
-  static String? describeError(Object error) {
-    if (error is AppException && error.message != null) return error.message;
-    if (error is AppException) return error.code;
-    return null;
-  }
+  /// Convenience constructor that localizes the given [error].
+  const ErrorView.fromException(
+    this.error, {
+    super.key,
+    this.title,
+    this.onRetry,
+    this.retryLabel,
+  }) : message = null;
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final description = message ?? strings.errorLabel;
+    final resolvedTitle = title ?? strings.errorLabel;
+    final resolvedDescription =
+        message ??
+        (error != null
+            ? localizedErrorMessage(strings, error!)
+            : strings.errorLabel);
+    // Avoid repeating the same sentence as both heading and body.
+    final description = resolvedDescription == resolvedTitle
+        ? null
+        : resolvedDescription;
 
     return Center(
       child: Padding(
@@ -63,21 +63,23 @@ class ErrorView extends StatelessWidget {
             Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: 16),
             Text(
-              title ?? strings.errorLabel,
+              resolvedTitle,
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            Semantics(
-              liveRegion: true,
-              child: Text(
-                description,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+            if (description != null) ...[
+              const SizedBox(height: 8),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
-            ),
+            ],
             if (onRetry != null) ...[
               const SizedBox(height: 16),
               FilledButton.icon(

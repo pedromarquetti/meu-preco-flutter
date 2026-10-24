@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/nfce/receipt_scanner_screen.dart';
+import '../l10n/generated/app_localizations.dart';
 
 import '../features/admin/admin_screen.dart';
 import '../features/auth/auth_session.dart';
@@ -17,6 +19,7 @@ import '../features/supermarkets/supermarkets_screen.dart';
 
 /// Named route locations for the whole app.
 abstract final class AppRoutes {
+  static const String root = '/';
   static const String server = '/server';
   static const String login = '/login';
   static const String register = '/register';
@@ -56,7 +59,18 @@ GoRouter createRouter({
     refreshListenable: authSession,
     redirect: (context, state) =>
         authRedirect(authSession, state.matchedLocation),
+    errorBuilder: (context, state) => _RouteErrorScreen(
+      onRecover: () => context.go(
+        authRedirect(authSession, AppRoutes.root) ?? AppRoutes.root,
+      ),
+    ),
     routes: <RouteBase>[
+      GoRoute(
+        path: AppRoutes.root,
+        name: 'root',
+        redirect: (context, state) =>
+            authRedirect(authSession, AppRoutes.root) ?? AppRoutes.home,
+      ),
       GoRoute(
         path: AppRoutes.server,
         name: 'server',
@@ -139,7 +153,7 @@ String bootLocation({
 ///
 /// Returns `null` to allow the navigation, or a redirect target otherwise.
 String? authRedirect(AuthSession session, String location) {
-  if (location == AppRoutes.server) return null;
+  if (location == AppRoutes.server || location == AppRoutes.root) return null;
 
   final isAuthRoute =
       location == AppRoutes.login || location == AppRoutes.register;
@@ -158,4 +172,42 @@ String? authRedirect(AuthSession session, String location) {
   if (requiresAdmin && !session.isAdmin) return AppRoutes.home;
 
   return null;
+}
+
+/// Fallback screen for unmatched locations, with a recovery action that never
+/// leads back to the same dead end.
+class _RouteErrorScreen extends StatelessWidget {
+  const _RouteErrorScreen({required this.onRecover});
+
+  final VoidCallback onRecover;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(strings.appTitle)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.link_off, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                strings.errorLabel,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: onRecover,
+                child: Text(strings.confirmAction),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

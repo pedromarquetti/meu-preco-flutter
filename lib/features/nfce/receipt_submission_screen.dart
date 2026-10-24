@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../app/app_scope.dart';
 import '../../core/models/models.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'code_scanner.dart';
@@ -215,6 +216,7 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
     }
     final key = match.group(1)!;
     await Clipboard.setData(ClipboardData(text: key));
+    if (!mounted) return;
     setState(() {
       _mode = NfceEntryMode.key;
       _inputError = null;
@@ -353,18 +355,29 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
 
   Widget _buildCaptchaImage(AppLocalizations strings) {
     final bytes = _controller.captchaImage;
-    return Container(
-      height: 96,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(8),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 96),
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: _controller.captchaImageLoading
+            ? const CircularProgressIndicator()
+            : bytes != null
+            ? Semantics(
+                label: strings.captchaImageLabel,
+                image: true,
+                child: Image.memory(
+                  bytes,
+                  fit: BoxFit.contain,
+                  gaplessPlayback: true,
+                ),
+              )
+            : Text(strings.captchaImageUnavailable),
       ),
-      child: _controller.captchaImageLoading
-          ? const CircularProgressIndicator()
-          : bytes != null
-          ? Image.memory(bytes, fit: BoxFit.contain, gaplessPlayback: true)
-          : Text(strings.captchaImageUnavailable),
     );
   }
 
@@ -593,7 +606,9 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
 
   Widget _buildError(AppLocalizations strings) {
     final theme = Theme.of(context);
-    final message = nfceErrorMessage(strings, _controller.error ?? '');
+    final message = _controller.error != null
+        ? nfceErrorMessage(strings, _controller.error!)
+        : strings.errorLabel;
     final canRetry = _controller.input != null;
     return Center(
       child: Padding(
@@ -757,12 +772,14 @@ class _TotalsCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      strings.previewEstimatedTotalLabel,
-                      style: theme.textTheme.titleSmall,
+                    Expanded(
+                      child: Text(
+                        strings.previewEstimatedTotalLabel,
+                        style: theme.textTheme.titleSmall,
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       totals.estimatedTotal!.amount,
                       style: theme.textTheme.titleSmall,
@@ -835,8 +852,8 @@ class _PreviewItemCard extends StatelessWidget {
                               visualDensity: VisualDensity.compact,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(
-                                minWidth: 24,
-                                minHeight: 24,
+                                minWidth: AppTheme.minTouchTarget,
+                                minHeight: AppTheme.minTouchTarget,
                               ),
                             ),
                           ],
@@ -869,18 +886,25 @@ class _PreviewItemCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      strings.previewPriceLabel,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        strings.previewPriceLabel,
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(_priceLabel(item), style: theme.textTheme.titleSmall),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        _priceLabel(item),
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.titleSmall,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

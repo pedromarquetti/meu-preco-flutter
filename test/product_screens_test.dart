@@ -109,7 +109,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
 
-      expect(find.text('boom'), findsOneWidget);
+      expect(find.text(_strings.networkErrorMessage), findsOneWidget);
 
       repository
         ..searchError = null
@@ -182,7 +182,7 @@ void main() {
         repository: repository,
       );
 
-      expect(find.text('falhou'), findsOneWidget);
+      expect(find.text(_strings.networkErrorMessage), findsWidgets);
 
       repository
         ..historyError = null
@@ -191,7 +191,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Arroz Tipo 1 5kg'), findsOneWidget);
-      expect(find.text('falhou'), findsNothing);
+      expect(find.text(_strings.networkErrorMessage), findsNothing);
     });
   });
 }

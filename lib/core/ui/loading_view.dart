@@ -19,10 +19,15 @@ class LoadingView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(semanticsLabel: label),
+          Semantics(
+            liveRegion: true,
+            label: label,
+            child: CircularProgressIndicator(semanticsLabel: label),
+          ),
           const SizedBox(height: 16),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: textTheme.bodyLarge?.copyWith(color: color.onSurface),
           ),
         ],

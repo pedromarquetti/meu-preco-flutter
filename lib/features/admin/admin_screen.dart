@@ -50,6 +50,9 @@ class _AdminScreenState extends State<AdminScreen>
         controller: _controller,
         children: const [
           AdminUsersScreen(),
+          // TODO: The review queue needs to be refactored:
+          // 1. "batch assign" button shouldnt simply create products, the admin must be able to actually resolve the issue by either: merging products or editing product info on the spot
+          // 2. batch assign is 
           AdminReviewScreen(),
           AdminProductsScreen(),
         ],

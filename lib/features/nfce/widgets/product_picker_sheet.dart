@@ -71,56 +71,59 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final height = MediaQuery.sizeOf(context).height * 0.85;
+    final media = MediaQuery.of(context);
+    final maxHeight = (media.size.height - media.viewInsets.bottom - 24).clamp(
+      240.0,
+      media.size.height,
+    );
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SizedBox(
-        height: height,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      strings.productPickerTitle,
-                      style: theme.textTheme.titleMedium,
-                    ),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    strings.productPickerTitle,
+                    style: theme.textTheme.titleMedium,
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                    tooltip: strings.closeAction,
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                textInputAction: TextInputAction.search,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  hintText: strings.productSearchHint,
-                  prefixIcon: const Icon(Icons.search),
-                  border: const OutlineInputBorder(),
                 ),
-                onChanged: _controller.setQuery,
-              ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                  tooltip: strings.closeAction,
+                ),
+              ],
             ),
-            Expanded(
-              child: ListenableBuilder(
-                listenable: _controller,
-                builder: (context, _) => _buildResults(strings),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              autofocus: true,
+              textInputAction: TextInputAction.search,
+              autocorrect: false,
+              decoration: InputDecoration(
+                labelText: strings.productPickerTitle,
+                hintText: strings.productSearchHint,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
               ),
+              onChanged: _controller.setQuery,
             ),
-          ],
-        ),
+          ),
+          Flexible(
+            child: ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => _buildResults(strings),
+            ),
+          ),
+        ],
       ),
     );
   }
