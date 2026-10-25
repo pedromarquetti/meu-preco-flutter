@@ -13,6 +13,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get appTitle => 'Meu Preço';
 
   @override
+  String get mergeFrom => 'Origem';
+
+  @override
+  String get mergeTo => 'Destino';
+
+  @override
   String get appDescription =>
       'Compare preços de produtos entre supermercados.';
 
@@ -51,6 +57,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get continueAction => 'Continuar';
+
+  @override
+  String get loadMoreAction => 'Carregar mais';
 
   @override
   String get loginTitle => 'Entrar';

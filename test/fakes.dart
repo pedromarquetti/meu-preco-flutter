@@ -186,9 +186,12 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<User> currentUser(String accessToken) async {
     currentUserCalls++;
-    if (currentUserDelay > Duration.zero)
+    if (currentUserDelay > Duration.zero) {
       await Future.delayed(currentUserDelay);
-    if (currentUserError != null) throw currentUserError!;
+    }
+    if (currentUserError != null) {
+      throw currentUserError!;
+    }
     return user;
   }
 }
@@ -470,6 +473,21 @@ class FakeAdminRepository implements AdminRepository {
   }) async {
     searchProductsCalls++;
     return searchResult ?? ProductPage(items: const [], page: const Page());
+  }
+
+  @override
+  Future<MergeResult> mergeProducts(int fromId, int toId) async {
+    return MergeResult(
+      fromId: fromId,
+      toId: toId,
+      logsMoved: 0,
+      dupRemoved: false,
+    );
+  }
+
+  @override
+  Future<ProductView> getProduct(int id) async {
+    return sampleProduct(id: id);
   }
 }
 

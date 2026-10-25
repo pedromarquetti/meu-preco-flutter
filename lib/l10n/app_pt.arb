@@ -1,5 +1,7 @@
 {
   "appTitle": "Meu Preço",
+  "mergeFrom": "Origem",
+  "mergeTo": "Destino",
   "appDescription": "Compare preços de produtos entre supermercados.",
   "serverConfigTitle": "Configurar servidor",
   "serverAddressLabel": "Endereço do servidor",
@@ -12,6 +14,7 @@
   "serverConnectionTimeout": "O servidor demorou demais para responder",
   "invalidServerUrl": "Informe uma URL válida, começando com http:// ou https://",
   "continueAction": "Continuar",
+  "loadMoreAction": "Carregar mais",
   "loginTitle": "Entrar",
   "loginDescription": "Entre com seu e-mail ou nome de usuário.",
   "loginIdentifierLabel": "E-mail ou nome",
@@ -784,6 +787,9 @@
   },
   "@doneAction": {
     "description": "Done"
+  },
+  "@loadMoreAction":{
+    "description": "loadMoreAction"
   },
   "@deleteReceiptAction": {
     "description": "DeleteReceipt"

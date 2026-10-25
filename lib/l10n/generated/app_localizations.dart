@@ -100,6 +100,18 @@ abstract class AppLocalizations {
   /// **'Meu Preço'**
   String get appTitle;
 
+  /// No description provided for @mergeFrom.
+  ///
+  /// In pt, this message translates to:
+  /// **'Origem'**
+  String get mergeFrom;
+
+  /// No description provided for @mergeTo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Destino'**
+  String get mergeTo;
+
   /// AppDescription
   ///
   /// In pt, this message translates to:
@@ -171,6 +183,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Continuar'**
   String get continueAction;
+
+  /// loadMoreAction
+  ///
+  /// In pt, this message translates to:
+  /// **'Carregar mais'**
+  String get loadMoreAction;
 
   /// LoginTitle
   ///
