@@ -17,6 +17,8 @@ abstract interface class AdminRepository {
     int page = 1,
     int pageSize = 50,
   });
+  Future<MergeResult> mergeProducts(int fromId, int toId);
+  Future<ProductView> getProduct(int id);
 }
 
 class ApiAdminRepository implements AdminRepository {
@@ -95,5 +97,20 @@ class ApiAdminRepository implements AdminRepository {
       },
     );
     return ProductPage.fromJson(_asObject(data));
+  }
+
+  @override
+  Future<MergeResult> mergeProducts(int fromId, int toId) async {
+    final data = await client.post(
+      '/admin/products/merge',
+      body: MergeProductsRequest(fromId: fromId, toId: toId).toJson(),
+    );
+    return MergeResult.fromJson(_asObject(data));
+  }
+
+  @override
+  Future<ProductView> getProduct(int id) async {
+    final data = await client.get('/admin/products/$id');
+    return ProductView.fromJson(_asObject(data));
   }
 }
