@@ -653,6 +653,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminBatchAssign => 'Atribuir em lote';
 
   @override
+  String get batchAssignSuggestedName => 'Nome Sugerido';
+
+  @override
   String get adminSelectAll => 'Selecionar todos';
 
   @override

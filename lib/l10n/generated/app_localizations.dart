@@ -1312,6 +1312,12 @@ abstract class AppLocalizations {
   /// **'Atribuir em lote'**
   String get adminBatchAssign;
 
+  /// No description provided for @batchAssignSuggestedName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome Sugerido'**
+  String get batchAssignSuggestedName;
+
   /// Select all
   ///
   /// In pt, this message translates to:

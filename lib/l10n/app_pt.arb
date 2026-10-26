@@ -202,6 +202,7 @@
   "adminConfirmRoleChange": "Confirmar alteração de perfil?",
   "adminCannotChangeOwnRole": "Não é possível alterar o próprio perfil",
   "adminBatchAssign": "Atribuir em lote",
+  "batchAssignSuggestedName": "Nome Sugerido",
   "adminSelectAll": "Selecionar todos",
   "adminClearSelection": "Limpar seleção",
   "adminNoSelection": "Nenhum item selecionado",
