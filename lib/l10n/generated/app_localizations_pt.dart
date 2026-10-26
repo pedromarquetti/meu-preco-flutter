@@ -25,6 +25,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get merge => 'Mesclar';
 
   @override
+  String get goBack => 'Voltar';
+
+  @override
+  String get goNext => 'Avançar';
+
+  @override
   String get appDescription =>
       'Compare preços de produtos entre supermercados.';
 

@@ -16,6 +16,11 @@ class AdminReviewScreen extends StatefulWidget {
   State<AdminReviewScreen> createState() => _AdminReviewScreenState();
 }
 
+enum _BatchAssignStep {
+  select,
+  edit,
+}
+
 class _AdminReviewScreenState extends State<AdminReviewScreen> {
   late final AdminRepository _repository =
       context.appDependencies.adminRepository;
@@ -23,6 +28,8 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   bool _loading = true;
   Object? _error;
   final Set<int> _selected = {};
+  _BatchAssignStep _step = _BatchAssignStep.select;
+  final List<ProductView> _selectedProducts = const [];
 
   @override
   void initState() {
@@ -50,6 +57,18 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
         _loading = false;
       });
     }
+  }
+
+  void _goToStep2() {
+    final strings = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    if (_selected.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
+      return;
+    }
+    setState(() {
+      _step = _BatchAssignStep.edit;
+    });
   }
 
   Future<void> _batchAssign() async {
@@ -84,6 +103,11 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
         ),
       );
       await _load();
+      if (mounted) {
+        setState(() {
+          _step = _BatchAssignStep.select;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
@@ -107,6 +131,40 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       return ErrorView(error: _error, onRetry: _load);
     }
     if (_items.isEmpty) return EmptyView(title: strings.emptyLabel);
+
+    if (_step == _BatchAssignStep.edit) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _step = _BatchAssignStep.select;
+                    });
+                  },
+                  child: Text(strings.goBack),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: _batchAssign,
+                  icon: const Icon(Icons.check),
+                  label: Text(strings.adminBatchAssign),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(
+            child: Center(
+              child: Text('Step 2: Edit & Assign - To be implemented'),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       children: [
         Padding(
@@ -138,8 +196,8 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 ),
               ),
               FilledButton.icon(
-                onPressed: _batchAssign,
-                icon: const Icon(Icons.check),
+                onPressed: _goToStep2,
+                icon: const Icon(Icons.arrow_forward),
                 label: Text(strings.adminBatchAssign),
               ),
             ],

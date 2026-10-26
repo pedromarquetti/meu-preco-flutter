@@ -4,6 +4,8 @@
   "mergeTo": "Destino",
   "mergeProducts":"Mesclar Produtos",
   "merge":"Mesclar",
+  "goBack":"Voltar",
+  "goNext":"Avançar",
   "appDescription": "Compare preços de produtos entre supermercados.",
   "serverConfigTitle": "Configurar servidor",
   "serverAddressLabel": "Endereço do servidor",

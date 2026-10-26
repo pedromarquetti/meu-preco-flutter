@@ -124,6 +124,18 @@ abstract class AppLocalizations {
   /// **'Mesclar'**
   String get merge;
 
+  /// No description provided for @goBack.
+  ///
+  /// In pt, this message translates to:
+  /// **'Voltar'**
+  String get goBack;
+
+  /// No description provided for @goNext.
+  ///
+  /// In pt, this message translates to:
+  /// **'Avançar'**
+  String get goNext;
+
   /// AppDescription
   ///
   /// In pt, this message translates to:
