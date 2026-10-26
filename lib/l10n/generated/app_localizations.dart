@@ -112,6 +112,18 @@ abstract class AppLocalizations {
   /// **'Destino'**
   String get mergeTo;
 
+  /// No description provided for @mergeProducts.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mesclar Produtos'**
+  String get mergeProducts;
+
+  /// No description provided for @merge.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mesclar'**
+  String get merge;
+
   /// AppDescription
   ///
   /// In pt, this message translates to:
@@ -1312,7 +1324,7 @@ abstract class AppLocalizations {
   /// **'Atribuir em lote'**
   String get adminBatchAssign;
 
-  /// No description provided for @batchAssignSuggestedName.
+  /// Suggested name
   ///
   /// In pt, this message translates to:
   /// **'Nome Sugerido'**

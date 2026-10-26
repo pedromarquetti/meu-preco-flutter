@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:meu_preco_frontend/core/ui/empty_view.dart';
+import 'package:meu_preco_frontend/core/ui/error_view.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 
-import '../../../app/app_scope.dart';
 import '../../../core/models/models.dart';
-import '../../../features/products/product_search_controller.dart';
+import '../../../features/products/widgets/product_search_input.dart';
 import '../../../features/products/widgets/product_result_tile.dart';
 
 /// Search block widget for selecting a product.
-///
-/// Supports two modes:
-/// - Normal mode: single search block for general selection
-/// - Merging mode: two side-by-side blocks (left = source, right = target)
+/// Now uses the unified ProductSearchInput for the search field logic.
 class ProductSearchBlock extends StatefulWidget {
   final bool isMerging;
   final ValueChanged<ProductView?> onProductSelected;
+  final String? title;
 
   const ProductSearchBlock({
     super.key,
-    required this.isMerging,
+    this.isMerging = false,
     required this.onProductSelected,
+    this.title,
   });
 
   @override
@@ -26,70 +26,17 @@ class ProductSearchBlock extends StatefulWidget {
 }
 
 class _ProductSearchBlockState extends State<ProductSearchBlock> {
-  late final ProductSearchController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = ProductSearchController(
-      repository: context.appDependencies.productsRepository,
-      pageSize: 20,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  List<ProductView> _results = const [];
+  bool _isLoading = false;
+  Object? _error;
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
+    final blockTitle =
+        widget.title ??
+        (widget.isMerging ? strings.mergeFrom : strings.searchProductAction);
 
-    return widget.isMerging
-        ? Row(
-            children: [
-              Expanded(
-                child: _SingleSearchBlock(
-                  controller: _controller,
-                  title: strings.mergeFrom,
-                  onProductSelected: (product) =>
-                      widget.onProductSelected(product),
-                ),
-              ),
-              Expanded(
-                child: _SingleSearchBlock(
-                  controller: _controller,
-                  title: strings.mergeTo,
-                  onProductSelected: (product) =>
-                      widget.onProductSelected(product),
-                ),
-              ),
-            ],
-          )
-        : _SingleSearchBlock(
-            controller: _controller,
-            title: strings.searchProductAction,
-            onProductSelected: (product) => widget.onProductSelected(product),
-          );
-  }
-}
-
-class _SingleSearchBlock extends StatelessWidget {
-  final ProductSearchController controller;
-  final String title;
-  final ValueChanged<ProductView?> onProductSelected;
-
-  const _SingleSearchBlock({
-    required this.controller,
-    required this.title,
-    required this.onProductSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -100,14 +47,14 @@ class _SingleSearchBlock extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    strings.mergeFrom,
+                    blockTitle,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
                   ),
                 ),
-                if (controller.isLoading)
+                if (_isLoading)
                   const SizedBox(
                     width: 16,
                     height: 16,
@@ -116,29 +63,15 @@ class _SingleSearchBlock extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: TextEditingController(text: controller.query),
-              onChanged: controller.setQuery,
-              decoration: InputDecoration(
-                hintText: strings.productSearchHint,
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
+            ProductSearchInput(
+              onResultsChanged: (results) => setState(() => _results = results),
+              onLoadingChanged: (loading) =>
+                  setState(() => _isLoading = loading),
+              onErrorChanged: (error) => setState(() => _error = error),
+              padding: EdgeInsets.zero,
             ),
             const SizedBox(height: 12),
             SizedBox(height: 300, child: _buildResultsList(context)),
-            if (controller.canLoadMore)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: ElevatedButton.icon(
-                  onPressed: () => controller.loadMore(),
-                  icon: const Icon(Icons.add),
-                  label: Text(strings.loadMoreAction),
-                ),
-              ),
           ],
         ),
       ),
@@ -147,7 +80,8 @@ class _SingleSearchBlock extends StatelessWidget {
 
   Widget _buildResultsList(BuildContext context) {
     final strings = AppLocalizations.of(context);
-    if (controller.isLoading) {
+
+    if (_isLoading && _results.isEmpty) {
       return const Center(
         child: SizedBox(
           width: 40,
@@ -157,34 +91,27 @@ class _SingleSearchBlock extends StatelessWidget {
       );
     }
 
-    if (controller.error != null) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: Text(
-            'Error: ${controller.error?.message}',
-            style: const TextStyle(color: Colors.red),
-          ),
-        ),
+    if (_error != null && _results.isEmpty) {
+      return ErrorView(
+        error: _error,
+        onRetry: () {
+          // The unified input manages its own search; retry is handled internally
+          setState(() => _error = null);
+        },
       );
     }
 
-    if (controller.results.isEmpty) {
-      return Center(
-        child: Text(
-          strings.productSearchNoResults,
-          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-        ),
-      );
+    if (_results.isEmpty) {
+      return EmptyView(icon: Icons.search, title: strings.productSearchPrompt);
     }
 
     return ListView.builder(
-      itemCount: controller.results.length,
+      itemCount: _results.length,
       itemBuilder: (context, index) {
-        final product = controller.results[index];
+        final product = _results[index];
         return ProductResultTile(
           product: product,
-          onTap: () => onProductSelected(product),
+          onTap: () => widget.onProductSelected(product),
         );
       },
     );

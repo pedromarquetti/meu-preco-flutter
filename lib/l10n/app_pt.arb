@@ -2,6 +2,8 @@
   "appTitle": "Meu Preço",
   "mergeFrom": "Origem",
   "mergeTo": "Destino",
+  "mergeProducts":"Mesclar Produtos",
+  "merge":"Mesclar",
   "appDescription": "Compare preços de produtos entre supermercados.",
   "serverConfigTitle": "Configurar servidor",
   "serverAddressLabel": "Endereço do servidor",
@@ -848,5 +850,29 @@
   },
   "@themeSettingsSection": {
     "description": "Settings section header for theme selection"
+  },
+  "@mergeProductsTitle": {
+    "description": "Merge Products"
+  },
+  "@mergeProductsConfirm": {
+    "description": "Confirm merge"
+  },
+  "@mergeProductsConfirmDetail": {
+    "description": "Confirm merge dialog message"
+  },
+  "@mergeProductsSelectFirst": {
+    "description": "Select first product to merge"
+  },
+  "@mergeProductsSelectSecond": {
+    "description": "Select second product to merge into"
+  },
+  "@mergeProductsSuccess": {
+    "description": "Products merged successfully"
+  },
+  "@mergeProductsFailed": {
+    "description": "Failed to merge products"
+  },
+  "@batchAssignSuggestedName": {
+    "description": "Suggested name"
   }
 }

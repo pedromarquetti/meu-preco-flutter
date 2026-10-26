@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import 'admin_merge_screen.dart';
 import 'admin_products_screen.dart';
 import 'admin_review_screen.dart';
 import 'admin_users_screen.dart';
@@ -20,7 +21,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _controller = TabController(length: 3, vsync: this);
+    _controller = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -43,6 +44,7 @@ class _AdminScreenState extends State<AdminScreen>
             Tab(text: strings.adminUsers),
             Tab(text: strings.adminReviewQueue),
             Tab(text: strings.productSearchTitle),
+            Tab(text: strings.mergeProducts),
           ],
         ),
       ),
@@ -50,13 +52,9 @@ class _AdminScreenState extends State<AdminScreen>
         controller: _controller,
         children: const [
           AdminUsersScreen(),
-          // BUG: The review queue needs to be refactored:
-          // 1. "batch assign" button shouldnt simply create products, the admin must be able to actually resolve the issue by either: merging products or editing product info on the spot
-          // TODO:
-          // 1. Create a Nerge Products tab -> UI should show [ ITEM 1 Block ] -> [ ITEM 2 Block]  (each block allows the user to search for products to merge - reuse the already existing product search code if possible).
-          // 2. Refactor adminReviewQueue tab: make multi step batch assign: user selects products > UI below the product prompts the user to edit the product details with API suggested name > If products have the same name, the api merges them into one >  user is able to click a 'Assign' button at the bottom that actually submits to the batch-asign API endpoint
           AdminReviewScreen(),
           AdminProductsScreen(),
+          MergeProductsScreen(),
         ],
       ),
     );

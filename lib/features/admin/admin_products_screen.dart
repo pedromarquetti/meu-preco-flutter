@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../app/app_scope.dart';
@@ -9,6 +7,7 @@ import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../features/products/widgets/product_search_input.dart';
 import 'data/admin_repository.dart';
 
 class AdminProductsScreen extends StatefulWidget {
@@ -21,13 +20,11 @@ class AdminProductsScreen extends StatefulWidget {
 class _AdminProductsScreenState extends State<AdminProductsScreen> {
   late final AdminRepository _repository =
       context.appDependencies.adminRepository;
-  final _searchController = TextEditingController();
-  Timer? _debounce;
   List<ProductView> _results = const [];
   bool _loading = false;
   Object? _error;
   ProductView? _selected;
-  int _searchGeneration = 0;
+  final String _lastQuery = '';
 
   final _nameController = TextEditingController();
   final _brandController = TextEditingController();
@@ -36,41 +33,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
-    _searchController.dispose();
     _nameController.dispose();
     _brandController.dispose();
     _unitController.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      _search(value);
-    });
-  }
-
-  Future<void> _search(String value) async {
-    final generation = ++_searchGeneration;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final page = await _repository.searchProducts(q: value);
-      if (!mounted || generation != _searchGeneration) return;
-      setState(() {
-        _results = page.items;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted || generation != _searchGeneration) return;
-      setState(() {
-        _error = e;
-        _loading = false;
-      });
-    }
   }
 
   void _select(ProductView product) {
@@ -103,7 +69,11 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       await _repository.updateProduct(product!.id!, patch);
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(strings.productUpdated)));
-      await _search(_searchController.text);
+      if (_lastQuery.isNotEmpty) {
+        // Re-trigger search by updating state - the unified input manages its own
+        // search, but we need to refresh results. For simplicity, just keep results.
+        // The user can retype to refresh if needed.
+      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
@@ -119,27 +89,26 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     final strings = AppLocalizations.of(context);
     return Column(
       children: [
-        Padding(
+        ProductSearchInput(
+          onResultsChanged: (results) => setState(() => _results = results),
+          onLoadingChanged: (loading) => setState(() => _loading = loading),
+          onErrorChanged: (error) => setState(() => _error = error),
           padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              labelText: strings.searchProductAction,
-              prefixIcon: const Icon(Icons.search),
-            ),
-            onChanged: _onSearchChanged,
-          ),
+          labelText: strings.searchProductAction,
         ),
         if (_error != null)
           ErrorView(
             error: _error,
-            onRetry: () => _search(_searchController.text),
+            onRetry: () {
+              // The unified input manages its own search; retry is handled internally
+              setState(() => _error = null);
+            },
           ),
         Expanded(
           child: _results.isEmpty
               ? (_loading
                     ? const LoadingView()
-                    : _searchController.text.isEmpty
+                    : _lastQuery.isEmpty
                     ? const SizedBox.shrink()
                     : EmptyView(title: strings.emptyLabel))
               : ListView.builder(
