@@ -101,6 +101,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get registerTitle => 'Criar conta';
 
   @override
+  String get description => 'Descrição';
+
+  @override
   String get registerDescription =>
       'Crie uma conta para começar a usar o Meu Preço.';
 

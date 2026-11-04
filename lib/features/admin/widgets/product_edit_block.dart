@@ -7,7 +7,7 @@ import '../../../l10n/generated/app_localizations.dart';
 ///
 /// Shows editable fields for a product with a suggested name from the API.
 class ProductEditBlock extends StatefulWidget {
-  final ProductView? initialProduct;
+  final ReviewItem? initialProduct;
   final String suggestedName;
   final ValueChanged<ProductPatch?> onSave;
   final bool isMerging;
@@ -33,8 +33,7 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
   void initState() {
     super.initState();
     if (widget.initialProduct != null) {
-      _nameController.text = widget.initialProduct!.name ?? '';
-      _brandController.text = widget.initialProduct!.brand ?? '';
+      _nameController.text = widget.initialProduct!.suggestedStem ?? '';
       _unitController.text = widget.initialProduct!.unit ?? '';
     }
   }
@@ -47,18 +46,10 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
     super.dispose();
   }
 
-  ProductPatch? _getPatch() {
-    final name = _nameController.text.trim();
-    final brand = _brandController.text.trim();
-    final unit = _unitController.text.trim();
-    return name.isNotEmpty || brand.isNotEmpty || unit.isNotEmpty
-        ? ProductPatch(name: name, brand: brand, unit: unit)
-        : null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -75,6 +66,11 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
                 Expanded(
                   child: TextField(
                     controller: _nameController,
+                    onChanged: (_) => widget.onSave(ProductPatch(
+                      name: _nameController.text,
+                      brand: _brandController.text.isNotEmpty ? _brandController.text : null,
+                      unit: _unitController.text,
+                    )),
                     decoration: InputDecoration(
                       hintText: strings.productSearchHint,
                       border: const OutlineInputBorder(),
@@ -90,6 +86,11 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
                 Expanded(
                   child: TextField(
                     controller: _brandController,
+                    onChanged: (_) => widget.onSave(ProductPatch(
+                      name: _nameController.text,
+                      brand: _brandController.text.isNotEmpty ? _brandController.text : null,
+                      unit: _unitController.text,
+                    )),
                     decoration: InputDecoration(
                       hintText: strings.productBrandLabel,
                       border: const OutlineInputBorder(),
@@ -106,6 +107,11 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
             const SizedBox(height: 12),
             TextField(
               controller: _unitController,
+              onChanged: (_) => widget.onSave(ProductPatch(
+                name: _nameController.text,
+                brand: _brandController.text.isNotEmpty ? _brandController.text : null,
+                unit: _unitController.text,
+              )),
               decoration: InputDecoration(
                 hintText: strings.productUnitLabel,
                 border: const OutlineInputBorder(),
@@ -117,13 +123,6 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => widget.onSave(_getPatch()),
-                child: Text(strings.saveAndContinue),
-              ),
-            ),
           ],
         ),
       ),

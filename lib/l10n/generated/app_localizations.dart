@@ -268,6 +268,12 @@ abstract class AppLocalizations {
   /// **'Criar conta'**
   String get registerTitle;
 
+  /// No description provided for @description.
+  ///
+  /// In pt, this message translates to:
+  /// **'Descrição'**
+  String get description;
+
   /// RegisterDescription
   ///
   /// In pt, this message translates to:

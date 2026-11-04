@@ -28,6 +28,7 @@
   "confirmPasswordLabel": "Confirmar senha",
   "signInAction": "Fazer login",
   "registerTitle": "Criar conta",
+  "description": "Descrição",
   "registerDescription": "Crie uma conta para começar a usar o Meu Preço.",
   "createAccountAction": "Criar conta",
   "needAccountAction": "Criar uma conta",

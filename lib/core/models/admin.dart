@@ -5,8 +5,8 @@ import 'pagination.dart';
 import 'user.dart';
 
 /// A needs-review price log row (`/admin/products/needs-review`).
-class ReviewItemView {
-  const ReviewItemView({
+class ReviewItem {
+  const ReviewItem({
     this.priceLogId,
     this.nfceId,
     this.accessKey,
@@ -24,7 +24,7 @@ class ReviewItemView {
     this.createdAt,
   });
 
-  factory ReviewItemView.fromJson(JsonMap json) => ReviewItemView(
+  factory ReviewItem.fromJson(JsonMap json) => ReviewItem(
     priceLogId: json.intOrNull('price_log_id'),
     nfceId: json.intOrNull('nfce_id'),
     accessKey: json.stringOrNull('access_key'),
@@ -84,14 +84,14 @@ class ReviewQueuePage {
   factory ReviewQueuePage.fromJson(JsonMap json) => ReviewQueuePage(
     items: json
         .objectListOrEmpty('items')
-        .map(ReviewItemView.fromJson)
+        .map(ReviewItem.fromJson)
         .toList(growable: false),
     page: json.objectOrNull('page') == null
         ? null
         : Page.fromJson(json.objectValue('page')),
   );
 
-  final List<ReviewItemView> items;
+  final List<ReviewItem> items;
   final Page? page;
 
   JsonMap toJson() => {

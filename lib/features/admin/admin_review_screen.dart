@@ -7,6 +7,7 @@ import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../features/admin/widgets/product_edit_block.dart';
 import 'data/admin_repository.dart';
 
 class AdminReviewScreen extends StatefulWidget {
@@ -16,20 +17,17 @@ class AdminReviewScreen extends StatefulWidget {
   State<AdminReviewScreen> createState() => _AdminReviewScreenState();
 }
 
-enum _BatchAssignStep {
-  select,
-  edit,
-}
+enum _BatchAssignStep { select, edit }
 
 class _AdminReviewScreenState extends State<AdminReviewScreen> {
   late final AdminRepository _repository =
       context.appDependencies.adminRepository;
-  List<ReviewItemView> _items = const [];
+  List<ReviewItem> _items = [];
   bool _loading = true;
   Object? _error;
-  final Set<int> _selected = {};
   _BatchAssignStep _step = _BatchAssignStep.select;
-  final List<ProductView> _selectedProducts = const [];
+  final List<ReviewItem> _selectedReviewItems = <ReviewItem>[];
+  final Map<int, ProductPatch> _productPatches = <int, ProductPatch>{};
 
   @override
   void initState() {
@@ -41,7 +39,9 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     setState(() {
       _loading = true;
       _error = null;
-      _selected.clear();
+      _step = _BatchAssignStep.select;
+      _selectedReviewItems.clear();
+      _productPatches.clear();
     });
     try {
       final page = await _repository.listNeedsReview();
@@ -62,36 +62,49 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   void _goToStep2() {
     final strings = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    if (_selected.isEmpty) {
+
+    if (_selectedReviewItems.isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
       return;
     }
+
     setState(() {
       _step = _BatchAssignStep.edit;
     });
   }
 
-  Future<void> _batchAssign() async {
+  /// Number of items that can actually be selected (have a log id).
+  int get _selectableCount =>
+      _items.where((item) => item.priceLogId != null).length;
+
+  bool get _allSelected =>
+      _selectableCount > 0 && _selectedReviewItems.length == _selectableCount;
+
+  Future<void> _assignAll() async {
     final strings = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    if (_selected.isEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
-      return;
-    }
-    // For now, create new products for selected items
+
     final assignments = <Assignment>[];
     for (final item in _items) {
-      if (item.priceLogId != null && _selected.contains(item.priceLogId)) {
+      if (item.priceLogId != null && _selectedReviewItems.contains(item)) {
+        final patch = _productPatches[item.priceLogId!];
         assignments.add(
           Assignment(
             id: item.priceLogId!,
             action: AssignmentAction.create,
-            name: item.suggestedStem ?? item.description ?? '',
-            unit: item.unit ?? '',
+            name: patch?.name ?? item.suggestedStem ?? item.description ?? '',
+            unit: patch?.unit ?? item.unit ?? '',
+            brand: patch?.brand,
           ),
         );
       }
     }
+
+    if (assignments.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
+      return;
+    }
+
     try {
       final result = await _repository.batchAssign(assignments);
       if (!mounted) return;
@@ -103,11 +116,6 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
         ),
       );
       await _load();
-      if (mounted) {
-        setState(() {
-          _step = _BatchAssignStep.select;
-        });
-      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
@@ -115,13 +123,6 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       );
     }
   }
-
-  /// Number of items that can actually be selected (have a log id).
-  int get _selectableCount =>
-      _items.where((item) => item.priceLogId != null).length;
-
-  bool get _allSelected =>
-      _selectableCount > 0 && _selected.length == _selectableCount;
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +143,8 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 TextButton(
                   onPressed: () {
                     setState(() {
+                      _selectedReviewItems.clear();
+                      _productPatches.clear();
                       _step = _BatchAssignStep.select;
                     });
                   },
@@ -149,18 +152,14 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 ),
                 const Spacer(),
                 FilledButton.icon(
-                  onPressed: _batchAssign,
+                  onPressed: _assignAll,
                   icon: const Icon(Icons.check),
                   label: Text(strings.adminBatchAssign),
                 ),
               ],
             ),
           ),
-          const Expanded(
-            child: Center(
-              child: Text('Step 2: Edit & Assign - To be implemented'),
-            ),
-          ),
+          Expanded(child: _buildEditBlocks(context)),
         ],
       );
     }
@@ -179,13 +178,13 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 onPressed: () {
                   setState(() {
                     if (_allSelected) {
-                      _selected.clear();
+                      _selectedReviewItems.clear();
                     } else {
-                      for (final item in _items) {
-                        if (item.priceLogId != null) {
-                          _selected.add(item.priceLogId!);
-                        }
-                      }
+                      _selectedReviewItems
+                        ..clear()
+                        ..addAll(
+                          _items.where((item) => item.priceLogId != null),
+                        );
                     }
                   });
                 },
@@ -198,6 +197,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
               FilledButton.icon(
                 onPressed: _goToStep2,
                 icon: const Icon(Icons.arrow_forward),
+                // TODO: conditionally style this button? Maybe make this button dim if no items are selected
                 label: Text(strings.adminBatchAssign),
               ),
             ],
@@ -212,15 +212,15 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 final item = _items[index];
                 final id = item.priceLogId;
                 return CheckboxListTile(
-                  value: id != null && _selected.contains(id),
+                  value: id != null && _selectedReviewItems.contains(item),
                   onChanged: id == null
                       ? null
                       : (v) {
                           setState(() {
                             if (v == true) {
-                              _selected.add(id);
+                              _selectedReviewItems.add(item);
                             } else {
-                              _selected.remove(id);
+                              _selectedReviewItems.remove(item);
                             }
                           });
                         },
@@ -234,6 +234,51 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEditBlocks(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+
+    if (_selectedReviewItems.isEmpty) {
+      return Center(child: Text(strings.loadingLabel));
+    }
+
+    return ListView.builder(
+      itemCount: _selectedReviewItems.length,
+      itemBuilder: (context, index) {
+        final item = _selectedReviewItems[index];
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '${strings.batchAssignSuggestedName}: ${item.suggestedStem ?? item.description ?? '-'}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${strings.description}: ${item.description}',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 12),
+                ProductEditBlock(
+                  initialProduct: item,
+                  suggestedName: item.suggestedStem ?? item.description ?? '',
+                  onSave: (patch) {
+                    if (patch != null) {
+                      _productPatches[item.priceLogId!] = patch;
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -110,7 +110,7 @@ class ApiAdminRepository implements AdminRepository {
 
   @override
   Future<ProductView> getProduct(int id) async {
-    final data = await client.get('/admin/products/$id');
+    final data = await client.get('/products/$id');
     return ProductView.fromJson(_asObject(data));
   }
 }
