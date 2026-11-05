@@ -10,7 +10,7 @@ import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'product_search_controller.dart';
 import 'widgets/product_search_input.dart';
-import 'widgets/product_result_tile.dart';
+import 'widgets/product_list.dart';
 
 /// Product catalog search with debounce, pagination, and empty/error states.
 class ProductSearchScreen extends StatefulWidget {
@@ -124,17 +124,11 @@ class _ProductSearchScreenState extends State<ProductSearchScreen> {
     }
 
     final results = _results;
-    return ListView.separated(
+    return ProductList(
+      products: results,
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: results.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        return ProductResultTile(
-          product: results[index],
-          onTap: () => _open(results[index]),
-        );
-      },
+      onProductSelected: _open,
     );
   }
 }
