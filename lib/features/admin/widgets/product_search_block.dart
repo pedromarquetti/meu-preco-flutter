@@ -5,7 +5,6 @@ import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 import 'package:meu_preco_frontend/app/app_scope.dart';
 
 import '../../../core/ui/empty_view.dart';
-import '../../../core/ui/error_messages.dart';
 import '../../../core/ui/error_view.dart';
 import '../../../features/products/widgets/product_result_tile.dart';
 import '../../../features/products/widgets/product_search_input.dart';

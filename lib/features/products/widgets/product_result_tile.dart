@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/models/models.dart';
-import '../../../l10n/generated/app_localizations.dart';
 
 /// Compact catalog result row shared by the search screen and product picker.
 class ProductResultTile extends StatelessWidget {
@@ -20,33 +19,35 @@ class ProductResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final details = <String>[
-      if (product.brand != null && product.brand!.isNotEmpty) product.brand!,
-      if (product.gtin != null && product.gtin!.isNotEmpty)
-        '${strings.productGtinLabel}: ${product.gtin}',
-    ];
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         onTap: onTap,
-        title: Text(product.name ?? '—', style: theme.textTheme.titleSmall),
-        subtitle: details.isEmpty ? null : Text(details.join(' • ')),
+        title: Text(
+          product.name ?? '—',
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          style: theme.textTheme.titleSmall,
+        ),
+        subtitle: (product.brand != null && product.brand!.isNotEmpty)
+            ? Text(product.brand!)
+            : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (product.unit != null && product.unit!.isNotEmpty)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 96),
-                child: Chip(
-                  label: Text(product.unit!, overflow: TextOverflow.ellipsis),
-                  visualDensity: VisualDensity.compact,
+            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+            if (product.unit != null && product.unit!.isNotEmpty) ...[
+              const SizedBox(width: 12),
+              Text(
+                product.unit!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
-            const SizedBox(width: 8),
+              const SizedBox(width: 8),
+            ],
             const Icon(Icons.chevron_right),
           ],
         ),
