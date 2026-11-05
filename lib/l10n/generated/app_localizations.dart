@@ -136,6 +136,12 @@ abstract class AppLocalizations {
   /// **'Avançar'**
   String get goNext;
 
+  /// No description provided for @selected.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecionado'**
+  String get selected;
+
   /// AppDescription
   ///
   /// In pt, this message translates to:

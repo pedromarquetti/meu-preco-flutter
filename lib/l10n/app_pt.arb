@@ -6,6 +6,7 @@
   "merge":"Mesclar",
   "goBack":"Voltar",
   "goNext":"Avançar",
+  "selected":"Selecionado",
   "appDescription": "Compare preços de produtos entre supermercados.",
   "serverConfigTitle": "Configurar servidor",
   "serverAddressLabel": "Endereço do servidor",

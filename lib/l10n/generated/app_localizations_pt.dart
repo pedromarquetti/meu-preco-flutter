@@ -31,6 +31,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get goNext => 'Avançar';
 
   @override
+  String get selected => 'Selecionado';
+
+  @override
   String get appDescription =>
       'Compare preços de produtos entre supermercados.';
 
