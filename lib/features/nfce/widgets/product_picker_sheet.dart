@@ -7,7 +7,7 @@ import '../../../core/ui/error_view.dart';
 import '../../../core/ui/loading_view.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../products/product_search_controller.dart';
-import '../../products/widgets/product_result_tile.dart';
+import '../../products/widgets/product_list.dart';
 
 /// Opens a searchable product picker and resolves to the chosen product.
 Future<ProductView?> showProductPickerSheet(
@@ -152,25 +152,13 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
     }
 
     final results = controller.results;
-    return ListView.separated(
+    return ProductList(
+      products: results,
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: results.length + (controller.isLoadingMore ? 1 : 0),
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        if (index >= results.length) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        final product = results[index];
-        return ProductResultTile(
-          product: product,
-          onTap: () => Navigator.of(context).pop(product),
-          trailing: const Icon(Icons.check),
-        );
-      },
+      onProductSelected: (product) => Navigator.of(context).pop(product),
+      trailingBuilder: (_) => const Icon(Icons.check),
+      isLoadingMore: controller.isLoadingMore,
     );
   }
 }

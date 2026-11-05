@@ -932,7 +932,9 @@ class _PreviewItemCard extends StatelessWidget {
                         : null,
                   ),
                   ChoiceChip(
-                    avatar: const Icon(Icons.link, size: 18),
+                    avatar: assignedProduct == null
+                        ? Icon(Icons.link, size: 18)
+                        : Icon(Icons.check, size: 18),
                     label: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 220),
                       child: Text(
