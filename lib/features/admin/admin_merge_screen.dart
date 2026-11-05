@@ -13,6 +13,9 @@ class MergeProductsScreen extends StatefulWidget {
   State<MergeProductsScreen> createState() => _MergeProductsScreenState();
 }
 
+// TODO: Todos here:
+// 1 'From' must allow more than 1 item to be merged into the 'To' product
+// 2. On merge -> list of selected items should be cleared
 class _MergeProductsScreenState extends State<MergeProductsScreen> {
   ProductView? _fromProduct;
   ProductView? _toProduct;

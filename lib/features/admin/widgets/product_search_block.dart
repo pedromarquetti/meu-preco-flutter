@@ -6,7 +6,7 @@ import 'package:meu_preco_frontend/app/app_scope.dart';
 
 import '../../../core/ui/empty_view.dart';
 import '../../../core/ui/error_view.dart';
-import '../../../features/products/widgets/product_result_tile.dart';
+import '../../../features/products/widgets/product_list.dart';
 import '../../../features/products/widgets/product_search_input.dart';
 
 import 'package:meu_preco_frontend/features/products/product_search_controller.dart';
@@ -223,7 +223,6 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
     );
   }
 
-  // TODO: refactor this, the list is all broken and will be refactored to a centralized 'product list' widget
   Widget _buildResultsList(BuildContext context) {
     final strings = AppLocalizations.of(context);
 
@@ -248,17 +247,12 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
       return EmptyView(icon: Icons.search, title: strings.productSearchPrompt);
     }
 
-    return ListView.builder(
-      key: const Key('product_results_list'),
-      itemCount: _results.length,
-      itemBuilder: (context, index) {
-        final product = _results[index];
-        return ProductResultTile(
-          key: ValueKey(product.id),
-          product: product,
-          onTap: () => _handleSelection(product),
-        );
-      },
+    return ProductList(
+      products: _results,
+      controller: null,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      onProductSelected: _handleSelection,
+      isLoadingMore: _internalController.isLoadingMore,
     );
   }
 }
