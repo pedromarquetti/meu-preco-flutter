@@ -456,7 +456,7 @@ class FakeAdminRepository implements AdminRepository {
     batchAssignCalls++;
     if (batchAssignError != null) throw batchAssignError!;
     return batchAssignResult ??
-        const BatchAssignResult(assigned: 0, created: 0);
+        const BatchAssignResult(assigned: null, created: 0);
   }
 
   @override

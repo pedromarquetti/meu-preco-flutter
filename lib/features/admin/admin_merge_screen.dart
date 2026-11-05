@@ -19,7 +19,10 @@ class _MergeProductsScreenState extends State<MergeProductsScreen> {
 
   void _handleMerge() {
     final strings = AppLocalizations.of(context);
-    if (_fromProduct == null || _toProduct == null) {
+    if (_fromProduct == null ||
+        _toProduct == null ||
+        _fromProduct!.id == null ||
+        _toProduct!.id == null) {
       return;
     }
 
@@ -36,8 +39,10 @@ class _MergeProductsScreenState extends State<MergeProductsScreen> {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
+              final fromId = _fromProduct!.id!;
+              final toId = _toProduct!.id!;
               context.appDependencies.adminRepository
-                  .mergeProducts(_fromProduct!.id!, _toProduct!.id!)
+                  .mergeProducts(fromId, toId)
                   .then((result) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(

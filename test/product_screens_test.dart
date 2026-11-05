@@ -73,7 +73,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextField), 'arroz');
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 800));
       await tester.pumpAndSettle();
 
       expect(find.text('Arroz Tipo 1 5kg'), findsOneWidget);
@@ -90,7 +90,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextField), 'xyz');
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 800));
       await tester.pumpAndSettle();
 
       expect(find.text(_strings.productSearchNoResults), findsOneWidget);
@@ -106,7 +106,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextField), 'arroz');
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 800));
       await tester.pumpAndSettle();
 
       expect(find.text(_strings.networkErrorMessage), findsOneWidget);

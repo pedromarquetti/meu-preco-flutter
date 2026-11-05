@@ -50,7 +50,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
 
   Future<void> _save() async {
     final product = _selected;
-    if (product?.id == null) return;
+    if (product == null || product.id == null) return;
+    final productId = product.id!;
     final strings = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _saving = true);
@@ -66,7 +67,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             ? null
             : _unitController.text.trim(),
       );
-      await _repository.updateProduct(product!.id!, patch);
+      await _repository.updateProduct(productId, patch);
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(strings.productUpdated)));
       if (_lastQuery.isNotEmpty) {
