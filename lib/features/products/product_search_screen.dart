@@ -52,6 +52,11 @@ class _ProductSearchScreenState extends State<ProductSearchScreen> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    // Trigger loadMore when user is within 240 pixels of the bottom.
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _controller.loadMore();
+    }
   }
 
   void _retrySearch() {
