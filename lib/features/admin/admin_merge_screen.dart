@@ -13,65 +13,87 @@ class MergeProductsScreen extends StatefulWidget {
   State<MergeProductsScreen> createState() => _MergeProductsScreenState();
 }
 
-// TODO: Todos here:
-// 1 'From' must allow more than 1 item to be merged into the 'To' product
-// 2. On merge -> list of selected items should be cleared
+// TODO: the API will accept []int as a 'from' product, when this change is implemented, update this code
 class _MergeProductsScreenState extends State<MergeProductsScreen> {
-  ProductView? _fromProduct;
+  List<ProductView> _fromProducts = const [];
   ProductView? _toProduct;
+  bool _isMerging = false;
+  int _searchResetKey = 0;
 
-  void _handleMerge() {
+  bool get canMerge =>
+      _fromProducts.isNotEmpty &&
+      _toProduct != null &&
+      _fromProducts.every((product) => product.id != null) &&
+      _toProduct!.id != null &&
+      _fromProducts.every((product) => product.id != _toProduct!.id);
+
+  Future<void> _handleMerge() async {
     final strings = AppLocalizations.of(context);
-    if (_fromProduct == null ||
-        _toProduct == null ||
-        _fromProduct!.id == null ||
-        _toProduct!.id == null) {
-      return;
-    }
+    if (!canMerge) return;
+    final sourceIds = _fromProducts
+        .map((product) => product.id)
+        .whereType<int>();
+    final targetId = _toProduct?.id;
+    if (sourceIds.length != _fromProducts.length || targetId == null) return;
 
-    showDialog(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(strings.confirmAction),
-        content: Text(strings.deleteReceiptConfirmMessage),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(strings.mergeConfirmTitle),
+        content: Text(
+          strings.mergeConfirmDetail(
+            _fromProducts.map((product) => product.name ?? '').join(', '),
+            _toProduct!.name ?? '',
+          ),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(strings.cancelAction),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              final fromId = _fromProduct!.id!;
-              final toId = _toProduct!.id!;
-              context.appDependencies.adminRepository
-                  .mergeProducts(fromId, toId)
-                  .then((result) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            (result.dupRemoved ?? false)
-                                ? strings.done
-                                : strings.errorLabel,
-                          ),
-                          backgroundColor: (result.dupRemoved ?? false)
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      );
-                      setState(() {
-                        _fromProduct = null;
-                        _toProduct = null;
-                      });
-                    }
-                  });
-            },
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(strings.confirmAction),
           ),
         ],
       ),
     );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isMerging = true);
+    try {
+      var logsMoved = 0;
+      for (final fromId in sourceIds) {
+        final result = await context.appDependencies.adminRepository
+            .mergeProducts(fromId, targetId);
+        logsMoved += result.logsMoved ?? 0;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _isMerging = false;
+        _fromProducts = const [];
+        _toProduct = null;
+        _searchResetKey++;
+      });
+
+      var successMsg = strings.mergeSuccess;
+      if (logsMoved > 0) {
+        successMsg += ' ($logsMoved ${strings.movedItems})';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(successMsg), backgroundColor: Colors.green),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isMerging = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(strings.mergeFailed),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -83,41 +105,46 @@ class _MergeProductsScreenState extends State<MergeProductsScreen> {
         child: Column(
           children: [
             Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ProductSearchBlock(
-                      isMerging: true,
-                      title: strings.mergeFrom,
-                      onProductSelected: (product) {
-                        setState(() {
-                          _fromProduct = product;
-                        });
-                      },
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final blocks = [
+                    Expanded(
+                      child: ProductSearchBlock(
+                        key: ValueKey('from-$_searchResetKey'),
+                        isMerging: _isMerging,
+                        allowMultipleSelection: true,
+                        title: strings.mergeFrom,
+                        onProductSelected: (_) {},
+                        onProductsSelected: (products) {
+                          setState(() => _fromProducts = products);
+                        },
+                      ),
                     ),
-                  ),
-                  const VerticalDivider(width: 1),
-                  Expanded(
-                    child: ProductSearchBlock(
-                      isMerging: true,
-                      title: strings.mergeTo,
-                      onProductSelected: (product) {
-                        setState(() {
-                          _toProduct = product;
-                        });
-                      },
+                    const VerticalDivider(width: 1),
+                    Expanded(
+                      child: ProductSearchBlock(
+                        key: ValueKey('to-$_searchResetKey'),
+                        isMerging: _isMerging,
+                        title: strings.mergeTo,
+                        onProductSelected: (product) {
+                          setState(() => _toProduct = product);
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ];
+                  return constraints.maxWidth > 900
+                      ? Row(children: blocks)
+                      : Column(children: blocks);
+                },
               ),
             ),
-            if (_fromProduct != null && _toProduct != null)
+            if (_fromProducts.isNotEmpty && _toProduct != null)
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: _handleMerge,
+                    onPressed: canMerge && !_isMerging ? _handleMerge : null,
                     icon: const Icon(Icons.merge),
                     label: Text(strings.confirmAction),
                   ),

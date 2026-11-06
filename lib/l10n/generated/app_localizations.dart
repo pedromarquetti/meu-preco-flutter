@@ -118,6 +118,30 @@ abstract class AppLocalizations {
   /// **'Mesclar Produtos'**
   String get mergeProducts;
 
+  /// No description provided for @mergeConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confirmação de Mesclagem'**
+  String get mergeConfirmTitle;
+
+  /// No description provided for @mergeConfirmDetail.
+  ///
+  /// In pt, this message translates to:
+  /// **'Deseja mesclar {source} em {target}?'**
+  String mergeConfirmDetail(Object source, Object target);
+
+  /// No description provided for @mergeSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mesclado com sucesso.'**
+  String get mergeSuccess;
+
+  /// No description provided for @mergeFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha ao mesclar produtos.'**
+  String get mergeFailed;
+
   /// No description provided for @merge.
   ///
   /// In pt, this message translates to:
@@ -1041,6 +1065,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Itens'**
   String get previewItemsTitle;
+
+  /// No description provided for @movedItems.
+  ///
+  /// In pt, this message translates to:
+  /// **'itens movidos'**
+  String get movedItems;
 
   /// PreviewTotalsTitle
   ///

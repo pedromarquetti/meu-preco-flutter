@@ -16,6 +16,8 @@ import 'package:meu_preco_frontend/features/products/product_search_controller.d
 class ProductSearchBlock extends StatefulWidget {
   final bool isMerging;
   final ValueChanged<ProductView?> onProductSelected;
+  final ValueChanged<List<ProductView>>? onProductsSelected;
+  final bool allowMultipleSelection;
   final String? title;
   final ProductSearchController? controller;
 
@@ -23,6 +25,8 @@ class ProductSearchBlock extends StatefulWidget {
     super.key,
     this.isMerging = false,
     required this.onProductSelected,
+    this.onProductsSelected,
+    this.allowMultipleSelection = false,
     this.title,
     this.controller,
   });
@@ -36,7 +40,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
   List<ProductView> _results = const [];
   bool _isLoading = false;
   Object? _error;
-  ProductView? _selectedProduct;
+  List<ProductView> _selectedProducts = const [];
 
   @override
   void initState() {
@@ -71,13 +75,32 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
   }
 
   void _handleSelection(ProductView product) {
-    setState(() => _selectedProduct = product);
+    if (widget.allowMultipleSelection) {
+      if (_selectedProducts.any(
+        (selected) => selected.id != null && selected.id == product.id,
+      )) {
+        return;
+      }
+      setState(() => _selectedProducts = [..._selectedProducts, product]);
+      widget.onProductsSelected?.call(_selectedProducts);
+      return;
+    }
+
+    setState(() => _selectedProducts = [product]);
     widget.onProductSelected(product);
   }
 
-  void _clearSelection() {
-    setState(() => _selectedProduct = null);
-    widget.onProductSelected(null);
+  void _removeSelection(ProductView product) {
+    setState(
+      () => _selectedProducts = _selectedProducts
+          .where((selected) => selected.id != product.id)
+          .toList(growable: false),
+    );
+    if (widget.allowMultipleSelection) {
+      widget.onProductsSelected?.call(_selectedProducts);
+    } else {
+      widget.onProductSelected(null);
+    }
   }
 
   @override
@@ -94,7 +117,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (widget.title != null && widget.isMerging) ...[
+                if (widget.title != null) ...[
                   Text(
                     widget.title!,
                     style: Theme.of(context).textTheme.bodyMedium
@@ -148,13 +171,15 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
         final maxSelectionHeight = constraints.maxHeight * 0.45;
         return Column(
           children: [
-            if (_selectedProduct != null)
+            if (_selectedProducts.isNotEmpty)
               ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: maxSelectionHeight),
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildSelectionDisplay(context),
+                      ..._selectedProducts.map(
+                        (product) => _buildSelectionDisplay(context, product),
+                      ),
                       Divider(height: 12),
                       Text(
                         strings.selected,
@@ -173,8 +198,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
     );
   }
 
-  Widget _buildSelectionDisplay(BuildContext context) {
-    if (_selectedProduct == null || !mounted) return const SizedBox.shrink();
+  Widget _buildSelectionDisplay(BuildContext context, ProductView product) {
     final strings = AppLocalizations.of(context);
 
     return Container(
@@ -187,9 +211,9 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Expanded(child: _buildProductInfo(context)),
+            Expanded(child: _buildProductInfo(context, product)),
             IconButton(
-              onPressed: _clearSelection,
+              onPressed: () => _removeSelection(product),
               icon: const Icon(Icons.close, size: 20),
               tooltip: strings.adminClearSelection,
             ),
@@ -199,8 +223,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
     );
   }
 
-  Widget _buildProductInfo(BuildContext context) {
-    final product = _selectedProduct!;
+  Widget _buildProductInfo(BuildContext context, ProductView product) {
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final detailStyle = theme.textTheme.bodySmall?.copyWith(

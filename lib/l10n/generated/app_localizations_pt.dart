@@ -22,6 +22,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get mergeProducts => 'Mesclar Produtos';
 
   @override
+  String get mergeConfirmTitle => 'Confirmação de Mesclagem';
+
+  @override
+  String mergeConfirmDetail(Object source, Object target) {
+    return 'Deseja mesclar $source em $target?';
+  }
+
+  @override
+  String get mergeSuccess => 'Mesclado com sucesso.';
+
+  @override
+  String get mergeFailed => 'Falha ao mesclar produtos.';
+
+  @override
   String get merge => 'Mesclar';
 
   @override
@@ -510,6 +524,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get previewItemsTitle => 'Itens';
+
+  @override
+  String get movedItems => 'itens movidos';
 
   @override
   String get previewTotalsTitle => 'Resumo';
