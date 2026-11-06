@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 
 import '../../../core/models/models.dart';
+import '../../../core/theme/app_theme.dart';
 import 'product_result_tile.dart';
 
-/// A reusable list of products that handles common presentation logic,
-/// such as stable keys, click forwarding, and optional selection styling.
+/// Renders a reusable catalog result list and forwards clicks to its parent.
+///
+/// The parent owns search state, pagination, navigation, modal dismissal, and
+/// selection meaning. This widget only supplies stable keys, optional
+/// selection styling, a loading-more footer, and [ProductResultTile] rows.
 class ProductList extends StatelessWidget {
   const ProductList({
     super.key,
@@ -36,8 +40,7 @@ class ProductList extends StatelessWidget {
       controller: controller,
       padding: padding ?? EdgeInsets.zero,
       itemCount: products.length + (isLoadingMore ? 1 : 0),
-      separatorBuilder: (_, _) =>
-          const SizedBox(height: 8), // Standard spacing between cards
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         if (index == products.length && isLoadingMore) {
           return Center(
@@ -52,7 +55,6 @@ class ProductList extends StatelessWidget {
         }
 
         final product = products[index];
-        // Stable key logic based on ID or deterministic fallback
         final String uniqueKey = product.id != null
             ? 'prod-${product.id}'
             : 'prod-fallback-${product.name}-${product.brand}';
@@ -70,7 +72,6 @@ class ProductList extends StatelessWidget {
     final isSelected =
         selectedProductId != null && selectedProductId == product.id;
 
-    // Wrap in AnimatedContainer to handle selection styling if needed
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -79,9 +80,7 @@ class ProductList extends StatelessWidget {
             ? Theme.of(context).colorScheme.primaryContainer
                   .withValues(alpha: 0.3)
             : null,
-        borderRadius: BorderRadius.circular(
-          12,
-        ), // Matches radiusMedium from theme if not already handled by Card
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: ProductResultTile(
         key: ValueKey(key),

@@ -186,6 +186,7 @@
   "commitNeedsReviewLabel": "Para revisão",
   "commitAssignedLabel": "Associados",
   "doneAction": "Concluir",
+  "done":"Concluído",
   "deleteReceiptAction": "Excluir cupom",
   "deleteReceiptConfirmTitle": "Excluir cupom?",
   "deleteReceiptConfirmMessage": "Os preços deste cupom serão removidos. Esta ação não pode ser desfeita.",

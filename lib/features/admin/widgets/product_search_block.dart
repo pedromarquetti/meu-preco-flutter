@@ -52,14 +52,10 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
 
   @override
   void dispose() {
+    _internalController.removeListener(_onControllerChanged);
     if (widget.controller == null) {
       _internalController.dispose();
-    } else {
-      // If controller was provided, we don't own it and shouldn't call dispose on it here?
-      // Actually the input widget handles its own disposal if not passed a controller.
-      // But since I am listening to it in this state, I should remove listener.
     }
-    _internalController.removeListener(_onControllerChanged);
     super.dispose();
   }
 
@@ -77,6 +73,11 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
   void _handleSelection(ProductView product) {
     setState(() => _selectedProduct = product);
     widget.onProductSelected(product);
+  }
+
+  void _clearSelection() {
+    setState(() => _selectedProduct = null);
+    widget.onProductSelected(null);
   }
 
   @override
@@ -102,22 +103,24 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
                   const SizedBox(height: 8),
                 ],
                 if (isWide)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: ProductSearchInput(
-                          controller: _internalController,
-                          onResultsChanged: (_) {},
-                          onLoadingChanged: (_) {},
-                          onErrorChanged: (_) {},
-                          hintText: strings.searchProductAction,
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: ProductSearchInput(
+                            controller: _internalController,
+                            onResultsChanged: (_) {},
+                            onLoadingChanged: (_) {},
+                            onErrorChanged: (_) {},
+                            hintText: strings.searchProductAction,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(flex: 2, child: _buildResultsSection(context)),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(flex: 2, child: _buildResultsSection(context)),
+                      ],
+                    ),
                   )
                 else ...[
                   ProductSearchInput(
@@ -155,8 +158,9 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
                       Divider(height: 12),
                       Text(
                         strings.selected,
-                        style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: Colors.grey.shade600),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -185,8 +189,8 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
           children: [
             Expanded(child: _buildProductInfo(context)),
             IconButton(
-              onPressed: () => setState(() => _selectedProduct = null),
-              icon: Icon(Icons.close, size: 20),
+              onPressed: _clearSelection,
+              icon: const Icon(Icons.close, size: 20),
               tooltip: strings.adminClearSelection,
             ),
           ],
@@ -198,25 +202,23 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
   Widget _buildProductInfo(BuildContext context) {
     final product = _selectedProduct!;
     final strings = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final detailStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          product.name ?? '—',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(product.name ?? '—', style: theme.textTheme.titleMedium),
         if (product.brand?.isNotEmpty == true) ...[
           const SizedBox(height: 4),
-          Text(
-            product.brand!,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-          ),
+          Text(product.brand!, style: detailStyle),
         ],
         if (product.unit != null && product.unit!.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(
             '${strings.productUnitLabel}: ${product.unit}',
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            style: detailStyle,
           ),
         ],
       ],

@@ -5,8 +5,11 @@ import '../../../core/models/models.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../product_search_controller.dart';
 
-/// Reusable product search input that manages its own controller
-/// and exposes search results to the parent widget.
+/// Owns product search-field presentation and controller connection.
+///
+/// Pass a [controller] when the parent also needs the same search state; the
+/// widget then treats that controller as externally owned and never disposes
+/// it. Without one, it creates and disposes its own controller.
 class ProductSearchInput extends StatefulWidget {
   const ProductSearchInput({
     super.key,
@@ -20,7 +23,7 @@ class ProductSearchInput extends StatefulWidget {
     this.padding,
     this.labelText,
     this.hintText,
-    this.controller, // Added optional controller to allow sharing search logic with parent widgets.
+    this.controller,
   });
 
   final ValueChanged<List<ProductView>> onResultsChanged;
@@ -56,17 +59,8 @@ class _ProductSearchInputState extends State<ProductSearchInput> {
         );
     _controller.addListener(_onControllerChanged);
 
-    _focusNode.addListener(_onFocusChanged);
-    _searchController.addListener(_onTextChanged);
-
     if (widget.autofocus) {
       Future.delayed(Duration.zero, () => _focusNode.requestFocus());
-    }
-  }
-
-  void _onTextChanged() {
-    if (mounted) {
-      setState(() {});
     }
   }
 
@@ -76,14 +70,9 @@ class _ProductSearchInputState extends State<ProductSearchInput> {
     if (widget.controller == null) {
       _controller.dispose();
     }
-    _searchController.removeListener(_onTextChanged);
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  void _onFocusChanged() {
-    // Handle focus changes if needed, currently no-op.
   }
 
   void _onControllerChanged() {

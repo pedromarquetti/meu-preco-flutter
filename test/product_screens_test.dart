@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:meu_preco_frontend/app/app_dependencies.dart';
+import 'package:meu_preco_frontend/app/router.dart';
 import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
+import 'package:meu_preco_frontend/core/ui/loading_view.dart';
 import 'package:meu_preco_frontend/features/admin/admin_products_screen.dart';
 import 'package:meu_preco_frontend/features/products/product_detail_screen.dart';
+import 'package:meu_preco_frontend/features/products/product_search_controller.dart';
 import 'package:meu_preco_frontend/features/products/product_search_screen.dart';
+import 'package:meu_preco_frontend/features/products/widgets/product_list.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -80,6 +87,33 @@ void main() {
       expect(find.text('Arroz Tipo 1 5kg'), findsOneWidget);
       expect(find.text('Arroz Integral'), findsOneWidget);
       expect(repository.searchRequests.single.q, 'arroz');
+      expect(find.byType(ProductList), findsOneWidget);
+    });
+
+    testWidgets('shows the parent-owned loading state before the first reply', (
+      tester,
+    ) async {
+      final pending = Completer<ProductPage>();
+      final repository = FakeProductRepository()
+        ..searchHandler = (_, _) => pending.future;
+      await pumpScreen(
+        tester,
+        const ProductSearchScreen(),
+        repository: repository,
+      );
+
+      await tester.enterText(find.byType(TextField), 'arroz');
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pump();
+
+      expect(find.byType(LoadingView), findsOneWidget);
+      expect(find.byType(ProductList), findsNothing);
+
+      pending.complete(pageOf([sampleProduct(name: 'Arroz Tipo 1 5kg')]));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoadingView), findsNothing);
+      expect(find.byType(ProductList), findsOneWidget);
     });
 
     testWidgets('shows the empty state when nothing matches', (tester) async {
@@ -95,6 +129,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(_strings.productSearchNoResults), findsOneWidget);
+      expect(find.byType(ProductList), findsNothing);
     });
 
     testWidgets('shows an error and recovers on retry', (tester) async {
@@ -111,6 +146,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(_strings.networkErrorMessage), findsOneWidget);
+      expect(find.byType(ProductList), findsNothing);
+      expect(repository.searchRequests.single.q, 'arroz');
 
       repository
         ..searchError = null
@@ -119,6 +156,76 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Arroz Tipo 1 5kg'), findsOneWidget);
+      expect(repository.searchRequests, hasLength(2));
+      expect(repository.searchRequests.last.q, 'arroz');
+    });
+
+    testWidgets('opens product detail for the clicked product', (tester) async {
+      final product = sampleProduct(id: 7, name: 'Café Torrado');
+      final repository = FakeProductRepository()
+        ..searchResult = pageOf([product])
+        ..detailResult = product
+        ..historyResult = sampleHistory(product: product);
+
+      tester.view.physicalSize = const Size(900, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final dependencies = buildTestDependencies(
+        productsRepository: repository,
+      );
+      final router = GoRouter(
+        initialLocation: AppRoutes.productSearch,
+        routes: [
+          GoRoute(
+            path: AppRoutes.productSearch,
+            builder: (_, _) => const ProductSearchScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.productDetail,
+            builder: (_, state) => ProductDetailScreen(
+              productId: state.pathParameters['id'] ?? '',
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        Provider<AppDependencies>.value(
+          value: dependencies,
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'cafe');
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Café Torrado'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProductDetailScreen), findsOneWidget);
+      expect(repository.historyRequests.single.id, 7);
+    });
+
+    testWidgets('does not dispose an externally owned search controller', (
+      tester,
+    ) async {
+      final repository = FakeProductRepository();
+      final controller = ProductSearchController(repository: repository);
+      await pumpScreen(
+        tester,
+        ProductSearchScreen(controller: controller),
+        repository: repository,
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      expect(() => controller.addListener(() {}), returnsNormally);
+      controller.dispose();
     });
   });
 
@@ -236,10 +343,19 @@ void main() {
       await tester.tap(find.text('Test Product Name'));
       await tester.pumpAndSettle();
 
-      expect(
+      final nameField = tester.widget<TextField>(
         find.widgetWithText(TextField, _strings.nameLabel),
-        findsOneWidget,
       );
+      final brandField = tester.widget<TextField>(
+        find.widgetWithText(TextField, _strings.productBrandLabel),
+      );
+      final unitField = tester.widget<TextField>(
+        find.widgetWithText(TextField, _strings.productUnitLabel),
+      );
+
+      expect(nameField.controller?.text, 'Test Product Name');
+      expect(brandField.controller?.text, 'Brand X');
+      expect(unitField.controller?.text, 'Unit Y');
     });
   });
 }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/models/models.dart';
 
-/// Compact catalog result row shared by the search screen and product picker.
+/// Compact catalog result row shared by every product-result surface.
+///
+/// Owns row presentation only. The parent decides what a tap means through the
+/// [onTap] callback and may supply an extra trailing affordance.
 class ProductResultTile extends StatelessWidget {
   const ProductResultTile({
     super.key,

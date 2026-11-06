@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/app/app_dependencies.dart';
+import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/features/auth/login_screen.dart';
 import 'package:meu_preco_frontend/features/products/product_search_screen.dart';
+import 'package:meu_preco_frontend/features/products/widgets/product_list.dart';
+import 'package:meu_preco_frontend/features/products/widgets/product_result_tile.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -125,6 +128,41 @@ void main() {
         textScale: 2.5,
       );
 
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('product result accessibility', () {
+    const products = [
+      ProductView(id: 1, name: 'Arroz Tipo 1', brand: 'Marca Boa', unit: 'kg'),
+    ];
+
+    testWidgets('exposes name and unit semantics with a large touch target', (
+      tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        Scaffold(
+          body: ProductList(products: products, onProductSelected: (_) {}),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('Arroz Tipo 1 - kg'), findsOneWidget);
+
+      final tileSize = tester.getSize(find.byType(ProductResultTile));
+      expect(tileSize.height, greaterThanOrEqualTo(48));
+    });
+
+    testWidgets('renders at 2.5x text scale without overflow', (tester) async {
+      await pumpWidget(
+        tester,
+        Scaffold(
+          body: ProductList(products: products, onProductSelected: (_) {}),
+        ),
+        textScale: 2.5,
+      );
+
+      expect(find.text('Arroz Tipo 1'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

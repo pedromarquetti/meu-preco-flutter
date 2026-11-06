@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/features/products/product_detail_screen.dart';
+import 'package:meu_preco_frontend/features/products/widgets/product_list.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/app/app.dart';
 import 'package:meu_preco_frontend/app/app_dependencies.dart';
@@ -13,6 +14,8 @@ import 'fakes.dart';
 import 'helpers.dart';
 
 AppLocalizations get _strings => lookupAppLocalizations(const Locale('pt'));
+
+void _ignoreSelection(ProductView product) {}
 
 Future<void> pumpScreen(
   WidgetTester tester,
@@ -97,6 +100,42 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'ProductList does not overflow on a narrow screen at large text scale',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.platformDispatcher.textScaleFactorTestValue = 2.5;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            body: ProductList(
+              products: [
+                ProductView(
+                  id: 1,
+                  name:
+                      'Produto com um nome extremamente longo para testar o '
+                      'comportamento de quebra de linha',
+                  brand: 'Marca com nome longo',
+                  unit: 'kg',
+                ),
+              ],
+              onProductSelected: _ignoreSelection,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('extrema'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Home screen scrolls at large text scale', (tester) async {
     final credStore = InMemoryCredentialStore();

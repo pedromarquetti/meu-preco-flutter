@@ -52,7 +52,7 @@ class _MergeProductsScreenState extends State<MergeProductsScreen> {
                         SnackBar(
                           content: Text(
                             (result.dupRemoved ?? false)
-                                ? strings.doneAction
+                                ? strings.done
                                 : strings.errorLabel,
                           ),
                           backgroundColor: (result.dupRemoved ?? false)

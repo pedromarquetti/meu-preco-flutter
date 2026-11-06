@@ -7,9 +7,9 @@ import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
-import '../../features/products/product_search_controller.dart';
-import '../../features/products/widgets/product_search_input.dart';
-import '../../features/products/widgets/product_list.dart';
+import '../products/product_search_controller.dart';
+import '../products/widgets/product_list.dart';
+import '../products/widgets/product_search_input.dart';
 
 import 'data/admin_repository.dart';
 
@@ -78,11 +78,6 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       await _repository.updateProduct(productId, patch);
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(strings.productUpdated)));
-      if (_lastQuery.isNotEmpty) {
-        // Re-trigger search by updating state - the unified input manages its own
-        // search, but we need to refresh results. For simplicity, just keep results.
-        // The user can retype to refresh if needed.
-      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

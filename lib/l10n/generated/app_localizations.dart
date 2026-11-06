@@ -1216,6 +1216,12 @@ abstract class AppLocalizations {
   /// **'Concluir'**
   String get doneAction;
 
+  /// No description provided for @done.
+  ///
+  /// In pt, this message translates to:
+  /// **'Concluído'**
+  String get done;
+
   /// DeleteReceipt
   ///
   /// In pt, this message translates to:

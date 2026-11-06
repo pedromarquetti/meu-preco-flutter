@@ -599,6 +599,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get doneAction => 'Concluir';
 
   @override
+  String get done => 'Concluído';
+
+  @override
   String get deleteReceiptAction => 'Excluir cupom';
 
   @override

@@ -70,6 +70,7 @@ void main() {
       WidgetTester tester,
     ) async {
       ProductView? selectedProduct;
+      var selectionCount = 0;
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -77,7 +78,10 @@ void main() {
           home: Scaffold(
             body: ProductList(
               products: mockProducts,
-              onProductSelected: (product) => selectedProduct = product,
+              onProductSelected: (product) {
+                selectedProduct = product;
+                selectionCount++;
+              },
             ),
           ),
         ),
@@ -89,6 +93,52 @@ void main() {
       await tester.pump();
 
       expect(selectedProduct, equals(mockProducts[0]));
+      expect(selectionCount, 1);
+    });
+
+    testWidgets('uses stable product-id keys for list rows', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ProductList(
+              products: mockProducts,
+              onProductSelected: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      final tiles = tester
+          .widgetList<ProductResultTile>(find.byType(ProductResultTile))
+          .toList();
+      expect(tiles[0].key, const ValueKey('prod-1'));
+      expect(tiles[1].key, const ValueKey('prod-2'));
+    });
+
+    testWidgets('falls back to a deterministic key when the id is missing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ProductList(
+              products: const [
+                ProductView(name: 'Sem id', brand: 'Marca', unit: 'kg'),
+              ],
+              onProductSelected: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      final tile = tester.widget<ProductResultTile>(
+        find.byType(ProductResultTile),
+      );
+      expect(tile.key, const ValueKey('prod-fallback-Sem id-Marca'));
     });
 
     testWidgets('renders trailingBuilder content', (WidgetTester tester) async {
@@ -127,6 +177,8 @@ void main() {
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Test Product 1'), findsOneWidget);
+      expect(find.text('Test Product 2'), findsOneWidget);
     });
 
     testWidgets('handles long text without overflow', (
@@ -174,10 +226,35 @@ void main() {
         ),
       );
 
-      final listWidget = tester.widget<ProductList>(
-        find.byType(ProductList).first,
+      final containers = tester
+          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
+          .toList();
+      expect(containers, hasLength(2));
+      expect((containers[0].decoration! as BoxDecoration).color, isNotNull);
+      expect((containers[1].decoration! as BoxDecoration).color, isNull);
+    });
+
+    testWidgets('does not dispose an externally supplied scroll controller', (
+      tester,
+    ) async {
+      final controller = ScrollController();
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ProductList(
+              products: mockProducts,
+              controller: controller,
+              onProductSelected: (_) {},
+            ),
+          ),
+        ),
       );
-      expect(listWidget.selectedProductId, equals(1));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      expect(() => controller.dispose(), returnsNormally);
     });
   });
 }
