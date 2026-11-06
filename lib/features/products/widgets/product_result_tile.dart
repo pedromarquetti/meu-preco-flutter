@@ -21,35 +21,59 @@ class ProductResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        onTap: onTap,
-        title: Text(
-          product.name ?? '—',
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: theme.textTheme.titleSmall,
-        ),
-        subtitle: (product.brand != null && product.brand!.isNotEmpty)
-            ? Text(product.brand!)
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
-            if (product.unit != null && product.unit!.isNotEmpty) ...[
-              const SizedBox(width: 12),
-              Text(
-                product.unit!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+    // Create a semantic label that combines name and unit for accessibility.
+    final String productName = product.name ?? '—';
+    final String productUnit =
+        (product.unit != null && product.unit!.isNotEmpty)
+        ? '- ${product.unit}'
+        : '';
+    final String semanticLabel = '$productName $productUnit'.trim();
+
+    return Semantics(
+      label: semanticLabel,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(productName, style: theme.textTheme.titleSmall),
+                      if (product.brand != null &&
+                          product.brand!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          product.brand!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            const Icon(Icons.chevron_right),
-          ],
+                if (product.unit != null && product.unit!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    product.unit!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+                if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+          ),
         ),
       ),
     );

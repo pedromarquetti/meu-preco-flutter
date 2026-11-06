@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/features/products/widgets/product_list.dart';
 import 'package:meu_preco_frontend/features/products/widgets/product_result_tile.dart';
+import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 
 void main() {
   group('ProductList Widget Tests', () {
@@ -26,6 +27,8 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ProductList(
               products: mockProducts,
@@ -43,12 +46,34 @@ void main() {
       await tester.pump(); // Ensure layout is settled
     });
 
+    testWidgets('exposes correct semantic labels for accessibility', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ProductList(
+              products: mockProducts,
+              onProductSelected: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('Test Product 1 - kg'), findsOneWidget);
+      expect(find.bySemanticsLabel('Test Product 2 - Liters'), findsOneWidget);
+    });
+
     testWidgets('calls onProductSelected with correct product when tapped', (
       WidgetTester tester,
     ) async {
       ProductView? selectedProduct;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ProductList(
               products: mockProducts,
@@ -70,6 +95,8 @@ void main() {
       final customTrailing = const Icon(Icons.check);
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ProductList(
               products: mockProducts,
@@ -87,6 +114,8 @@ void main() {
     testWidgets('renders loading-more footer', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ProductList(
               products: mockProducts,
@@ -111,6 +140,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SizedBox(
               width: 200, // Constrain width to force overflow/truncation
@@ -131,6 +162,8 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ProductList(
               products: mockProducts,

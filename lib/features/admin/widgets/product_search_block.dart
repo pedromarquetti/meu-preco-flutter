@@ -116,23 +116,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          children: [
-                            _buildSelectionDisplay(context),
-                            if (_selectedProduct != null) ...[
-                              Divider(height: 12),
-                              Text(
-                                strings.selected,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Colors.grey.shade600),
-                              ),
-                            ],
-                            Expanded(child: _buildResultsList(context)),
-                          ],
-                        ),
-                      ),
+                      Expanded(flex: 2, child: _buildResultsSection(context)),
                     ],
                   )
                 else ...[
@@ -144,28 +128,44 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
                     hintText: strings.searchProductAction,
                   ),
                   const SizedBox(height: 16),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _buildSelectionDisplay(context),
-                        if (_selectedProduct != null) ...[
-                          Divider(height: 12),
-                          Text(
-                            strings.selected,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Colors.grey.shade600),
-                          ),
-                        ],
-                        Expanded(child: _buildResultsList(context)),
-                      ],
-                    ),
-                  ),
+                  Expanded(child: _buildResultsSection(context)),
                 ],
               ],
             );
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildResultsSection(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxSelectionHeight = constraints.maxHeight * 0.45;
+        return Column(
+          children: [
+            if (_selectedProduct != null)
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maxSelectionHeight),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildSelectionDisplay(context),
+                      Divider(height: 12),
+                      Text(
+                        strings.selected,
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Expanded(child: _buildResultsList(context)),
+          ],
+        );
+      },
     );
   }
 

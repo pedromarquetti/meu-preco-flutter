@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 
 import '../../../core/models/models.dart';
 import 'product_result_tile.dart';
@@ -29,6 +30,8 @@ class ProductList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+
     return ListView.separated(
       controller: controller,
       padding: padding ?? EdgeInsets.zero,
@@ -39,8 +42,11 @@ class ProductList extends StatelessWidget {
         if (index == products.length && isLoadingMore) {
           return Center(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
+              padding: const EdgeInsets.all(16),
+              child: Semantics(
+                label: strings.loadingLabel,
+                child: const CircularProgressIndicator(),
+              ),
             ),
           );
         }
