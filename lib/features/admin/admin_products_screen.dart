@@ -7,7 +7,10 @@ import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../features/products/product_search_controller.dart';
 import '../../features/products/widgets/product_search_input.dart';
+import '../../features/products/widgets/product_list.dart';
+
 import 'data/admin_repository.dart';
 
 class AdminProductsScreen extends StatefulWidget {
@@ -20,11 +23,15 @@ class AdminProductsScreen extends StatefulWidget {
 class _AdminProductsScreenState extends State<AdminProductsScreen> {
   late final AdminRepository _repository =
       context.appDependencies.adminRepository;
+  late final ProductSearchController _searchController =
+      ProductSearchController(
+        repository: context.appDependencies.productsRepository,
+      );
   List<ProductView> _results = const [];
   bool _loading = false;
   Object? _error;
   ProductView? _selected;
-  final String _lastQuery = '';
+  String _lastQuery = '';
 
   final _nameController = TextEditingController();
   final _brandController = TextEditingController();
@@ -33,6 +40,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _nameController.dispose();
     _brandController.dispose();
     _unitController.dispose();
@@ -94,17 +102,13 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           onResultsChanged: (results) => setState(() => _results = results),
           onLoadingChanged: (loading) => setState(() => _loading = loading),
           onErrorChanged: (error) => setState(() => _error = error),
+          onQueryChanged: (query) => _lastQuery = query.trim(),
+          controller: _searchController,
           padding: const EdgeInsets.all(16),
           labelText: strings.searchProductAction,
         ),
         if (_error != null)
-          ErrorView(
-            error: _error,
-            onRetry: () {
-              // The unified input manages its own search; retry is handled internally
-              setState(() => _error = null);
-            },
-          ),
+          ErrorView(error: _error, onRetry: _searchController.retry),
         Expanded(
           child: _results.isEmpty
               ? (_loading
@@ -112,20 +116,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                     : _lastQuery.isEmpty
                     ? const SizedBox.shrink()
                     : EmptyView(title: strings.emptyLabel))
-              : ListView.builder(
-                  itemCount: _results.length,
-                  itemBuilder: (context, index) {
-                    final product = _results[index];
-                    final isSelected = _selected?.id == product.id;
-                    return ListTile(
-                      selected: isSelected,
-                      title: Text(product.name ?? '-'),
-                      subtitle: Text(
-                        '${product.brand ?? ''} • ${product.unit ?? ''}'.trim(),
-                      ),
-                      onTap: () => _select(product),
-                    );
-                  },
+              : ProductList(
+                  products: _results,
+                  onProductSelected: _select,
+                  selectedProductId: _selected?.id,
                 ),
         ),
         if (_selected != null) ...[

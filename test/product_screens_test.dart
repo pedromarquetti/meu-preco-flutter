@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/app/app_dependencies.dart';
 import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
+import 'package:meu_preco_frontend/features/admin/admin_products_screen.dart';
 import 'package:meu_preco_frontend/features/products/product_detail_screen.dart';
 import 'package:meu_preco_frontend/features/products/product_search_screen.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
@@ -192,6 +193,53 @@ void main() {
 
       expect(find.text('Arroz Tipo 1 5kg'), findsOneWidget);
       expect(find.text(_strings.networkErrorMessage), findsNothing);
+    });
+  });
+
+  group('AdminProductsScreen', () {
+    testWidgets('renders search input and empty state initially', (
+      tester,
+    ) async {
+      final repository = FakeProductRepository();
+      await pumpScreen(
+        tester,
+        const Scaffold(body: AdminProductsScreen()),
+        repository: repository,
+      );
+
+      expect(find.text(_strings.searchProductAction), findsOneWidget);
+    });
+
+    testWidgets('populates editor fields when a product is selected', (
+      tester,
+    ) async {
+      final repository = FakeProductRepository()
+        ..searchResult = pageOf([
+          sampleProduct(
+            id: 1,
+            name: 'Test Product Name',
+            brand: 'Brand X',
+            unit: 'Unit Y',
+          ),
+        ]);
+
+      await pumpScreen(
+        tester,
+        const Scaffold(body: AdminProductsScreen()),
+        repository: repository,
+      );
+
+      await tester.enterText(find.byType(TextField), 'test');
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Test Product Name'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(TextField, _strings.nameLabel),
+        findsOneWidget,
+      );
     });
   });
 }
