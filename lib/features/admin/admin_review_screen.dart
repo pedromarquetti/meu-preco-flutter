@@ -9,6 +9,7 @@ import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../features/admin/widgets/product_edit_block.dart';
 import 'data/admin_repository.dart';
+import 'review_decision.dart';
 
 class AdminReviewScreen extends StatefulWidget {
   const AdminReviewScreen({super.key});
@@ -26,8 +27,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   bool _loading = true;
   Object? _error;
   _BatchAssignStep _step = _BatchAssignStep.select;
-  final List<ReviewItem> _selectedReviewItems = <ReviewItem>[];
-  final Map<int, ProductPatch> _productPatches = <int, ProductPatch>{};
+  final List<ReviewDecision> _decisions = [];
 
   @override
   void initState() {
@@ -40,8 +40,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       _loading = true;
       _error = null;
       _step = _BatchAssignStep.select;
-      _selectedReviewItems.clear();
-      _productPatches.clear();
+      _decisions.clear();
     });
     try {
       final page = await _repository.listNeedsReview();
@@ -63,7 +62,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     final strings = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
-    if (_selectedReviewItems.isEmpty) {
+    if (_decisions.isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
       return;
     }
@@ -78,29 +77,39 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       _items.where((item) => item.priceLogId != null).length;
 
   bool get _allSelected =>
-      _selectableCount > 0 && _selectedReviewItems.length == _selectableCount;
+      _selectableCount > 0 && _decisions.length == _selectableCount;
 
   Future<void> _assignAll() async {
     final strings = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
     final assignments = <Assignment>[];
-    for (final item in _items) {
-      if (item.priceLogId != null && _selectedReviewItems.contains(item)) {
-        final patch = _productPatches[item.priceLogId!];
+
+    final mergeDecisions = <ReviewDecision>[];
+    for (final decision in _decisions) {
+      if (decision.priceLogId == null) continue;
+      final apiAction = decision.action.toApiAction();
+      if (apiAction != null) {
         assignments.add(
           Assignment(
-            id: item.priceLogId!,
-            action: AssignmentAction.create,
-            name: patch?.name ?? item.suggestedStem ?? item.description ?? '',
-            unit: patch?.unit ?? item.unit ?? '',
-            brand: patch?.brand,
+            id: decision.priceLogId!,
+            action: apiAction,
+            name: decision.name,
+            unit: decision.unit,
+            brand: decision.brand,
+            productId: decision.targetProductId,
           ),
         );
+      } else {
+        // TODO: Execute the merge via AdminRepository.mergeProducts.
+        mergeDecisions.add(decision);
       }
     }
 
     if (assignments.isEmpty) {
+      if (mergeDecisions.isNotEmpty) {
+        // TODO: execute mergeDecisions via mergeProducts.
+      }
       messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
       return;
     }
@@ -143,8 +152,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      _selectedReviewItems.clear();
-                      _productPatches.clear();
+                      _decisions.clear();
                       _step = _BatchAssignStep.select;
                     });
                   },
@@ -178,12 +186,14 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 onPressed: () {
                   setState(() {
                     if (_allSelected) {
-                      _selectedReviewItems.clear();
+                      _decisions.clear();
                     } else {
-                      _selectedReviewItems
+                      _decisions
                         ..clear()
                         ..addAll(
-                          _items.where((item) => item.priceLogId != null),
+                          _items
+                              .where((item) => item.priceLogId != null)
+                              .map(ReviewDecision.createFromItem),
                         );
                     }
                   });
@@ -212,15 +222,21 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 final item = _items[index];
                 final id = item.priceLogId;
                 return CheckboxListTile(
-                  value: id != null && _selectedReviewItems.contains(item),
+                  value:
+                      id != null &&
+                      _decisions.any((decision) => decision.priceLogId == id),
                   onChanged: id == null
                       ? null
                       : (v) {
                           setState(() {
                             if (v == true) {
-                              _selectedReviewItems.add(item);
+                              _decisions.add(
+                                ReviewDecision.createFromItem(item),
+                              );
                             } else {
-                              _selectedReviewItems.remove(item);
+                              _decisions.removeWhere(
+                                (decision) => decision.priceLogId == id,
+                              );
                             }
                           });
                         },
@@ -240,14 +256,15 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   Widget _buildEditBlocks(BuildContext context) {
     final strings = AppLocalizations.of(context);
 
-    if (_selectedReviewItems.isEmpty) {
+    if (_decisions.isEmpty) {
       return Center(child: Text(strings.loadingLabel));
     }
 
     return ListView.builder(
-      itemCount: _selectedReviewItems.length,
+      itemCount: _decisions.length,
       itemBuilder: (context, index) {
-        final item = _selectedReviewItems[index];
+        final decision = _decisions[index];
+        final item = decision.reviewItem;
 
         return Card(
           child: Padding(
@@ -256,21 +273,36 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  '${strings.batchAssignSuggestedName}: ${item.suggestedStem ?? item.description ?? '-'}',
+                  '${strings.batchAssignSuggestedName}: ${item?.suggestedStem ?? item?.description ?? decision.name ?? '-'}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${strings.description}: ${item.description}',
-                  style: TextStyle(fontStyle: FontStyle.italic),
+                  '${strings.description}: ${item?.description ?? '-'}',
+                  style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
                 const SizedBox(height: 12),
                 ProductEditBlock(
                   initialProduct: item,
-                  suggestedName: item.suggestedStem ?? item.description ?? '',
+                  suggestedName:
+                      decision.name ??
+                      item?.suggestedStem ??
+                      item?.description ??
+                      '',
                   onSave: (patch) {
                     if (patch != null) {
-                      _productPatches[item.priceLogId!] = patch;
+                      setState(() {
+                        _decisions[index] = ReviewDecision(
+                          priceLogId: decision.priceLogId,
+                          reviewItem: decision.reviewItem,
+                          loadedProduct: decision.loadedProduct,
+                          name: patch.name,
+                          brand: patch.brand,
+                          unit: patch.unit,
+                          action: decision.action,
+                          targetProductId: decision.targetProductId,
+                        );
+                      });
                     }
                   },
                 ),
