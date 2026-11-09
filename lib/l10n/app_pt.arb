@@ -7,6 +7,7 @@
   "mergeConfirmDetail": "Deseja mesclar {source} em {target}?",
   "mergeSuccess": "Mesclado com sucesso.",
   "mergeFailed": "Falha ao mesclar produtos.",
+  "success":"Sucesso!",
   "merge":"Mesclar",
   "goBack":"Voltar",
   "goNext":"Avançar",
@@ -215,6 +216,9 @@
   "adminCannotChangeOwnRole": "Não é possível alterar o próprio perfil",
   "adminBatchAssign": "Atribuir em lote",
   "batchAssignSuggestedName": "Nome Sugerido",
+  "useSuggestionAction": "Usar sugestão",
+  "applyAction": "Aplicar",
+  "productPatchEmptyError": "Informe ao menos um campo para aplicar.",
   "adminSelectAll": "Selecionar todos",
   "adminClearSelection": "Limpar seleção",
   "adminNoSelection": "Nenhum item selecionado",
@@ -884,5 +888,14 @@
   },
   "@batchAssignSuggestedName": {
     "description": "Suggested name"
+  },
+  "@useSuggestionAction": {
+    "description": "Use suggested name action"
+  },
+  "@applyAction": {
+    "description": "Apply inline product edits"
+  },
+  "@productPatchEmptyError": {
+    "description": "Validation message when all product fields are empty"
   }
 }

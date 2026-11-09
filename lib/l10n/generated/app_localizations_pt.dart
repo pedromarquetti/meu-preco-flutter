@@ -36,6 +36,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get mergeFailed => 'Falha ao mesclar produtos.';
 
   @override
+  String get success => 'Sucesso!';
+
+  @override
   String get merge => 'Mesclar';
 
   @override
@@ -692,6 +695,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get batchAssignSuggestedName => 'Nome Sugerido';
+
+  @override
+  String get useSuggestionAction => 'Usar sugestão';
+
+  @override
+  String get applyAction => 'Aplicar';
+
+  @override
+  String get productPatchEmptyError =>
+      'Informe ao menos um campo para aplicar.';
 
   @override
   String get adminSelectAll => 'Selecionar todos';

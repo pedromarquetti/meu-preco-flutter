@@ -142,6 +142,12 @@ abstract class AppLocalizations {
   /// **'Falha ao mesclar produtos.'**
   String get mergeFailed;
 
+  /// No description provided for @success.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sucesso!'**
+  String get success;
+
   /// No description provided for @merge.
   ///
   /// In pt, this message translates to:
@@ -1389,6 +1395,24 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Nome Sugerido'**
   String get batchAssignSuggestedName;
+
+  /// Use suggested name action
+  ///
+  /// In pt, this message translates to:
+  /// **'Usar sugestão'**
+  String get useSuggestionAction;
+
+  /// Apply inline product edits
+  ///
+  /// In pt, this message translates to:
+  /// **'Aplicar'**
+  String get applyAction;
+
+  /// Validation message when all product fields are empty
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe ao menos um campo para aplicar.'**
+  String get productPatchEmptyError;
 
   /// Select all
   ///

@@ -273,37 +273,29 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  '${strings.batchAssignSuggestedName}: ${item?.suggestedStem ?? item?.description ?? decision.name ?? '-'}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
                   '${strings.description}: ${item?.description ?? '-'}',
                   style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
                 const SizedBox(height: 12),
                 ProductEditBlock(
-                  initialProduct: item,
-                  suggestedName:
-                      decision.name ??
-                      item?.suggestedStem ??
-                      item?.description ??
-                      '',
+                  initialProduct: decision.loadedProduct,
+                  suggestedName: item?.suggestedStem ?? item?.description ?? '',
+                  initialName: decision.name,
+                  initialBrand: decision.brand,
+                  initialUnit: decision.unit,
                   onSave: (patch) {
-                    if (patch != null) {
-                      setState(() {
-                        _decisions[index] = ReviewDecision(
-                          priceLogId: decision.priceLogId,
-                          reviewItem: decision.reviewItem,
-                          loadedProduct: decision.loadedProduct,
-                          name: patch.name,
-                          brand: patch.brand,
-                          unit: patch.unit,
-                          action: decision.action,
-                          targetProductId: decision.targetProductId,
-                        );
-                      });
-                    }
+                    setState(() {
+                      _decisions[index] = ReviewDecision(
+                        priceLogId: decision.priceLogId,
+                        reviewItem: decision.reviewItem,
+                        loadedProduct: decision.loadedProduct,
+                        name: patch.name,
+                        brand: patch.brand,
+                        unit: patch.unit,
+                        action: decision.action,
+                        targetProductId: decision.targetProductId,
+                      );
+                    });
                   },
                 ),
               ],
