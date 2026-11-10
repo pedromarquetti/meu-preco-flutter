@@ -12,32 +12,37 @@ concurrency:
   group: build-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  API_ORIGIN: ${{ vars.API_ORIGIN || 'http://localhost:8080' }}
+
 jobs:
   android-debug:
     runs-on: ubuntu-latest
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN || 'http://localhost:8080' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+      - name: Set up pinned Flutter toolchain
+        uses: ./.github/actions/setup-flutter
 
-      - name: Flutter pub get
-        run: flutter pub get
-
-      - name: Analyze and test
+      - name: Validate API origin
         run: |
-          dart format --set-exit-if-changed lib test
-          flutter analyze
-          flutter test
+          if [ -z "${API_ORIGIN:-}" ]; then
+            echo "API_ORIGIN must be set and non-empty." >&2
+            exit 1
+          fi
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
 
       - name: Build Android debug
-        run: flutter build apk --debug --dart-define=API_ORIGIN=${{ env.API_ORIGIN }}
+        run: flutter build apk --debug --dart-define=API_ORIGIN="$API_ORIGIN"
 
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v4
@@ -49,23 +54,22 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN || 'http://localhost:8080' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+      - name: Set up pinned Flutter toolchain
+        uses: ./.github/actions/setup-flutter
 
-      - name: Flutter pub get
-        run: flutter pub get
+      - name: Validate API origin
+        run: |
+          if [ -z "${API_ORIGIN:-}" ]; then
+            echo "API_ORIGIN must be set and non-empty." >&2
+            exit 1
+          fi
 
       - name: Build Web
-        run: flutter build web --dart-define=API_ORIGIN=${{ env.API_ORIGIN }}
+        run: flutter build web --dart-define=API_ORIGIN="$API_ORIGIN"
 
       - name: Upload Web bundle
         uses: actions/upload-artifact@v4
@@ -77,27 +81,28 @@ jobs:
 
   ios-unsigned:
     runs-on: macos-latest
-    if: false  # Enable when Apple Developer setup is ready
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN || 'http://localhost:8080' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+      - name: Set up pinned Flutter toolchain
+        uses: ./.github/actions/setup-flutter
 
-      - name: Flutter pub get
-        run: flutter pub get
-
-      - name: Analyze and test
+      - name: Validate API origin
         run: |
-          dart format --set-exit-if-changed lib test
-          flutter analyze
-          flutter test
+          if [ -z "${API_ORIGIN:-}" ]; then
+            echo "API_ORIGIN must be set and non-empty." >&2
+            exit 1
+          fi
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
 
       - name: Build iOS unsigned
-        run: flutter build ios --release --no-codesign --dart-define=API_ORIGIN=${{ env.API_ORIGIN }}
+        run: flutter build ios --release --no-codesign --dart-define=API_ORIGIN="$API_ORIGIN"

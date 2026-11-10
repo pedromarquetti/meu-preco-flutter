@@ -148,6 +148,7 @@ These are test-only fixtures and must never be reused in a real deployment.
 Run the same quality gates used by CI:
 
 ```sh
+flutter pub get --enforce-lockfile
 dart format --set-exit-if-changed lib test
 flutter analyze
 flutter test
@@ -267,6 +268,10 @@ package id, version, and label without printing any secret.
   the browser, unlike the platform keystore used on Android.
 
 ## GitHub Actions and releases
+
+CI installs the exact Flutter version declared in `pubspec.yaml`
+(`environment.flutter`), restores cached Flutter/Pub dependencies, and runs
+`flutter pub get --enforce-lockfile` before the remaining Flutter commands.
 
 The GH workflows will provide:
 

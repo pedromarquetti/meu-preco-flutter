@@ -1,0 +1,46 @@
+name: Set up pinned Flutter toolchain
+description: Install the Flutter version declared in pubspec.yaml and restore locked dependencies.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Flutter
+      id: flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version-file: pubspec.yaml
+        cache: true
+        pub-cache: true
+
+    - name: Verify Flutter toolchain
+      shell: bash
+      env:
+        INSTALLED_FLUTTER_VERSION: ${{ steps.flutter.outputs.VERSION }}
+      run: |
+        declared="$(awk '
+          /^environment:[[:space:]]*$/ { in_environment = 1; next }
+          in_environment && /^[^[:space:]]/ { exit }
+          in_environment && /^[[:space:]]+flutter:[[:space:]]*/ {
+            sub(/^[[:space:]]+flutter:[[:space:]]*/, "")
+            gsub(/"/, "")
+            print
+            exit
+          }
+        ' pubspec.yaml)"
+
+        if [ -z "$declared" ]; then
+          echo "pubspec.yaml must declare an exact environment.flutter version." >&2
+          exit 1
+        fi
+
+        if [ "$INSTALLED_FLUTTER_VERSION" != "$declared" ]; then
+          echo "Installed Flutter $INSTALLED_FLUTTER_VERSION does not match pubspec.yaml ($declared)." >&2
+          exit 1
+        fi
+
+        echo "Flutter $INSTALLED_FLUTTER_VERSION matches pubspec.yaml."
+
+    - name: Flutter pub get
+      shell: bash
+      run: flutter pub get --enforce-lockfile
