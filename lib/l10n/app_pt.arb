@@ -40,6 +40,7 @@
   "needAccountAction": "Criar uma conta",
   "alreadyHaveAccountAction": "Já tenho uma conta",
   "passwordsDoNotMatch": "As senhas não coincidem",
+  "invalidAssignment":"Atribuição Inválida",
   "invalidIdentifierError": "Informe um e-mail ou nome",
   "invalidNameError": "Informe um nome de até 100 caracteres",
   "invalidEmailError": "Informe um e-mail válido",
@@ -217,13 +218,19 @@
   "adminBatchAssign": "Atribuir em lote",
   "batchAssignSuggestedName": "Nome Sugerido",
   "useSuggestionAction": "Usar sugestão",
-  "applyAction": "Aplicar",
-  "productPatchEmptyError": "Informe ao menos um campo para aplicar.",
   "adminSelectAll": "Selecionar todos",
   "adminClearSelection": "Limpar seleção",
   "adminNoSelection": "Nenhum item selecionado",
   "adminAssigned": "Atribuídos",
   "adminCreated": "Criados",
+  "adminMerged": "Mesclados",
+  "adminUpdated": "Atualizados",
+  "adminReviewLoadingDetails": "Carregando detalhes...",
+  "adminReviewDetailsError": "Não foi possível carregar os detalhes deste item.",
+  "adminReviewNameRequired": "Informe o nome de todos os itens selecionados.",
+  "adminReviewUnitRequired": "Informe a unidade de todos os itens selecionados.",
+  "adminReviewMergeTargetRequired": "Selecione um produto de destino válido para cada mesclagem.",
+  "adminReviewPartialFailure": "Algumas operações falharam e os itens não foram recarregados.",
   "themeSettingsSection": "Tema",
   "@@locale": "pt",
   "@priceChartSemantics": {
@@ -297,6 +304,30 @@
   },
   "@adminCreated": {
     "description": "Created count"
+  },
+  "@adminMerged": {
+    "description": "Merged count"
+  },
+  "@adminUpdated": {
+    "description": "Updated count"
+  },
+  "@adminReviewLoadingDetails": {
+    "description": "Loading product details in review step 2"
+  },
+  "@adminReviewDetailsError": {
+    "description": "Failed to load product details in review step 2"
+  },
+  "@adminReviewNameRequired": {
+    "description": "Validation message for a missing product name"
+  },
+  "@adminReviewUnitRequired": {
+    "description": "Validation message for a missing product unit"
+  },
+  "@adminReviewMergeTargetRequired": {
+    "description": "Validation message for a merge without a target product"
+  },
+  "@adminReviewPartialFailure": {
+    "description": "Partial failure message after some review operations fail"
   },
   "@appTitle": {
     "description": "AppTitle"
@@ -891,11 +922,5 @@
   },
   "@useSuggestionAction": {
     "description": "Use suggested name action"
-  },
-  "@applyAction": {
-    "description": "Apply inline product edits"
-  },
-  "@productPatchEmptyError": {
-    "description": "Validation message when all product fields are empty"
   }
 }

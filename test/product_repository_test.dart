@@ -87,7 +87,7 @@ void main() {
         return http.Response(jsonEncode(sampleProduct(id: 7).toJson()), 200);
       });
 
-      final product = await repository.detail(7);
+      final product = await repository.getProduct(7);
 
       expect(uri.path, '/api/v1/products/7');
       expect(product.id, 7);

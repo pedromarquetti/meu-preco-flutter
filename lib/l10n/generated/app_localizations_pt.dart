@@ -140,6 +140,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passwordsDoNotMatch => 'As senhas não coincidem';
 
   @override
+  String get invalidAssignment => 'Atribuição Inválida';
+
+  @override
   String get invalidIdentifierError => 'Informe um e-mail ou nome';
 
   @override
@@ -700,13 +703,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get useSuggestionAction => 'Usar sugestão';
 
   @override
-  String get applyAction => 'Aplicar';
-
-  @override
-  String get productPatchEmptyError =>
-      'Informe ao menos um campo para aplicar.';
-
-  @override
   String get adminSelectAll => 'Selecionar todos';
 
   @override
@@ -720,6 +716,35 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get adminCreated => 'Criados';
+
+  @override
+  String get adminMerged => 'Mesclados';
+
+  @override
+  String get adminUpdated => 'Atualizados';
+
+  @override
+  String get adminReviewLoadingDetails => 'Carregando detalhes...';
+
+  @override
+  String get adminReviewDetailsError =>
+      'Não foi possível carregar os detalhes deste item.';
+
+  @override
+  String get adminReviewNameRequired =>
+      'Informe o nome de todos os itens selecionados.';
+
+  @override
+  String get adminReviewUnitRequired =>
+      'Informe a unidade de todos os itens selecionados.';
+
+  @override
+  String get adminReviewMergeTargetRequired =>
+      'Selecione um produto de destino válido para cada mesclagem.';
+
+  @override
+  String get adminReviewPartialFailure =>
+      'Algumas operações falharam e os itens não foram recarregados.';
 
   @override
   String get themeSettingsSection => 'Tema';

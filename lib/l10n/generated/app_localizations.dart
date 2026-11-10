@@ -340,6 +340,12 @@ abstract class AppLocalizations {
   /// **'As senhas não coincidem'**
   String get passwordsDoNotMatch;
 
+  /// No description provided for @invalidAssignment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atribuição Inválida'**
+  String get invalidAssignment;
+
   /// InvalidIdentifier
   ///
   /// In pt, this message translates to:
@@ -1402,18 +1408,6 @@ abstract class AppLocalizations {
   /// **'Usar sugestão'**
   String get useSuggestionAction;
 
-  /// Apply inline product edits
-  ///
-  /// In pt, this message translates to:
-  /// **'Aplicar'**
-  String get applyAction;
-
-  /// Validation message when all product fields are empty
-  ///
-  /// In pt, this message translates to:
-  /// **'Informe ao menos um campo para aplicar.'**
-  String get productPatchEmptyError;
-
   /// Select all
   ///
   /// In pt, this message translates to:
@@ -1443,6 +1437,54 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Criados'**
   String get adminCreated;
+
+  /// Merged count
+  ///
+  /// In pt, this message translates to:
+  /// **'Mesclados'**
+  String get adminMerged;
+
+  /// Updated count
+  ///
+  /// In pt, this message translates to:
+  /// **'Atualizados'**
+  String get adminUpdated;
+
+  /// Loading product details in review step 2
+  ///
+  /// In pt, this message translates to:
+  /// **'Carregando detalhes...'**
+  String get adminReviewLoadingDetails;
+
+  /// Failed to load product details in review step 2
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível carregar os detalhes deste item.'**
+  String get adminReviewDetailsError;
+
+  /// Validation message for a missing product name
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe o nome de todos os itens selecionados.'**
+  String get adminReviewNameRequired;
+
+  /// Validation message for a missing product unit
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe a unidade de todos os itens selecionados.'**
+  String get adminReviewUnitRequired;
+
+  /// Validation message for a merge without a target product
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione um produto de destino válido para cada mesclagem.'**
+  String get adminReviewMergeTargetRequired;
+
+  /// Partial failure message after some review operations fail
+  ///
+  /// In pt, this message translates to:
+  /// **'Algumas operações falharam e os itens não foram recarregados.'**
+  String get adminReviewPartialFailure;
 
   /// Settings section header for theme selection
   ///

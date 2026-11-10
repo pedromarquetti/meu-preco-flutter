@@ -400,12 +400,17 @@ class FakeAdminRepository implements AdminRepository {
   Object? needsReviewError;
   Object? batchAssignError;
   Object? updateProductError;
+  Object? mergeError;
 
   int listUsersCalls = 0;
   int updateUserRoleCalls = 0;
   int needsReviewCalls = 0;
   int batchAssignCalls = 0;
   int searchProductsCalls = 0;
+
+  final List<({int id, ProductPatch patch})> updateProductCalls = [];
+  final List<({int fromId, int toId})> mergeCalls = [];
+  final List<List<Assignment>> batchAssignRequests = [];
 
   @override
   Future<UserPage> listUsers({int page = 1, int pageSize = 50}) async {
@@ -454,6 +459,7 @@ class FakeAdminRepository implements AdminRepository {
   @override
   Future<BatchAssignResult> batchAssign(List<Assignment> assignments) async {
     batchAssignCalls++;
+    batchAssignRequests.add(List<Assignment>.of(assignments));
     if (batchAssignError != null) throw batchAssignError!;
     return batchAssignResult ??
         const BatchAssignResult(assigned: null, created: 0);
@@ -461,6 +467,7 @@ class FakeAdminRepository implements AdminRepository {
 
   @override
   Future<ProductView> updateProduct(int id, ProductPatch patch) async {
+    updateProductCalls.add((id: id, patch: patch));
     if (updateProductError != null) throw updateProductError!;
     return sampleProduct(id: id);
   }
@@ -477,17 +484,14 @@ class FakeAdminRepository implements AdminRepository {
 
   @override
   Future<MergeResult> mergeProducts(int fromId, int toId) async {
+    mergeCalls.add((fromId: fromId, toId: toId));
+    if (mergeError != null) throw mergeError!;
     return MergeResult(
       fromId: fromId,
       toId: toId,
       logsMoved: 0,
       dupRemoved: false,
     );
-  }
-
-  @override
-  Future<ProductView> getProduct(int id) async {
-    return sampleProduct(id: id);
   }
 }
 
@@ -538,6 +542,9 @@ class FakeProductRepository implements ProductRepository {
   ProductPage? searchResult;
   ProductView? detailResult;
   ProductHistory? historyResult;
+
+  final Map<int, ProductView> detailResults = {};
+  final Map<int, Object> detailErrors = {};
 
   Object? searchError;
   Object? detailError;
@@ -601,11 +608,12 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Future<ProductView> detail(int id) async {
+  Future<ProductView> getProduct(int id) async {
     detailCalls++;
     detailRequests.add(id);
-    if (detailError != null) throw detailError!;
-    return detailResult ?? sampleProduct(id: id);
+    final error = detailErrors[id] ?? detailError;
+    if (error != null) throw error;
+    return detailResults[id] ?? detailResult ?? sampleProduct(id: id);
   }
 
   @override

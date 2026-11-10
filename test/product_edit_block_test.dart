@@ -47,7 +47,7 @@ void main() {
         ProductEditBlock(
           initialProduct: product,
           suggestedName: 'Sugestão',
-          onSave: (_) {},
+          onChanged: (_) {},
         ),
       );
 
@@ -69,7 +69,7 @@ void main() {
     ) async {
       await _pumpEditor(
         tester,
-        ProductEditBlock(suggestedName: 'Leite', onSave: (_) {}),
+        ProductEditBlock(suggestedName: 'Leite', onChanged: (_) {}),
       );
 
       expect(_fieldText(tester, 0), 'Leite');
@@ -77,18 +77,16 @@ void main() {
       expect(_fieldText(tester, 2), isEmpty);
     });
 
-    testWidgets('emits one normalized patch only after explicit apply', (
-      tester,
-    ) async {
-      ProductPatch? saved;
+    testWidgets('emits a draft patch on each field change', (tester) async {
+      ProductPatch? latest;
       var calls = 0;
 
       await _pumpEditor(
         tester,
         ProductEditBlock(
           suggestedName: 'Sugestão',
-          onSave: (patch) {
-            saved = patch;
+          onChanged: (patch) {
+            latest = patch;
             calls++;
           },
         ),
@@ -96,64 +94,40 @@ void main() {
 
       final fields = find.byType(TextField);
       await tester.enterText(fields.at(0), '  Café  ');
-      await tester.enterText(fields.at(1), '   ');
-      await tester.enterText(fields.at(2), ' kg ');
-      await tester.pump();
-
-      expect(calls, 0);
-
-      await tester.tap(find.widgetWithText(FilledButton, _strings.applyAction));
       await tester.pump();
 
       expect(calls, 1);
-      expect(saved?.name, 'Café');
-      expect(saved?.brand, isNull);
-      expect(saved?.unit, 'kg');
-      expect(saved?.toJson(), {'name': 'Café', 'unit': 'kg'});
-      expect(_fieldText(tester, 0), 'Café');
-      expect(_fieldText(tester, 1), isEmpty);
-      expect(_fieldText(tester, 2), 'kg');
-    });
+      expect(latest?.name, '  Café  ');
 
-    testWidgets('rejects a whitespace-only patch without emitting', (
-      tester,
-    ) async {
-      var calls = 0;
-
-      await _pumpEditor(
-        tester,
-        ProductEditBlock(
-          onSave: (_) {
-            calls++;
-          },
-        ),
-      );
-
-      final fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), '   ');
-      await tester.enterText(fields.at(1), '\t');
-      await tester.enterText(fields.at(2), '  ');
+      await tester.enterText(fields.at(1), 'Marca X');
       await tester.pump();
 
-      await tester.tap(find.widgetWithText(FilledButton, _strings.applyAction));
+      expect(calls, 2);
+      expect(latest?.name, '  Café  ');
+      expect(latest?.brand, 'Marca X');
+
+      await tester.enterText(fields.at(2), 'kg');
       await tester.pump();
 
-      expect(calls, 0);
-      expect(find.text(_strings.productPatchEmptyError), findsOneWidget);
+      expect(calls, 3);
+      expect(latest?.name, '  Café  ');
+      expect(latest?.brand, 'Marca X');
+      expect(latest?.unit, 'kg');
+
+      // Edits are applied live; there is no separate apply action.
+      expect(find.byType(FilledButton), findsNothing);
     });
 
-    testWidgets('use suggestion updates the name without saving', (
-      tester,
-    ) async {
-      var calls = 0;
+    testWidgets('use suggestion applies the suggested name', (tester) async {
+      ProductPatch? latest;
 
       await _pumpEditor(
         tester,
         ProductEditBlock(
           suggestedName: 'Café',
           initialName: 'Outro nome',
-          onSave: (_) {
-            calls++;
+          onChanged: (patch) {
+            latest = patch;
           },
         ),
       );
@@ -164,7 +138,7 @@ void main() {
       await tester.pump();
 
       expect(_fieldText(tester, 0), 'Café');
-      expect(calls, 0);
+      expect(latest?.name, 'Café');
     });
 
     testWidgets('updates controllers when the selected product changes', (
@@ -179,7 +153,7 @@ void main() {
             brand: 'Marca A',
             unit: 'kg',
           ),
-          onSave: _noopSave,
+          onChanged: _noopChanged,
         ),
       );
 
@@ -196,7 +170,7 @@ void main() {
             brand: 'Marca B',
             unit: 'L',
           ),
-          onSave: _noopSave,
+          onChanged: _noopChanged,
         ),
       );
 
@@ -211,7 +185,7 @@ void main() {
         ProductEditBlock(
           suggestedName: 'Sugestão',
           showSuggestedName: false,
-          onSave: (_) {},
+          onChanged: (_) {},
         ),
       );
 
@@ -248,7 +222,7 @@ void main() {
                       unit: 'kg',
                     ),
                     suggestedName: 'Sugestão',
-                    onSave: (_) {},
+                    onChanged: (_) {},
                   ),
                 ),
               ),
@@ -263,4 +237,4 @@ void main() {
   });
 }
 
-void _noopSave(ProductPatch patch) {}
+void _noopChanged(ProductPatch patch) {}

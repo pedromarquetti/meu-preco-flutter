@@ -201,7 +201,7 @@ void main() {
       final page = await dependencies.productsRepository.search(q: 'arroz');
       final id = page.items.single.id!;
 
-      final detail = await dependencies.productsRepository.detail(id);
+      final detail = await dependencies.productsRepository.getProduct(id);
       expect(detail.name, 'Arroz Tipo 1 5kg');
       expect(detail.gtin, '7891234567890');
 
@@ -221,7 +221,7 @@ void main() {
       );
 
       await expectLater(
-        dependencies.productsRepository.detail(9999),
+        dependencies.productsRepository.getProduct(9999),
         throwsA(isA<NotFoundException>()),
       );
     });

@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../core/models/models.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
-/// Inline, explicitly-saved editor for a product's name, brand and unit.
+/// Inline editor for a product's name, brand and unit.
 ///
-/// The widget owns its text controllers and only emits a normalized
-/// [ProductPatch] when the user presses the apply action. Explicit draft values
-/// ([initialName], [initialBrand], [initialUnit]) take precedence so edits
-/// survive rebuilds; missing values fall back to [initialProduct] and then, for
-/// the name, to [suggestedName].
+/// The widget owns its text controllers and emits a draft [ProductPatch] on
+/// every field change, so the parent always has the current values without a
+/// separate apply step. Explicit draft values ([initialName], [initialBrand],
+/// [initialUnit]) take precedence so edits survive rebuilds; missing values
+/// fall back to [initialProduct] and then, for the name, to [suggestedName].
 class ProductEditBlock extends StatefulWidget {
   const ProductEditBlock({
     super.key,
@@ -18,7 +18,7 @@ class ProductEditBlock extends StatefulWidget {
     this.initialName,
     this.initialBrand,
     this.initialUnit,
-    required this.onSave,
+    required this.onChanged,
     this.showSuggestedName = true,
   });
 
@@ -36,8 +36,11 @@ class ProductEditBlock extends StatefulWidget {
   final String? initialBrand;
   final String? initialUnit;
 
-  /// Called once, with a trimmed patch, when the user explicitly applies edits.
-  final ValueChanged<ProductPatch> onSave;
+  /// Called with the current, untrimmed draft values whenever a field changes.
+  ///
+  /// Consumers should normalize the values (for example, trimming them) when
+  /// they build API requests.
+  final ValueChanged<ProductPatch> onChanged;
 
   /// Whether to show the read-only suggested-name row.
   final bool showSuggestedName;
@@ -50,7 +53,6 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
   final _nameController = TextEditingController();
   final _brandController = TextEditingController();
   final _unitController = TextEditingController();
-  bool _showEmptyError = false;
 
   @override
   void initState() {
@@ -67,7 +69,6 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
         oldWidget.initialBrand != widget.initialBrand ||
         oldWidget.initialUnit != widget.initialUnit) {
       _syncControllers();
-      _showEmptyError = false;
     }
   }
 
@@ -81,15 +82,30 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
 
   void _syncControllers() {
     final product = widget.initialProduct;
-    _nameController.text =
-        _nonEmpty(widget.initialName) ??
-        _nonEmpty(product?.name) ??
-        _nonEmpty(widget.suggestedName) ??
-        '';
-    _brandController.text =
-        _nonEmpty(widget.initialBrand) ?? _nonEmpty(product?.brand) ?? '';
-    _unitController.text =
-        _nonEmpty(widget.initialUnit) ?? _nonEmpty(product?.unit) ?? '';
+    // A non-null draft value (including an intentionally cleared empty string)
+    // wins over product/suggestion defaults, so clearing a field is preserved.
+    _setTextIfChanged(
+      _nameController,
+      widget.initialName ??
+          _nonEmpty(product?.name) ??
+          _nonEmpty(widget.suggestedName) ??
+          '',
+    );
+    _setTextIfChanged(
+      _brandController,
+      widget.initialBrand ?? _nonEmpty(product?.brand) ?? '',
+    );
+    _setTextIfChanged(
+      _unitController,
+      widget.initialUnit ?? _nonEmpty(product?.unit) ?? '',
+    );
+  }
+
+  /// Avoids rewriting identical text, which would move the caret to the start
+  /// while the user is typing and the parent rebuilds with the emitted draft.
+  void _setTextIfChanged(TextEditingController controller, String value) {
+    if (controller.text == value) return;
+    controller.text = value;
   }
 
   void _useSuggestion() {
@@ -99,45 +115,23 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
     _nameController.selection = TextSelection.collapsed(
       offset: suggestion.length,
     );
-    if (_showEmptyError) {
-      setState(() => _showEmptyError = false);
-    }
+    _emitPatch();
   }
 
-  void _apply() {
-    final name = _nameController.text.trim();
-    final brand = _brandController.text.trim();
-    final unit = _unitController.text.trim();
-
-    if (name.isEmpty && brand.isEmpty && unit.isEmpty) {
-      setState(() => _showEmptyError = true);
-      return;
-    }
-
-    _nameController.text = name;
-    _brandController.text = brand;
-    _unitController.text = unit;
-    setState(() => _showEmptyError = false);
-    widget.onSave(
+  void _emitPatch() {
+    widget.onChanged(
       ProductPatch(
-        name: name.isEmpty ? null : name,
-        brand: brand.isEmpty ? null : brand,
-        unit: unit.isEmpty ? null : unit,
+        name: _nameController.text,
+        brand: _brandController.text,
+        unit: _unitController.text,
       ),
     );
-  }
-
-  void _clearErrorOnEdit() {
-    if (_showEmptyError) {
-      setState(() => _showEmptyError = false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final suggestion = _nonEmpty(widget.suggestedName);
-    final messenger = ScaffoldMessenger.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -159,7 +153,7 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
         ],
         TextField(
           controller: _nameController,
-          onChanged: (_) => _clearErrorOnEdit(),
+          onChanged: (_) => _emitPatch(),
           decoration: InputDecoration(
             labelText: strings.nameLabel,
             border: const OutlineInputBorder(),
@@ -168,7 +162,7 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
         const SizedBox(height: 8),
         TextField(
           controller: _brandController,
-          onChanged: (_) => _clearErrorOnEdit(),
+          onChanged: (_) => _emitPatch(),
           decoration: InputDecoration(
             labelText: strings.productBrandLabel,
             border: const OutlineInputBorder(),
@@ -177,29 +171,10 @@ class _ProductEditBlockState extends State<ProductEditBlock> {
         const SizedBox(height: 8),
         TextField(
           controller: _unitController,
-          onChanged: (_) => _clearErrorOnEdit(),
+          onChanged: (_) => _emitPatch(),
           decoration: InputDecoration(
             labelText: strings.productUnitLabel,
             border: const OutlineInputBorder(),
-          ),
-        ),
-        if (_showEmptyError) ...[
-          const SizedBox(height: 8),
-          Text(
-            strings.productPatchEmptyError,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
-        const SizedBox(height: 12),
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: FilledButton.icon(
-            onPressed: () => {
-              _apply(),
-              messenger.showSnackBar(SnackBar(content: Text(strings.success))),
-            },
-            icon: const Icon(Icons.check),
-            label: Text(strings.applyAction),
           ),
         ),
       ],

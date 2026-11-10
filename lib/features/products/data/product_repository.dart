@@ -19,7 +19,7 @@ abstract interface class ProductRepository {
   });
 
   /// `GET /products/{id}` — one product.
-  Future<ProductView> detail(int id);
+  Future<ProductView> getProduct(int id);
 
   /// `GET /products/{id}/history` — price curve and per-unit aggregates.
   Future<ProductHistory> history(int id, {DateTime? from, DateTime? to});
@@ -56,7 +56,7 @@ class ApiProductRepository implements ProductRepository {
   }
 
   @override
-  Future<ProductView> detail(int id) async {
+  Future<ProductView> getProduct(int id) async {
     final data = await _client.get('/products/$id');
     return ProductView.fromJson(_asObject(data));
   }
