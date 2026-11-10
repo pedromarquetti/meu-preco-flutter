@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
@@ -264,7 +266,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
     if (_error != null && _results.isEmpty) {
       return ErrorView(
         error: _error!,
-        onRetry: () => setState(() => _internalController.retry()),
+        onRetry: () => unawaited(_internalController.retry()),
       );
     }
 

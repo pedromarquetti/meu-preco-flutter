@@ -118,6 +118,35 @@ void main() {
       expect(find.byType(FilledButton), findsNothing);
     });
 
+    testWidgets('emits cleared optional fields as explicit empty drafts', (
+      tester,
+    ) async {
+      ProductPatch? latest;
+
+      await _pumpEditor(
+        tester,
+        ProductEditBlock(
+          initialProduct: const ProductView(
+            id: 10,
+            name: 'Café',
+            brand: 'Marca X',
+            unit: 'kg',
+          ),
+          onChanged: (patch) => latest = patch,
+        ),
+      );
+
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(1), '');
+      await tester.enterText(fields.at(2), '');
+      await tester.pump();
+
+      expect(_fieldText(tester, 1), isEmpty);
+      expect(_fieldText(tester, 2), isEmpty);
+      expect(latest?.brand, isEmpty);
+      expect(latest?.unit, isEmpty);
+    });
+
     testWidgets('use suggestion applies the suggested name', (tester) async {
       ProductPatch? latest;
 

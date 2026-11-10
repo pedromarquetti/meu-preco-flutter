@@ -80,7 +80,7 @@ void main() {
   });
 
   group('detail', () {
-    test('parses a single product', () async {
+    test('parses a single product from the detail endpoint', () async {
       late Uri uri;
       final repository = repositoryWith((request) async {
         uri = request.url;
@@ -91,6 +91,25 @@ void main() {
 
       expect(uri.path, '/api/v1/products/7');
       expect(product.id, 7);
+      expect(product.name, 'Arroz Tipo 1 5kg');
+      expect(product.brand, 'Marca Boa');
+      expect(product.unit, 'kg');
+    });
+
+    test('surfaces a typed failure when the product is missing', () async {
+      final repository = repositoryWith(
+        (_) async => http.Response(
+          jsonEncode({
+            'error': {'code': 'not_found', 'message': 'Product not found'},
+          }),
+          404,
+        ),
+      );
+
+      await expectLater(
+        repository.getProduct(7),
+        throwsA(isA<NotFoundException>()),
+      );
     });
   });
 

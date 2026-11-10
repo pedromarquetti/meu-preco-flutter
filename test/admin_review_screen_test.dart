@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/app/app_dependencies.dart';
@@ -28,8 +30,11 @@ _pumpReviewScreen(
   required List<ReviewItem> items,
   Map<int, ProductView> products = const {},
   Map<int, Object> productErrors = const {},
+  Completer<void>? detailGate,
   Object? mergeError,
   Object? batchAssignError,
+  Object? updateProductError,
+  Completer<void>? batchAssignGate,
 }) async {
   tester.view.physicalSize = const Size(900, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -41,11 +46,14 @@ _pumpReviewScreen(
       page: const Page(total: 2, totalPages: 1),
     )
     ..mergeError = mergeError
-    ..batchAssignError = batchAssignError;
+    ..batchAssignError = batchAssignError
+    ..updateProductError = updateProductError
+    ..batchAssignGate = batchAssignGate;
 
   final productsRepository = FakeProductRepository()
     ..detailResults.addAll(products)
-    ..detailErrors.addAll(productErrors);
+    ..detailErrors.addAll(productErrors)
+    ..detailGate = detailGate;
 
   final dependencies = buildTestDependencies(
     adminRepository: adminRepository,
@@ -228,5 +236,184 @@ void main() {
       );
       expect(find.byType(ProductEditBlock), findsWidgets);
     });
+
+    testWidgets('moves between selection and edit steps', (tester) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Arroz')],
+        products: {10: const ProductView(id: 5, name: 'Arroz', unit: 'kg')},
+      );
+
+      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(ProductEditBlock), findsNothing);
+
+      await _selectAllAndOpenEditors(tester);
+
+      expect(find.byType(CheckboxListTile), findsNothing);
+      expect(find.byType(ProductEditBlock), findsOneWidget);
+      expect(find.text(_strings.goBack), findsOneWidget);
+
+      await tester.tap(find.text(_strings.goBack));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(ProductEditBlock), findsNothing);
+    });
+
+    testWidgets('shows a loading state while product details are fetched', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Arroz')],
+        products: {
+          10: const ProductView(id: 5, name: 'Arroz Carregado', unit: 'kg'),
+        },
+        detailGate: gate,
+      );
+
+      final checkboxes = find.byType(CheckboxListTile);
+      await tester.tap(checkboxes.first);
+      await tester.pump();
+      await tester.tap(
+        find.widgetWithText(FilledButton, _strings.adminBatchAssign),
+      );
+      await tester.pump();
+
+      expect(find.text(_strings.adminReviewLoadingDetails), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byType(ProductEditBlock), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProductEditBlock), findsOneWidget);
+      expect(find.text(_strings.adminReviewLoadingDetails), findsNothing);
+      expect(_fieldText(tester, 0), 'Arroz Carregado');
+    });
+
+    testWidgets('retries a failed product-detail load', (tester) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Arroz')],
+        productErrors: {10: const NetworkException()},
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      expect(find.text(_strings.adminReviewDetailsError), findsOneWidget);
+      expect(find.byType(ProductEditBlock), findsNothing);
+
+      repos.products
+        ..detailErrors.clear()
+        ..detailResults[10] = const ProductView(
+          id: 5,
+          name: 'Arroz Recuperado',
+          unit: 'kg',
+        );
+
+      await tester.tap(find.text(_strings.retryAction));
+      await tester.pumpAndSettle();
+
+      expect(find.text(_strings.adminReviewDetailsError), findsNothing);
+      expect(find.byType(ProductEditBlock), findsOneWidget);
+      expect(_fieldText(tester, 0), 'Arroz Recuperado');
+    });
+
+    testWidgets('validates required name and unit before submitting', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Produto Novo', unit: 'un')],
+        productErrors: {10: const NotFoundException()},
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '   ');
+      await tester.enterText(fields.at(2), '   ');
+      await tester.pump();
+
+      await _assignAll(tester);
+
+      expect(find.text(_strings.adminReviewNameRequired), findsOneWidget);
+      expect(repos.admin.batchAssignCalls, 0);
+      expect(repos.admin.mergeCalls, isEmpty);
+      expect(repos.admin.updateProductCalls, isEmpty);
+
+      // Let the first snackbar dismiss so the next one can be shown.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(fields.at(0), 'Produto Válido');
+      await tester.pump();
+      await _assignAll(tester);
+
+      expect(find.text(_strings.adminReviewUnitRequired), findsOneWidget);
+      expect(repos.admin.batchAssignCalls, 0);
+      expect(repos.admin.mergeCalls, isEmpty);
+      expect(repos.admin.updateProductCalls, isEmpty);
+    });
+
+    testWidgets('trims created product values before batch assignment', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Produto Novo', unit: 'un')],
+        productErrors: {10: const NotFoundException()},
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '  Produto Novo  ');
+      await tester.enterText(fields.at(1), '  Marca X  ');
+      await tester.enterText(fields.at(2), '  un  ');
+      await tester.pump();
+
+      await _assignAll(tester);
+
+      final assignment = repos.admin.batchAssignRequests.single.single;
+      expect(assignment.action, AssignmentAction.create);
+      expect(assignment.name, 'Produto Novo');
+      expect(assignment.brand, 'Marca X');
+      expect(assignment.unit, 'un');
+    });
+
+    testWidgets('trims existing-product updates before patching', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Arroz')],
+        products: {
+          10: const ProductView(
+            id: 5,
+            name: 'Arroz Antigo',
+            brand: 'Marca A',
+            unit: 'kg',
+          ),
+        },
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      await tester.enterText(find.byType(TextField).at(0), '  Arroz Novo  ');
+      await tester.pump();
+      await _assignAll(tester);
+
+      final patch = repos.admin.updateProductCalls.single.patch;
+      expect(repos.admin.updateProductCalls.single.id, 5);
+      expect(patch.name, 'Arroz Novo');
+    });
   });
+}
+
+String _fieldText(WidgetTester tester, int index) {
+  final field = tester.widget<TextField>(find.byType(TextField).at(index));
+  return field.controller?.text ?? '';
 }

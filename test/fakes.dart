@@ -394,13 +394,22 @@ class FakeAdminRepository implements AdminRepository {
   ReviewQueuePage? needsReviewResult;
   BatchAssignResult? batchAssignResult;
   ProductPage? searchResult;
+  ProductView? updateProductResult;
+  MergeResult? mergeResult;
 
   Object? listUsersError;
   Object? updateUserRoleError;
   Object? needsReviewError;
   Object? batchAssignError;
+  Object? searchProductsError;
   Object? updateProductError;
   Object? mergeError;
+
+  /// Optional gates that hold a mutating call in flight so tests can assert
+  /// duplicate-submission protection and loading states.
+  Completer<void>? batchAssignGate;
+  Completer<void>? updateProductGate;
+  Completer<void>? mergeGate;
 
   int listUsersCalls = 0;
   int updateUserRoleCalls = 0;
@@ -411,6 +420,7 @@ class FakeAdminRepository implements AdminRepository {
   final List<({int id, ProductPatch patch})> updateProductCalls = [];
   final List<({int fromId, int toId})> mergeCalls = [];
   final List<List<Assignment>> batchAssignRequests = [];
+  final List<({String? q, int page, int pageSize})> searchProductRequests = [];
 
   @override
   Future<UserPage> listUsers({int page = 1, int pageSize = 50}) async {
@@ -460,6 +470,7 @@ class FakeAdminRepository implements AdminRepository {
   Future<BatchAssignResult> batchAssign(List<Assignment> assignments) async {
     batchAssignCalls++;
     batchAssignRequests.add(List<Assignment>.of(assignments));
+    await batchAssignGate?.future;
     if (batchAssignError != null) throw batchAssignError!;
     return batchAssignResult ??
         const BatchAssignResult(assigned: null, created: 0);
@@ -468,8 +479,9 @@ class FakeAdminRepository implements AdminRepository {
   @override
   Future<ProductView> updateProduct(int id, ProductPatch patch) async {
     updateProductCalls.add((id: id, patch: patch));
+    await updateProductGate?.future;
     if (updateProductError != null) throw updateProductError!;
-    return sampleProduct(id: id);
+    return updateProductResult ?? sampleProduct(id: id);
   }
 
   @override
@@ -479,19 +491,23 @@ class FakeAdminRepository implements AdminRepository {
     int pageSize = 50,
   }) async {
     searchProductsCalls++;
+    searchProductRequests.add((q: q, page: page, pageSize: pageSize));
+    if (searchProductsError != null) throw searchProductsError!;
     return searchResult ?? ProductPage(items: const [], page: const Page());
   }
 
   @override
   Future<MergeResult> mergeProducts(int fromId, int toId) async {
     mergeCalls.add((fromId: fromId, toId: toId));
+    await mergeGate?.future;
     if (mergeError != null) throw mergeError!;
-    return MergeResult(
-      fromId: fromId,
-      toId: toId,
-      logsMoved: 0,
-      dupRemoved: false,
-    );
+    return mergeResult ??
+        MergeResult(
+          fromId: fromId,
+          toId: toId,
+          logsMoved: 0,
+          dupRemoved: false,
+        );
   }
 }
 
@@ -551,8 +567,13 @@ class FakeProductRepository implements ProductRepository {
   Object? historyError;
 
   FutureOr<ProductPage> Function(int page, String? q)? searchHandler;
+  FutureOr<ProductView> Function(int id)? detailHandler;
   FutureOr<ProductHistory> Function(DateTime? from, DateTime? to)?
   historyHandler;
+
+  /// Optional gate that holds a detail request in flight so widget tests can
+  /// observe loading states before completing it.
+  Completer<void>? detailGate;
 
   int searchCalls = 0;
   int detailCalls = 0;
@@ -611,8 +632,11 @@ class FakeProductRepository implements ProductRepository {
   Future<ProductView> getProduct(int id) async {
     detailCalls++;
     detailRequests.add(id);
+    await detailGate?.future;
     final error = detailErrors[id] ?? detailError;
     if (error != null) throw error;
+    final handler = detailHandler;
+    if (handler != null) return await handler(id);
     return detailResults[id] ?? detailResult ?? sampleProduct(id: id);
   }
 
