@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../config/config_provider.dart';
+import '../errors/api_error_code.dart';
 import '../errors/app_exception.dart';
 
 /// A decoded response that does not throw on non-2xx statuses.
@@ -308,6 +309,94 @@ class ApiClient {
     }
 
     final status = response.statusCode;
+    final retryAfter = _retryAfter(response);
+    final errorCode = ApiErrorCode.fromWire(code);
+
+    if (errorCode != null) {
+      return switch (errorCode) {
+        ApiErrorCode.unauthorized ||
+        ApiErrorCode.invalidCredentials ||
+        ApiErrorCode.invalidRefreshToken ||
+        ApiErrorCode.refreshReuseDetected => UnauthorizedException(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.forbidden => ForbiddenException(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.notFound ||
+        ApiErrorCode.receiptNotFound ||
+        ApiErrorCode.previewNotFound ||
+        ApiErrorCode.challengeNotFound => NotFoundException(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.conflict ||
+        ApiErrorCode.inUse ||
+        ApiErrorCode.userExists ||
+        ApiErrorCode.challengeUsed ||
+        ApiErrorCode.previewAlreadyCommitted => ConflictException(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.captchaRequired ||
+        ApiErrorCode.captchaWrongSolution => PreconditionFailedException(
+          message: message,
+          code: code,
+          statusCode: status,
+          details: details,
+        ),
+        ApiErrorCode.invalidAccessKey ||
+        ApiErrorCode.invalidEmail ||
+        ApiErrorCode.invalidFilter ||
+        ApiErrorCode.invalidName ||
+        ApiErrorCode.invalidPassword ||
+        ApiErrorCode.invalidQrPayload ||
+        ApiErrorCode.invalidRequest ||
+        ApiErrorCode.invalidResolution ||
+        ApiErrorCode.invalidRole ||
+        ApiErrorCode.challengeExpired ||
+        ApiErrorCode.previewExpired ||
+        ApiErrorCode.previewSnapshotMissing => ValidationException(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.invalidAssignment => InvalidAssignment(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.rateLimited ||
+        ApiErrorCode.challengeLocked ||
+        ApiErrorCode.upstreamRateLimited => RateLimitedException(
+          message: message,
+          code: code,
+          statusCode: status,
+          retryAfter: retryAfter,
+        ),
+        ApiErrorCode.internalError ||
+        ApiErrorCode.upstreamError ||
+        ApiErrorCode.previewSnapshotUnreadable => ServerException(
+          message: message,
+          code: code,
+          statusCode: status,
+        ),
+        ApiErrorCode.unsupportedUf => ApiException(
+          message: message,
+          code: code,
+          statusCode: status,
+          retryAfter: retryAfter,
+          details: details,
+        ),
+      };
+    }
+
     return switch (status) {
       401 => UnauthorizedException(message: message, code: code),
       403 => ForbiddenException(message: message, code: code),
@@ -322,7 +411,7 @@ class ApiClient {
       429 => RateLimitedException(
         message: message,
         code: code,
-        retryAfter: _retryAfter(response),
+        retryAfter: retryAfter,
       ),
       >= 500 => ServerException(
         message: message,
@@ -333,7 +422,7 @@ class ApiClient {
         message: message,
         code: code,
         statusCode: status,
-        retryAfter: _retryAfter(response),
+        retryAfter: retryAfter,
         details: details,
       ),
     };

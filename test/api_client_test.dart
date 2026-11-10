@@ -105,6 +105,183 @@ void main() {
     }
   });
 
+  test('maps documented API codes to typed failures', () async {
+    final cases = <({int status, String code, Matcher type})>[
+      (status: 401, code: 'unauthorized', type: isA<UnauthorizedException>()),
+      (
+        status: 401,
+        code: 'invalid_credentials',
+        type: isA<UnauthorizedException>(),
+      ),
+      (
+        status: 401,
+        code: 'invalid_refresh_token',
+        type: isA<UnauthorizedException>(),
+      ),
+      (
+        status: 401,
+        code: 'refresh_reuse_detected',
+        type: isA<UnauthorizedException>(),
+      ),
+      (status: 403, code: 'forbidden', type: isA<ForbiddenException>()),
+      (status: 404, code: 'not_found', type: isA<NotFoundException>()),
+      (status: 404, code: 'receipt_not_found', type: isA<NotFoundException>()),
+      (status: 404, code: 'preview_not_found', type: isA<NotFoundException>()),
+      (
+        status: 404,
+        code: 'challenge_not_found',
+        type: isA<NotFoundException>(),
+      ),
+      (status: 409, code: 'conflict', type: isA<ConflictException>()),
+      (status: 409, code: 'in_use', type: isA<ConflictException>()),
+      (status: 409, code: 'user_exists', type: isA<ConflictException>()),
+      (status: 409, code: 'challenge_used', type: isA<ConflictException>()),
+      (
+        status: 409,
+        code: 'preview_already_committed',
+        type: isA<ConflictException>(),
+      ),
+      (
+        status: 412,
+        code: 'captcha_required',
+        type: isA<PreconditionFailedException>(),
+      ),
+      (
+        status: 412,
+        code: 'captcha_wrong_solution',
+        type: isA<PreconditionFailedException>(),
+      ),
+      (
+        status: 422,
+        code: 'invalid_access_key',
+        type: isA<ValidationException>(),
+      ),
+      (status: 422, code: 'invalid_email', type: isA<ValidationException>()),
+      (status: 422, code: 'invalid_name', type: isA<ValidationException>()),
+      (status: 422, code: 'invalid_password', type: isA<ValidationException>()),
+      (
+        status: 422,
+        code: 'invalid_qr_payload',
+        type: isA<ValidationException>(),
+      ),
+      (
+        status: 422,
+        code: 'challenge_expired',
+        type: isA<ValidationException>(),
+      ),
+      (status: 422, code: 'preview_expired', type: isA<ValidationException>()),
+      (
+        status: 422,
+        code: 'preview_snapshot_missing',
+        type: isA<ValidationException>(),
+      ),
+      (status: 400, code: 'invalid_filter', type: isA<ValidationException>()),
+      (status: 400, code: 'invalid_request', type: isA<ValidationException>()),
+      (
+        status: 400,
+        code: 'invalid_resolution',
+        type: isA<ValidationException>(),
+      ),
+      (status: 400, code: 'invalid_role', type: isA<ValidationException>()),
+      (status: 400, code: 'invalid_assignment', type: isA<InvalidAssignment>()),
+      (status: 429, code: 'rate_limited', type: isA<RateLimitedException>()),
+      (
+        status: 429,
+        code: 'challenge_locked',
+        type: isA<RateLimitedException>(),
+      ),
+      (
+        status: 429,
+        code: 'upstream_rate_limited',
+        type: isA<RateLimitedException>(),
+      ),
+      (status: 500, code: 'internal_error', type: isA<ServerException>()),
+      (status: 502, code: 'upstream_error', type: isA<ServerException>()),
+      (
+        status: 500,
+        code: 'preview_snapshot_unreadable',
+        type: isA<ServerException>(),
+      ),
+      (status: 501, code: 'unsupported_uf', type: isA<ApiException>()),
+    ];
+
+    for (final entry in cases) {
+      final mock = MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'error': {'code': entry.code, 'message': 'backend message'},
+          }),
+          entry.status,
+        ),
+      );
+
+      await expectLater(
+        clientWith(mock).get('/anything'),
+        throwsA(
+          allOf(
+            entry.type,
+            isA<AppException>()
+                .having((e) => e.code, 'code', entry.code)
+                .having((e) => e.statusCode, 'statusCode', entry.status),
+          ),
+        ),
+        reason: '${entry.code} (${entry.status})',
+      );
+    }
+  });
+
+  test('preserves captcha challenge details on the typed failure', () async {
+    final mock = MockClient(
+      (_) async => http.Response(
+        jsonEncode({
+          'error': {
+            'code': 'captcha_required',
+            'message': 'solve the captcha',
+            'challenge_id': 'c1',
+            'image_url': '/api/v1/nfce/captcha/image/c1',
+          },
+        }),
+        412,
+      ),
+    );
+
+    await expectLater(
+      clientWith(mock).get('/anything'),
+      throwsA(
+        isA<PreconditionFailedException>()
+            .having((e) => e.details?['challenge_id'], 'challenge_id', 'c1')
+            .having(
+              (e) => e.details?['image_url'],
+              'image_url',
+              '/api/v1/nfce/captcha/image/c1',
+            ),
+      ),
+    );
+  });
+
+  test('reads Retry-After for challenge_locked', () async {
+    final mock = MockClient(
+      (_) async => http.Response(
+        jsonEncode({
+          'error': {'code': 'challenge_locked', 'message': 'locked'},
+        }),
+        429,
+        headers: {'retry-after': '12'},
+      ),
+    );
+
+    await expectLater(
+      clientWith(mock).get('/anything'),
+      throwsA(
+        isA<RateLimitedException>().having(
+          (e) => e.retryAfter,
+          'retryAfter',
+          const Duration(seconds: 12),
+        ),
+      ),
+    );
+  });
+
   test('reads Retry-After into the rate-limit exception', () async {
     final mock = MockClient(
       (_) async => http.Response(

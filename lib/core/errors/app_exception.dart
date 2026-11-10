@@ -80,42 +80,60 @@ class ApiException extends AppException {
 
 /// 401 — missing, expired, or invalid credentials.
 class UnauthorizedException extends ApiException {
-  const UnauthorizedException({super.message, super.code})
-    : super(statusCode: 401);
+  const UnauthorizedException({
+    super.message,
+    super.code,
+    super.statusCode = 401,
+  });
 }
 
 /// 403 — authenticated but not allowed.
 class ForbiddenException extends ApiException {
-  const ForbiddenException({super.message, super.code})
-    : super(statusCode: 403);
+  const ForbiddenException({super.message, super.code, super.statusCode = 403});
 }
 
 /// 404 — resource not found.
 class NotFoundException extends ApiException {
-  const NotFoundException({super.message, super.code}) : super(statusCode: 404);
+  const NotFoundException({super.message, super.code, super.statusCode = 404});
+}
+
+/// 400 — the batch/merge assignment is malformed or references invalid rows.
+class InvalidAssignment extends ApiException {
+  const InvalidAssignment({super.message, super.code, super.statusCode = 400});
 }
 
 /// 409 — conflicting state (e.g. already committed).
 class ConflictException extends ApiException {
-  const ConflictException({super.message, super.code}) : super(statusCode: 409);
+  const ConflictException({super.message, super.code, super.statusCode = 409});
 }
 
 /// 412 — precondition failed (e.g. captcha required).
 class PreconditionFailedException extends ApiException {
-  const PreconditionFailedException({super.message, super.code, super.details})
-    : super(statusCode: 412);
+  const PreconditionFailedException({
+    super.message,
+    super.code,
+    super.statusCode = 412,
+    super.details,
+  });
 }
 
 /// 422 — request failed validation.
 class ValidationException extends ApiException {
-  const ValidationException({super.message, super.code})
-    : super(statusCode: 422);
+  const ValidationException({
+    super.message,
+    super.code,
+    super.statusCode = 422,
+  });
 }
 
 /// 429 — rate limited.
 class RateLimitedException extends ApiException {
-  const RateLimitedException({super.message, super.code, super.retryAfter})
-    : super(statusCode: 429, retryable: true);
+  const RateLimitedException({
+    super.message,
+    super.code,
+    super.statusCode = 429,
+    super.retryAfter,
+  }) : super(retryable: true);
 }
 
 /// 5xx — server-side failure.

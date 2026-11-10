@@ -40,7 +40,17 @@
   "needAccountAction": "Criar uma conta",
   "alreadyHaveAccountAction": "Já tenho uma conta",
   "passwordsDoNotMatch": "As senhas não coincidem",
-  "invalidAssignment":"Atribuição Inválida",
+  "invalidAssignment": "Atribuição inválida. Verifique os itens e tente novamente.",
+  "invalidRequestError": "Requisição inválida. Verifique os dados e tente novamente.",
+  "invalidFilterError": "Filtro inválido. Ajuste os critérios e tente novamente.",
+  "invalidRoleError": "Perfil inválido.",
+  "invalidDateRangeError": "Período inválido. Verifique as datas.",
+  "conflictError": "Este registro já existe ou foi alterado por outra pessoa.",
+  "inUseError": "Este item está em uso e não pode ser excluído.",
+  "internalServerError": "Erro interno do servidor. Tente novamente.",
+  "upstreamRateLimitedError": "O portal da SEFAZ está sobrecarregado. Tente novamente em instantes.",
+  "previewSnapshotUnreadableError": "Não foi possível ler o cupom salvo. Leia o cupom novamente.",
+  "captchaRequiredError": "Resolva a verificação de segurança para continuar.",
   "invalidIdentifierError": "Informe um e-mail ou nome",
   "invalidNameError": "Informe um nome de até 100 caracteres",
   "invalidEmailError": "Informe um e-mail válido",
@@ -230,7 +240,7 @@
   "adminReviewNameRequired": "Informe o nome de todos os itens selecionados.",
   "adminReviewUnitRequired": "Informe a unidade de todos os itens selecionados.",
   "adminReviewMergeTargetRequired": "Selecione um produto de destino válido para cada mesclagem.",
-  "adminReviewPartialFailure": "Algumas operações falharam e os itens não foram recarregados.",
+  "adminReviewPartialFailure": "Algumas operações falharam e os itens não foram recarregados",
   "themeSettingsSection": "Tema",
   "@@locale": "pt",
   "@priceChartSemantics": {
@@ -922,5 +932,38 @@
   },
   "@useSuggestionAction": {
     "description": "Use suggested name action"
+  },
+  "@invalidAssignment": {
+    "description": "Batch assignment or merge payload is invalid"
+  },
+  "@invalidRequestError": {
+    "description": "Malformed API request body"
+  },
+  "@invalidFilterError": {
+    "description": "Invalid paging or filter parameters"
+  },
+  "@invalidRoleError": {
+    "description": "Invalid user role"
+  },
+  "@invalidDateRangeError": {
+    "description": "Invalid product history date range"
+  },
+  "@conflictError": {
+    "description": "Resource conflicts with existing state"
+  },
+  "@inUseError": {
+    "description": "Resource is still referenced and cannot be removed"
+  },
+  "@internalServerError": {
+    "description": "Unexpected server-side failure"
+  },
+  "@upstreamRateLimitedError": {
+    "description": "The fiscal portal is rate limiting requests"
+  },
+  "@previewSnapshotUnreadableError": {
+    "description": "A stored receipt preview cannot be read"
+  },
+  "@captchaRequiredError": {
+    "description": "A captcha challenge must be solved"
   }
 }

@@ -140,7 +140,45 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passwordsDoNotMatch => 'As senhas não coincidem';
 
   @override
-  String get invalidAssignment => 'Atribuição Inválida';
+  String get invalidAssignment =>
+      'Atribuição inválida. Verifique os itens e tente novamente.';
+
+  @override
+  String get invalidRequestError =>
+      'Requisição inválida. Verifique os dados e tente novamente.';
+
+  @override
+  String get invalidFilterError =>
+      'Filtro inválido. Ajuste os critérios e tente novamente.';
+
+  @override
+  String get invalidRoleError => 'Perfil inválido.';
+
+  @override
+  String get invalidDateRangeError => 'Período inválido. Verifique as datas.';
+
+  @override
+  String get conflictError =>
+      'Este registro já existe ou foi alterado por outra pessoa.';
+
+  @override
+  String get inUseError => 'Este item está em uso e não pode ser excluído.';
+
+  @override
+  String get internalServerError =>
+      'Erro interno do servidor. Tente novamente.';
+
+  @override
+  String get upstreamRateLimitedError =>
+      'O portal da SEFAZ está sobrecarregado. Tente novamente em instantes.';
+
+  @override
+  String get previewSnapshotUnreadableError =>
+      'Não foi possível ler o cupom salvo. Leia o cupom novamente.';
+
+  @override
+  String get captchaRequiredError =>
+      'Resolva a verificação de segurança para continuar.';
 
   @override
   String get invalidIdentifierError => 'Informe um e-mail ou nome';
@@ -744,7 +782,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get adminReviewPartialFailure =>
-      'Algumas operações falharam e os itens não foram recarregados.';
+      'Algumas operações falharam e os itens não foram recarregados';
 
   @override
   String get themeSettingsSection => 'Tema';

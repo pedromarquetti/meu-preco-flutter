@@ -340,11 +340,71 @@ abstract class AppLocalizations {
   /// **'As senhas não coincidem'**
   String get passwordsDoNotMatch;
 
-  /// No description provided for @invalidAssignment.
+  /// Batch assignment or merge payload is invalid
   ///
   /// In pt, this message translates to:
-  /// **'Atribuição Inválida'**
+  /// **'Atribuição inválida. Verifique os itens e tente novamente.'**
   String get invalidAssignment;
+
+  /// Malformed API request body
+  ///
+  /// In pt, this message translates to:
+  /// **'Requisição inválida. Verifique os dados e tente novamente.'**
+  String get invalidRequestError;
+
+  /// Invalid paging or filter parameters
+  ///
+  /// In pt, this message translates to:
+  /// **'Filtro inválido. Ajuste os critérios e tente novamente.'**
+  String get invalidFilterError;
+
+  /// Invalid user role
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil inválido.'**
+  String get invalidRoleError;
+
+  /// Invalid product history date range
+  ///
+  /// In pt, this message translates to:
+  /// **'Período inválido. Verifique as datas.'**
+  String get invalidDateRangeError;
+
+  /// Resource conflicts with existing state
+  ///
+  /// In pt, this message translates to:
+  /// **'Este registro já existe ou foi alterado por outra pessoa.'**
+  String get conflictError;
+
+  /// Resource is still referenced and cannot be removed
+  ///
+  /// In pt, this message translates to:
+  /// **'Este item está em uso e não pode ser excluído.'**
+  String get inUseError;
+
+  /// Unexpected server-side failure
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro interno do servidor. Tente novamente.'**
+  String get internalServerError;
+
+  /// The fiscal portal is rate limiting requests
+  ///
+  /// In pt, this message translates to:
+  /// **'O portal da SEFAZ está sobrecarregado. Tente novamente em instantes.'**
+  String get upstreamRateLimitedError;
+
+  /// A stored receipt preview cannot be read
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível ler o cupom salvo. Leia o cupom novamente.'**
+  String get previewSnapshotUnreadableError;
+
+  /// A captcha challenge must be solved
+  ///
+  /// In pt, this message translates to:
+  /// **'Resolva a verificação de segurança para continuar.'**
+  String get captchaRequiredError;
 
   /// InvalidIdentifier
   ///
@@ -1483,7 +1543,7 @@ abstract class AppLocalizations {
   /// Partial failure message after some review operations fail
   ///
   /// In pt, this message translates to:
-  /// **'Algumas operações falharam e os itens não foram recarregados.'**
+  /// **'Algumas operações falharam e os itens não foram recarregados'**
   String get adminReviewPartialFailure;
 
   /// Settings section header for theme selection
