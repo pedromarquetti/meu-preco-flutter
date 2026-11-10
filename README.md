@@ -16,6 +16,7 @@
     - [Release assumptions](#release-assumptions)
     - [Web limitations](#web-limitations)
   - [GitHub Actions and releases](#github-actions-and-releases)
+    - [Release workflow](#release-workflow)
   - [Architecture](#architecture)
   - [Documentation](#documentation)
 
@@ -273,13 +274,36 @@ CI installs the exact Flutter version declared in `pubspec.yaml`
 (`environment.flutter`), restores cached Flutter/Pub dependencies, and runs
 `flutter pub get --enforce-lockfile` before the remaining Flutter commands.
 
-The GH workflows will provide:
+The GH workflows provide:
 
 - Pull-request formatting, analysis, tests, Android debug build, and Web build.
 - Tagged signed Android APK and Web artifacts.
 - macOS iOS unsigned build validation, with signed App Store deployment only
   after Apple Developer credentials and provisioning are configured.
 - Protected production environments for signing and deployment secrets.
+
+### Release workflow
+
+- **Trigger:** a pushed tag matching `v*.*.*`, or a manual `workflow_dispatch`.
+- **Version check:** for tag pushes, the tag without the leading `v` must equal
+  the base version in `pubspec.yaml` (the part before `+`). A mismatched tag
+  fails before any artifact job runs.
+- **Validation gates:** formatting, analysis, tests, Android debug build, and
+  Web build run before the signed Android, Web, and unsigned iOS jobs.
+- **Artifacts:** the Android job uploads `android-release-apk` containing
+  `app-release.apk`; the Web job uploads `web-release` containing the built Web
+  bundle rooted at `index.html`.
+- **Publication:** only tag pushes create a GitHub Release. Manual dispatch
+  builds and uploads workflow artifacts without publishing a release. Release
+  assets are `app-release.apk` and `web-release.zip`; re-running a release
+  updates the existing release and overwrites its assets.
+- **iOS:** `macos-latest` runs an unsigned validation build. Signed iOS
+  distribution requires Apple credentials in a protected environment and is not
+  automated here.
+- **Environments and inputs:** `android-release`, `web-release`, and `release`
+  are protected environments. `vars.API_ORIGIN` is required, and the Android
+  release job needs `ANDROID_KEYSTORE_BASE64`, `STORE_PASSWORD`, `KEY_ALIAS`,
+  and `KEY_PASSWORD` secrets.
 
 Google Play publishing is deliberately deferred. The first CI/CD milestone is a
 signed APK that can be installed directly. App Bundle generation, Play App
