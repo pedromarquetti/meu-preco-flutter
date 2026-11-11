@@ -109,6 +109,8 @@ void main() {
       store.entries[AppConfigController.apiOriginKey],
       'https://api.example.com',
     );
+    expect(dependencies.authSession.isAuthenticated, isFalse);
+    expect(find.text(_strings.loginTitle), findsOneWidget);
   });
 
   testWidgets('an invalid host is rejected without saving', (tester) async {
@@ -153,6 +155,16 @@ void main() {
     final store = InMemoryKeyValueStore();
     final dependencies = await openSettings(tester, store: store);
     await dependencies.configController.saveOrigin('https://api.example.com');
+    await tester.pumpAndSettle();
+
+    // Changing the origin signs out; sign back in to reach Settings again.
+    await dependencies.authSession.login(
+      identifier: 'ada@example.com',
+      password: 'secret123',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(_strings.settingsTitle));
+    await tester.pumpAndSettle();
 
     await tester.tap(
       find.widgetWithText(OutlinedButton, _strings.settingsResetToDefault),
@@ -164,6 +176,7 @@ void main() {
       AppConfig.defaults().apiOrigin.toString(),
     );
     expect(store.entries, isEmpty);
+    expect(dependencies.authSession.isAuthenticated, isFalse);
   });
 
   testWidgets('connectivity check reports health and readiness', (

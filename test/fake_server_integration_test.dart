@@ -29,14 +29,15 @@ void main() {
 
   Future<AppDependencies> buildDependencies({
     InMemoryCredentialStore? credentialStore,
+    InMemoryKeyValueStore? store,
   }) async {
-    final store = InMemoryKeyValueStore();
-    final configController = AppConfigController(store: store);
+    final keyValueStore = store ?? InMemoryKeyValueStore();
+    final configController = AppConfigController(store: keyValueStore);
     await configController.load();
-    final themeController = ThemeController(store: store);
+    final themeController = ThemeController(store: keyValueStore);
     await themeController.load();
     final dependencies = AppDependencies(
-      store: store,
+      store: keyValueStore,
       configController: configController,
       themeController: themeController,
       credentialStore: credentialStore ?? InMemoryCredentialStore(),
@@ -88,8 +89,10 @@ void main() {
       'login persists a session that a fresh dependency graph restores',
       () async {
         final credentialStore = InMemoryCredentialStore();
+        final store = InMemoryKeyValueStore();
         final dependencies = await buildDependencies(
           credentialStore: credentialStore,
+          store: store,
         );
 
         final user = await dependencies.authSession.login(
@@ -105,6 +108,7 @@ void main() {
         // persisted session against GET /auth/me.
         final restored = await buildDependencies(
           credentialStore: credentialStore,
+          store: store,
         );
         await restored.authSession.restore();
         await restored.authSession.validate();

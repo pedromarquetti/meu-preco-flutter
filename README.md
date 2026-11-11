@@ -86,7 +86,8 @@ The app talks to a single
 [Meu Preço API](https://github.com/pedromarquetti/meu-preco) origin. On first
 boot it always asks for a server on the **select server** screen and only moves
 on to login after `GET /healthz` succeeds. The origin can be changed later on
-the Settings page without rebuilding.
+the Settings page without rebuilding; changing it signs out the current session
+so a token issued by one server is never sent to another.
 
 For deployments, bake a default origin (and optional request timeout) into the
 build with `--dart-define`:
@@ -299,7 +300,9 @@ package id, version, and label without printing any secret.
   served from the domain root.
 - **Browser storage** — session and preferences use browser storage
   (localStorage-backed), which is per-origin and can be cleared by the user or
-  the browser, unlike the platform keystore used on Android.
+  the browser, unlike the platform keystore used on Android. Changing the
+  configured API origin clears the stored session before the new origin is
+  saved.
 
 ## GitHub Actions and releases
 

@@ -149,5 +149,74 @@ void main() {
       await controller.load();
       expect(controller.isConfiguredByUser, isFalse);
     });
+
+    test('an origin change clears the session before persisting it', () async {
+      final store = InMemoryKeyValueStore();
+      final events = <String>[];
+      final controller = AppConfigController(
+        store: store,
+        onOriginChanged: () async {
+          events.add('reset');
+          expect(store.entries, isEmpty);
+        },
+      );
+
+      await controller.saveOrigin('https://api.example.com');
+
+      expect(events, ['reset']);
+      expect(
+        store.entries[AppConfigController.apiOriginKey],
+        'https://api.example.com',
+      );
+    });
+
+    test('saving the same normalized origin keeps the session', () async {
+      final store = InMemoryKeyValueStore();
+      var resets = 0;
+      final controller = AppConfigController(
+        store: store,
+        onOriginChanged: () async => resets++,
+      );
+
+      await controller.saveOrigin('https://api.example.com');
+      await controller.saveOrigin('https://api.example.com/api/v1/');
+
+      expect(resets, 1);
+    });
+
+    test(
+      'resetToDefault clears the session only when it changes origin',
+      () async {
+        final store = InMemoryKeyValueStore();
+        var resets = 0;
+        final controller = AppConfigController(
+          store: store,
+          onOriginChanged: () async => resets++,
+        );
+
+        await controller.saveOrigin('https://api.example.com');
+        await controller.resetToDefault();
+        await controller.resetToDefault();
+
+        expect(resets, 2);
+        expect(controller.isConfiguredByUser, isFalse);
+      },
+    );
+
+    test('an invalid origin never clears the session', () async {
+      final store = InMemoryKeyValueStore();
+      var resets = 0;
+      final controller = AppConfigController(
+        store: store,
+        onOriginChanged: () async => resets++,
+      );
+
+      await expectLater(
+        controller.saveOrigin('not-a-url'),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(resets, 0);
+    });
   });
 }

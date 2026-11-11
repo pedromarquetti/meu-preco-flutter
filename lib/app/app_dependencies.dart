@@ -52,6 +52,11 @@ class AppDependencies {
       credentialStore: credentialStore,
     );
 
+    // A token issued by one API must never be sent to another: changing the
+    // configured origin signs the user out, clearing both memory and storage
+    // before the new origin is persisted.
+    configController.bindOriginChanged(authSession.logout);
+
     // Authenticated transport for feature repositories: signs requests and
     // transparently recovers from an expired access token.
     final apiClient = ApiClient(
