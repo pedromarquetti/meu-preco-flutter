@@ -169,25 +169,42 @@ flutter test
 
 #### Android
 
-Build Android and Web validation artifacts with an explicit API origin:
+Build an Android validation artifact with an explicit API origin:
 
 ```sh
 flutter build apk --debug \
-  --dart-define=API_ORIGIN=https://api.meupreco.example
-
-flutter build web \
   --dart-define=API_ORIGIN=https://api.meupreco.example
 ```
 
 #### Web
 
-Host the Web build under a sub-path by passing the base href:
+Build the reproducible GitHub Pages bundle used by Actions:
 
 ```sh
-flutter build web \
-  --base-href=/meupreco/ \
-  --dart-define=API_ORIGIN=https://api.meupreco.example
+API_ORIGIN=https://api.meupreco.example scripts/build_web_pages.sh
 ```
+
+The script derives `--base-href` from `GITHUB_REPOSITORY` in Actions or from the
+local `origin` git remote, so forks deploy under their own Pages path without
+editing the repository name. It also:
+
+- verifies the installed Flutter version matches `pubspec.yaml`;
+- builds with `--release`, the derived `--base-href`, and the supplied
+  `API_ORIGIN`;
+- verifies `index.html`, `flutter_bootstrap.js`, and `main.dart.js` exist and
+  that `index.html` uses the expected base href;
+- rejects public source maps and common credential formats in the bundle.
+
+Release and Pages builds require an HTTPS `API_ORIGIN`. Use `--allow-http` only
+for local or CI validation against an `http://` origin such as
+`http://localhost:8080`:
+
+```sh
+API_ORIGIN=http://localhost:8080 scripts/build_web_pages.sh --allow-http
+```
+
+For custom hosting, override the derived base path with `BASE_HREF` or
+`--base-href` (it must start and end with `/`).
 
 #### MacOS
 
@@ -288,7 +305,8 @@ package id, version, and label without printing any secret.
 - **API origin** — bake the production origin at build time with
   `--dart-define=API_ORIGIN=https://api.meupreco.example`. Users can still
   change the server at runtime, but the deployed default must be HTTPS and
-  non-empty; the release workflow refuses an empty `vars.API_ORIGIN`.
+  non-empty; the release/Pages build script refuses an empty or non-HTTPS
+  `vars.API_ORIGIN`.
 - **CORS** — the backend must allow the exact Web origin (scheme, host, and
   port) and the methods and headers used by the app, including `Authorization`
   for bearer tokens and `Content-Type`. Preflight `OPTIONS` requests must also
@@ -296,8 +314,9 @@ package id, version, and label without printing any secret.
 - **HTTPS** — camera access requires a secure context, so serve the bundle over
   HTTPS. When the camera is denied or unavailable, the app falls back to pasting
   the QR payload or typing the access key manually.
-- **Sub-path hosting** — pass `--base-href=/meupreco/` when the bundle is not
-  served from the domain root.
+- **Sub-path hosting** — `scripts/build_web_pages.sh` derives the base href from
+  the GitHub repository (or the local git remote). Override it with
+  `BASE_HREF=/custom-path/` when the bundle is served from a different path.
 - **Browser storage** — session and preferences use browser storage
   (localStorage-backed), which is per-origin and can be cleared by the user or
   the browser, unlike the platform keystore used on Android. Changing the
@@ -491,7 +510,7 @@ unset STORE_PASSWORD KEY_PASSWORD
 Web bundle and the release zip:
 
 ```sh
-flutter build web --dart-define=API_ORIGIN="$API_ORIGIN"
+API_ORIGIN=https://api.meupreco.example scripts/build_web_pages.sh
 (cd build/web && zip -qr ../web-release.zip .)
 ```
 
