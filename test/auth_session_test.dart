@@ -51,6 +51,7 @@ void main() {
 
       expect(session.status, AuthStatus.authenticated);
       expect(session.accessToken, 'access-1');
+      expect(session.refreshToken, 'refresh-1');
       expect(session.user, user);
     });
   });
@@ -183,6 +184,7 @@ void main() {
       await session.login(identifier: 'ada@example.com', password: 'secret123');
       final firstAccess = session.accessToken;
       final firstRefresh = session.refreshToken;
+      final writesAfterLogin = store.writeCalls;
 
       final refreshed = await session.refreshAccessToken();
 
@@ -190,8 +192,13 @@ void main() {
       expect(repository.refreshCalls, 1);
       expect(session.accessToken, isNot(firstAccess));
       expect(session.refreshToken, isNot(firstRefresh));
-      expect(store.session?.accessToken, session.accessToken);
-      expect(store.session?.refreshToken, session.refreshToken);
+      // One write carries the complete rotated pair; neither token is ever
+      // persisted alone or mixed with the previous token.
+      expect(store.writeCalls, writesAfterLogin + 1);
+      final stored = store.writes.last;
+      expect(stored.accessToken, session.accessToken);
+      expect(stored.refreshToken, session.refreshToken);
+      expect(stored.user, user);
     });
 
     test('signs out and expires the session on failure', () async {
@@ -207,6 +214,16 @@ void main() {
       expect(session.status, AuthStatus.expired);
       expect(session.user, isNull);
       expect(store.session, isNull);
+
+      // The next browser start must not restore the expired credentials.
+      final restarted = AuthSession(
+        repository: repository,
+        credentialStore: store,
+      );
+      await restarted.restore();
+      expect(restarted.status, AuthStatus.unauthenticated);
+      expect(restarted.accessToken, isNull);
+      expect(restarted.refreshToken, isNull);
     });
 
     test('concurrent calls share a single refresh operation', () async {

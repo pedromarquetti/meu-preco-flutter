@@ -79,6 +79,24 @@ void main() {
     expect(await store.read(), isNull);
   });
 
+  test('writes the token pair and user as one document', () async {
+    await store.write(
+      const StoredSession(
+        accessToken: 'access-1',
+        refreshToken: 'refresh-1',
+        user: _user,
+      ),
+    );
+
+    // A single key/document keeps rotation atomic: there is never a moment
+    // where the new access token is stored beside the old refresh token.
+    expect(data.keys, [_storageKey]);
+    final document = jsonDecode(data[_storageKey]!) as Map<String, dynamic>;
+    expect(document['access_token'], 'access-1');
+    expect(document['refresh_token'], 'refresh-1');
+    expect((document['user'] as Map<String, dynamic>)['id'], _user.id);
+  });
+
   test('discards malformed JSON instead of restoring a session', () async {
     data[_storageKey] = '{not valid json';
 

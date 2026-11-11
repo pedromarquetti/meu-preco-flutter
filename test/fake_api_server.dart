@@ -10,13 +10,19 @@ import 'fakes.dart';
 class RecordedRequest {
   const RecordedRequest({
     required this.method,
-    required this.path,
+    required this.uri,
     required this.authorization,
   });
 
   final String method;
-  final String path;
+
+  /// The full request URI, so tests can assert that credentials never travel
+  /// in the path or query string.
+  final Uri uri;
+
   final String? authorization;
+
+  String get path => uri.path;
 
   bool get isUnauthenticated => authorization == null;
 }
@@ -131,7 +137,7 @@ class FakeApiServer {
     requests.add(
       RecordedRequest(
         method: request.method,
-        path: request.uri.path,
+        uri: request.uri,
         authorization: authorization,
       ),
     );

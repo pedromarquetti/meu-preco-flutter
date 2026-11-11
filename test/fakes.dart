@@ -49,6 +49,10 @@ class InMemoryCredentialStore implements CredentialStore {
   int writeCalls = 0;
   int clearCalls = 0;
 
+  /// Every document written, in order, so tests can assert that a rotating
+  /// token pair is persisted as one complete session instead of two writes.
+  final List<StoredSession> writes = <StoredSession>[];
+
   StoredSession? get session => _session;
 
   @override
@@ -60,6 +64,7 @@ class InMemoryCredentialStore implements CredentialStore {
   @override
   Future<void> write(StoredSession session) async {
     writeCalls++;
+    writes.add(session);
     _session = session;
   }
 

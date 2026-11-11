@@ -82,6 +82,56 @@ void main() {
         isFalse,
       );
     });
+
+    test('only the authenticated feature client signs requests', () async {
+      final dependencies = await buildDependencies();
+      await dependencies.authSession.login(
+        identifier: 'ada@example.com',
+        password: 'secret123',
+      );
+
+      // The unauthenticated transport is used for login and health probes, so
+      // a bearer token must never be attached to a candidate origin probe.
+      final health = await dependencies.healthChecker.check(
+        server.origin.toString(),
+      );
+      expect(health.ok, isTrue);
+
+      final loginRequest = server.requests.singleWhere(
+        (request) => request.path == '/api/v1/auth/login',
+      );
+      expect(loginRequest.authorization, isNull);
+      final healthRequest = server.requests.last;
+      expect(healthRequest.path, '/healthz');
+      expect(healthRequest.authorization, isNull);
+
+      await dependencies.productsRepository.search(q: 'arroz');
+
+      final featureRequest = server.requests.last;
+      expect(featureRequest.path, '/api/v1/products');
+      expect(featureRequest.authorization, startsWith('Bearer '));
+    });
+
+    test('credentials never appear in request URLs', () async {
+      final dependencies = await buildDependencies();
+      await dependencies.authSession.login(
+        identifier: 'ada@example.com',
+        password: 'secret123',
+      );
+      await dependencies.productsRepository.search(q: 'arroz');
+
+      // Force a rotation so both generations of tokens are represented.
+      server.expireAccessTokens();
+      await dependencies.productsRepository.search(q: 'arroz');
+      expect(server.refreshCallCount, 1);
+
+      for (final request in server.requests) {
+        final url = request.uri.toString();
+        expect(url, isNot(contains('access-token-')), reason: url);
+        expect(url, isNot(contains('refresh-token-')), reason: url);
+        expect(url, isNot(contains('secret123')), reason: url);
+      }
+    });
   });
 
   group('login and session lifecycle', () {
@@ -162,7 +212,12 @@ void main() {
     test(
       'refresh-token reuse is rejected and revokes the token family',
       () async {
-        final dependencies = await buildDependencies();
+        final credentialStore = InMemoryCredentialStore();
+        final store = InMemoryKeyValueStore();
+        final dependencies = await buildDependencies(
+          credentialStore: credentialStore,
+          store: store,
+        );
         await dependencies.authSession.login(
           identifier: 'ada@example.com',
           password: 'secret123',
@@ -190,6 +245,17 @@ void main() {
           dependencies.productsRepository.search(q: 'arroz'),
           throwsA(isA<UnauthorizedException>()),
         );
+
+        // The failed refresh must leave no credentials for the next start.
+        expect(dependencies.authSession.status, AuthStatus.expired);
+        expect(credentialStore.session, isNull);
+
+        final restarted = await buildDependencies(
+          credentialStore: credentialStore,
+          store: store,
+        );
+        await restarted.authSession.restore();
+        expect(restarted.authSession.status, AuthStatus.unauthenticated);
       },
     );
   });
@@ -487,5 +553,26 @@ void main() {
         }
       },
     );
+
+    test('configuration storage never receives session material', () async {
+      final store = InMemoryKeyValueStore();
+      final credentialStore = InMemoryCredentialStore();
+      final dependencies = await buildDependencies(
+        credentialStore: credentialStore,
+        store: store,
+      );
+      await dependencies.authSession.login(
+        identifier: 'ada@example.com',
+        password: 'secret123',
+      );
+
+      final session = credentialStore.session;
+      expect(session, isNotNull);
+      expect(store.entries.keys, contains(AppConfigController.apiOriginKey));
+
+      final persisted = store.entries.values.join('\n');
+      expect(persisted, isNot(contains(session!.accessToken)));
+      expect(persisted, isNot(contains(session.refreshToken)));
+    });
   });
 }

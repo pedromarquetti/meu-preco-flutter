@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/core/config/app_config.dart';
 import 'package:meu_preco_frontend/core/config/app_config_controller.dart';
+import 'package:meu_preco_frontend/core/config/build_config.dart';
 
 import 'fakes.dart';
 
@@ -141,6 +142,26 @@ void main() {
       );
     });
 
+    test(
+      'a cold start after reset restores the build default, not the override',
+      () async {
+        final store = InMemoryKeyValueStore();
+        final controller = AppConfigController(store: store);
+        await controller.saveOrigin('https://api.example.com');
+        await controller.resetToDefault();
+
+        final restored = AppConfigController(store: store);
+        await restored.load();
+
+        expect(restored.isConfiguredByUser, isFalse);
+        expect(
+          restored.config.apiOrigin.toString(),
+          AppConfig.defaults().apiOrigin.toString(),
+        );
+        expect(store.entries, isEmpty);
+      },
+    );
+
     test('load ignores a stored invalid origin', () async {
       final store = InMemoryKeyValueStore();
       await store.writeString(AppConfigController.apiOriginKey, 'garbage');
@@ -217,6 +238,42 @@ void main() {
       );
 
       expect(resets, 0);
+    });
+
+    test(
+      'a failed session clear aborts the origin change before persisting',
+      () async {
+        final store = InMemoryKeyValueStore();
+        final controller = AppConfigController(
+          store: store,
+          initialConfig: AppConfig.tryFromOrigin('https://old.example.com'),
+        );
+        controller.bindOriginChanged(
+          () async => throw StateError('credential clear failed'),
+        );
+
+        await expectLater(
+          controller.saveOrigin('https://new.example.com'),
+          throwsA(isA<StateError>()),
+        );
+
+        expect(
+          controller.config.apiOrigin.toString(),
+          'https://old.example.com',
+        );
+        expect(store.entries, isEmpty);
+      },
+    );
+  });
+
+  group('build configuration', () {
+    test('the compile-time API origin carries no credentials', () {
+      final raw = Uri.parse(BuildConfig.apiOrigin);
+
+      expect(AppConfig.tryFromOrigin(BuildConfig.apiOrigin), isNotNull);
+      expect(raw.userInfo, isEmpty);
+      expect(raw.query, isEmpty);
+      expect(raw.fragment, isEmpty);
     });
   });
 }
