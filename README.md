@@ -12,11 +12,20 @@
     - [Start a local API](#start-a-local-api)
     - [Quality gates](#quality-gates)
     - [Builds](#builds)
+      - [Android](#android)
+      - [Web](#web)
+      - [MacOS](#macos)
     - [Android signing](#android-signing)
     - [Release assumptions](#release-assumptions)
-    - [Web limitations](#web-limitations)
+    - [Web deployment and limitations](#web-deployment-and-limitations)
   - [GitHub Actions and releases](#github-actions-and-releases)
+    - [Workflow overview](#workflow-overview)
     - [Release workflow](#release-workflow)
+    - [Versioning and tags](#versioning-and-tags)
+    - [Required variables and secrets](#required-variables-and-secrets)
+    - [Release approval and verification](#release-approval-and-verification)
+    - [Rollback and retries](#rollback-and-retries)
+    - [Reproduce a release locally](#reproduce-a-release-locally)
   - [Architecture](#architecture)
   - [Documentation](#documentation)
 
@@ -45,7 +54,7 @@ with iOS build validation kept available.
 - [x] Local signed Android release APK builds with reproducible, secret-free
       signing configuration.
 - [ ] Google Playstore publish? - This is a maybe step. will check this later
-- [ ] GitHub Actions CI, signed artifact builds, Web artifacts, and optional iOS
+- [x] GitHub Actions CI, signed Android/Web release artifacts, and unsigned iOS
       validation.
 
 ## UI Flow
@@ -157,6 +166,8 @@ flutter test
 
 ### Builds
 
+#### Android
+
 Build Android and Web validation artifacts with an explicit API origin:
 
 ```sh
@@ -167,11 +178,22 @@ flutter build web \
   --dart-define=API_ORIGIN=https://api.meupreco.example
 ```
 
+#### Web
+
 Host the Web build under a sub-path by passing the base href:
 
 ```sh
 flutter build web \
   --base-href=/meupreco/ \
+  --dart-define=API_ORIGIN=https://api.meupreco.example
+```
+
+#### MacOS
+
+Unsigned iOS validation builds (macOS only):
+
+```sh
+flutter build ios --release --no-codesign \
   --dart-define=API_ORIGIN=https://api.meupreco.example
 ```
 
@@ -254,16 +276,27 @@ package id, version, and label without printing any secret.
   App Signing and Play Console publishing are intentionally deferred — the
   current release target is a signed, directly installable APK (an AAB is added
   later in CI).
+- iOS is validated as an unsigned release build on macOS. Signed distribution
+  requires Apple Developer credentials, provisioning profiles, and macOS
+  signing; it is intentionally not automated here.
 - No credentials or environment secrets are committed;
   `/android/key.properties`, keystores, and `.env` files are ignored.
 
-### Web limitations
+### Web deployment and limitations
 
-- **CORS** — the backend must allow the hosting origin; the browser enforces
-  cross-origin rules the app cannot bypass.
-- **Camera** — browser camera access requires a secure (HTTPS) context and a
-  user grant; when it is unavailable the app falls back to pasting the QR
-  payload or typing the access key manually.
+- **API origin** — bake the production origin at build time with
+  `--dart-define=API_ORIGIN=https://api.meupreco.example`. Users can still
+  change the server at runtime, but the deployed default must be HTTPS and
+  non-empty; the release workflow refuses an empty `vars.API_ORIGIN`.
+- **CORS** — the backend must allow the exact Web origin (scheme, host, and
+  port) and the methods and headers used by the app, including `Authorization`
+  for bearer tokens and `Content-Type`. Preflight `OPTIONS` requests must also
+  succeed; the browser enforces these rules and the app cannot bypass them.
+- **HTTPS** — camera access requires a secure context, so serve the bundle over
+  HTTPS. When the camera is denied or unavailable, the app falls back to pasting
+  the QR payload or typing the access key manually.
+- **Sub-path hosting** — pass `--base-href=/meupreco/` when the bundle is not
+  served from the domain root.
 - **Browser storage** — session and preferences use browser storage
   (localStorage-backed), which is per-origin and can be cleared by the user or
   the browser, unlike the platform keystore used on Android.
@@ -274,13 +307,17 @@ CI installs the exact Flutter version declared in `pubspec.yaml`
 (`environment.flutter`), restores cached Flutter/Pub dependencies, and runs
 `flutter pub get --enforce-lockfile` before the remaining Flutter commands.
 
-The GH workflows provide:
+### Workflow overview
 
-- Pull-request formatting, analysis, tests, Android debug build, and Web build.
-- Tagged signed Android APK and Web artifacts.
-- macOS iOS unsigned build validation, with signed App Store deployment only
-  after Apple Developer credentials and provisioning are configured.
-- Protected production environments for signing and deployment secrets.
+| Workflow      | Triggers                                | Output                                                                                   |
+| ------------- | --------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `ci.yml`      | Pull requests; pushes to `master`       | Format, analysis, tests, Android debug build, Web build; `web-build-<run_id>` artifact   |
+| `build.yml`   | Manual dispatch; `release: published`   | `android-debug-<run_id>` and `web-<run_id>` workflow artifacts                           |
+| `release.yml` | Tags matching `v*.*.*`; manual dispatch | Validated signed APK and Web bundle, unsigned iOS validation; GitHub Release on tag refs |
+
+`build.yml` also runs after a release is published to rebuild debug/Web
+validation artifacts; it never modifies the release. Signing and publication use
+the protected `android-release`, `web-release`, and `release` environments.
 
 ### Release workflow
 
@@ -300,10 +337,170 @@ The GH workflows provide:
 - **iOS:** `macos-latest` runs an unsigned validation build. Signed iOS
   distribution requires Apple credentials in a protected environment and is not
   automated here.
-- **Environments and inputs:** `android-release`, `web-release`, and `release`
-  are protected environments. `vars.API_ORIGIN` is required, and the Android
-  release job needs `ANDROID_KEYSTORE_BASE64`, `STORE_PASSWORD`, `KEY_ALIAS`,
-  and `KEY_PASSWORD` secrets.
+
+### Versioning and tags
+
+`pubspec.yaml` is the single source of truth:
+
+```yaml
+version: 1.4.2+17
+```
+
+- `1.4.2` is the user-visible version name.
+- `17` is the Android version code (`versionCode`). It must increase
+  monotonically for every distributed build of `com.app.meupreco`; never reuse a
+  version code, even after a failed release.
+- Tags use `v<version-name>`: `v1.4.2`. The release workflow rejects a tag whose
+  name (without the leading `v`) does not equal the version name before `+`.
+- Tags are immutable. Do not move or delete a published tag; ship corrections as
+  a new version with a higher version code.
+- Prerelease suffixes work when `pubspec.yaml` and the tag match exactly, for
+  example `1.4.2-beta.1+18` with tag `v1.4.2-beta.1`.
+
+### Required variables and secrets
+
+Configure these in the repository settings and protected environments. Never
+commit or log their values.
+
+| Name                      | Kind                                    | Used by           | Purpose                                                  |
+| ------------------------- | --------------------------------------- | ----------------- | -------------------------------------------------------- |
+| `API_ORIGIN`              | repository variable (`vars.API_ORIGIN`) | Release jobs      | Non-empty HTTPS API origin baked into the build          |
+| `ANDROID_KEYSTORE_BASE64` | secret                                  | `android-release` | Base64-encoded upload keystore                           |
+| `STORE_PASSWORD`          | secret                                  | `android-release` | Keystore password                                        |
+| `KEY_ALIAS`               | secret                                  | `android-release` | Signing key alias                                        |
+| `KEY_PASSWORD`            | secret                                  | `android-release` | Signing key password                                     |
+| `GITHUB_TOKEN`            | automatic                               | `release`         | Creates or updates the GitHub Release; no setup required |
+
+Create the keystore secret value locally without committing it:
+
+```sh
+# Linux
+base64 -w0 upload-keystore.jks
+# macOS
+base64 -i upload-keystore.jks
+```
+
+Paste the output directly into the `ANDROID_KEYSTORE_BASE64` environment secret.
+
+Configure these protected environments (Settings → Environments):
+
+| Environment       | Used by            | Recommended protection                               |
+| ----------------- | ------------------ | ---------------------------------------------------- |
+| `android-release` | Signed APK job     | Required reviewers; restrict deployment to `v*` tags |
+| `web-release`     | Web bundle job     | Required reviewers; restrict deployment to `v*` tags |
+| `release`         | GitHub Release job | Required reviewers; restrict deployment to `v*` tags |
+
+The unsigned iOS job uses no environment because it handles no secrets.
+
+### Release approval and verification
+
+1. Update `pubspec.yaml` (`version: x.y.z+n`), commit, and push to `master`.
+2. Create and push the matching tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. The `validate` job runs formatting, analysis, tests, Android debug build, and
+   Web build, and rejects a mismatched tag.
+4. Approve the paused `android-release` and `web-release` deployments in the
+   Actions run. The signed Android job verifies the APK signature and package
+   identity before uploading it.
+5. The unsigned iOS job builds on `macos-latest`.
+6. Approve the paused `release` environment deployment. Only then does the
+   workflow publish `app-release.apk` and `web-release.zip` on the tag.
+7. Verify the result:
+   - download the `android-release-apk` artifact and run
+     `scripts/verify_android_apk.sh app-release.apk`;
+   - inspect `web-release.zip` for `index.html`, `main.dart.js`, and the
+     compiled assets;
+   - install the APK on a clean device and check `com.app.meupreco`, version,
+     icon, HTTPS API connectivity, server selection, camera fallback, and an
+     upgrade over the previous version;
+   - confirm the GitHub Release contains exactly `app-release.apk` and
+     `web-release.zip`.
+
+### Rollback and retries
+
+- **Before publication:** if validation, signing, iOS, or artifact verification
+  fails, no GitHub Release is created. Fix the cause and re-run the failed jobs.
+  Artifact uploads use `overwrite: true`, so a re-run replaces stale artifacts.
+- **After publication:** treat tags as immutable. Delete the GitHub Release (and
+  its assets) to withdraw it, but keep the tag:
+
+  ```sh
+  gh release delete vX.Y.Z --yes
+  ```
+
+  Then re-run the workflow for the same tag after fixing the cause, or dispatch
+  it directly:
+
+  ```sh
+  gh workflow run release.yml --ref vX.Y.Z
+  ```
+
+  Publication is idempotent and overwrites existing assets. Alternatively,
+  publish a new patch release with a higher version code.
+- **Version code:** never reuse `+n`. If an APK was distributed, the corrective
+  build must use a higher `+n` so Android accepts it as an upgrade.
+- **Concurrency:** runs for the same ref are serialized and never cancelled;
+  different tags may run concurrently. Re-running a job that uses a protected
+  environment may require approval again.
+- **Known-good fallback:** retain the previous signed APK and Web zip. Android
+  rejects installing a lower version code over a higher one, so a rollback
+  artifact must use a version code at least as high as the installed build.
+
+### Reproduce a release locally
+
+Prerequisites: the Flutter version declared in `pubspec.yaml`, JDK 17+, Android
+SDK build-tools (`apksigner`, `aapt2`), and `zip`.
+
+```sh
+flutter pub get --enforce-lockfile
+dart format --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
+
+Signed Android (supply signing material from a password manager; never commit
+it). Back up any existing `android/key.properties` first, because this
+overwrites it:
+
+```sh
+export API_ORIGIN=https://api.meupreco.example
+export KEYSTORE_PATH="$HOME/secure/upload-keystore.jks"
+export STORE_PASSWORD='...'
+export KEY_ALIAS='upload'
+export KEY_PASSWORD='...'
+
+umask 077
+{
+  printf 'storeFile=%s\n' "$KEYSTORE_PATH"
+  printf 'storePassword=%s\n' "$STORE_PASSWORD"
+  printf 'keyAlias=%s\n' "$KEY_ALIAS"
+  printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+} > android/key.properties
+
+flutter build apk --release \
+  -PrequireReleaseSigning=true \
+  --dart-define=API_ORIGIN="$API_ORIGIN"
+
+scripts/verify_android_apk.sh build/app/outputs/flutter-apk/app-release.apk
+rm -f android/key.properties
+unset STORE_PASSWORD KEY_PASSWORD
+```
+
+Web bundle and the release zip:
+
+```sh
+flutter build web --dart-define=API_ORIGIN="$API_ORIGIN"
+(cd build/web && zip -qr ../web-release.zip .)
+```
+
+Unsigned iOS (macOS only):
+
+```sh
+flutter build ios --release --no-codesign \
+  --dart-define=API_ORIGIN="$API_ORIGIN"
+```
+
+The release workflow runs the same commands; the CI-specific parts are secret
+decoding, environment approval, and artifact publication.
 
 Google Play publishing is deliberately deferred. The first CI/CD milestone is a
 signed APK that can be installed directly. App Bundle generation, Play App
