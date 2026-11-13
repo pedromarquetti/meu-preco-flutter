@@ -41,7 +41,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
   void initState() {
     super.initState();
     _controller = ProductSearchController(
-      repository: context.appDependencies.productsRepository,
+      source: context.appDependencies.productsRepository,
     );
     _searchController = TextEditingController(text: widget.initialQuery);
     _searchController.selection = TextSelection.collapsed(

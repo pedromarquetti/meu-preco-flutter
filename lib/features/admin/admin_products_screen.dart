@@ -25,7 +25,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       context.appDependencies.adminRepository;
   late final ProductSearchController _searchController =
       ProductSearchController(
-        repository: context.appDependencies.productsRepository,
+        source: context.appDependencies.productsRepository,
       );
   List<ProductView> _results = const [];
   bool _loading = false;

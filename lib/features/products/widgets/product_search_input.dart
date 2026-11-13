@@ -53,7 +53,7 @@ class _ProductSearchInputState extends State<ProductSearchInput> {
     _controller =
         widget.controller ??
         ProductSearchController(
-          repository: context.appDependencies.productsRepository,
+          source: context.appDependencies.productsRepository,
           debounce: widget.debounce,
           pageSize: widget.pageSize,
         );

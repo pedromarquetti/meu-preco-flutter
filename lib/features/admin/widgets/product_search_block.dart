@@ -23,6 +23,12 @@ class ProductSearchBlock extends StatefulWidget {
   final String? title;
   final ProductSearchController? controller;
 
+  /// Optional search backend. Defaults to the public product catalog.
+  final ProductSearchSource? source;
+
+  /// Whether result rows show the stored canonical stem.
+  final bool showCanonicalStem;
+
   const ProductSearchBlock({
     super.key,
     this.isMerging = false,
@@ -31,6 +37,8 @@ class ProductSearchBlock extends StatefulWidget {
     this.allowMultipleSelection = false,
     this.title,
     this.controller,
+    this.source,
+    this.showCanonicalStem = false,
   });
 
   @override
@@ -50,7 +58,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
     _internalController =
         widget.controller ??
         ProductSearchController(
-          repository: context.appDependencies.productsRepository,
+          source: widget.source ?? context.appDependencies.productsRepository,
         );
 
     _internalController.addListener(_onControllerChanged);
@@ -246,6 +254,15 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
             style: detailStyle,
           ),
         ],
+        if (widget.showCanonicalStem &&
+            product.canonicalStem?.trim().isNotEmpty == true) ...[
+          const SizedBox(height: 4),
+          Text(
+            '${strings.adminProductCanonicalStemLabel}: '
+            '${product.canonicalStem!.trim()}',
+            style: detailStyle,
+          ),
+        ],
       ],
     );
   }
@@ -280,6 +297,7 @@ class _ProductSearchBlockState extends State<ProductSearchBlock> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       onProductSelected: _handleSelection,
       isLoadingMore: _internalController.isLoadingMore,
+      showCanonicalStem: widget.showCanonicalStem,
     );
   }
 }

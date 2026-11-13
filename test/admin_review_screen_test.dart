@@ -6,7 +6,9 @@ import 'package:meu_preco_frontend/app/app_dependencies.dart';
 import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/features/admin/admin_review_screen.dart';
+import 'package:meu_preco_frontend/features/admin/review_decision.dart';
 import 'package:meu_preco_frontend/features/admin/widgets/product_edit_block.dart';
+import 'package:meu_preco_frontend/features/admin/widgets/review_target_selector.dart';
 import 'package:meu_preco_frontend/l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -47,8 +49,10 @@ _pumpReviewScreen(
   Object? batchAssignError,
   Object? updateProductError,
   Completer<void>? batchAssignGate,
+  Size physicalSize = const Size(900, 1600),
+  TextScaler textScaler = TextScaler.noScaling,
 }) async {
-  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.physicalSize = physicalSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
@@ -77,6 +81,10 @@ _pumpReviewScreen(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+          child: child!,
+        ),
         home: const Scaffold(body: AdminReviewScreen()),
       ),
     ),
@@ -138,7 +146,8 @@ void main() {
         await _selectAllAndOpenEditors(tester);
 
         expect(repos.products.detailRequests, isEmpty);
-        expect(find.byType(ProductEditBlock), findsNWidgets(2));
+        expect(find.byType(ReviewTargetSelector), findsNWidgets(2));
+        expect(find.byType(ProductEditBlock), findsNothing);
 
         await _assignAll(tester);
 
@@ -163,53 +172,45 @@ void main() {
       },
     );
 
-    testWidgets(
-      'tapping a proposed product selects it and prefills the editor',
-      (tester) async {
-        final repos = await _pumpReviewScreen(
-          tester,
-          items: [
-            _item(
-              10,
-              'Arroz recebido',
-              proposedProduct: const ReviewProductView(
-                id: 7,
-                name: 'Arroz 5kg',
-                brand: 'Marca Boa',
-                unit: 'kg',
-              ),
+    testWidgets('pending proposal defaults to the proposed target', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            10,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz 5kg',
+              brand: 'Marca Boa',
+              unit: 'kg',
+              canonicalStem: 'arroz',
             ),
-          ],
-        );
+          ),
+        ],
+      );
 
-        expect(find.textContaining('Arroz 5kg'), findsOneWidget);
-        expect(find.text('Marca Boa'), findsOneWidget);
-        expect(find.byType(ProductEditBlock), findsNothing);
+      await _selectAllAndOpenEditors(tester);
 
-        await tester.tap(find.textContaining('Arroz 5kg'));
-        await tester.pump();
+      expect(find.byType(ReviewTargetSelector), findsOneWidget);
+      expect(find.byType(ProductEditBlock), findsNothing);
+      expect(find.text('Arroz 5kg'), findsOneWidget);
+      expect(find.text('Marca Boa'), findsOneWidget);
 
-        // Selection alone stays on the queue; it does not open the editor.
-        expect(find.byType(ProductEditBlock), findsNothing);
+      final proposed = tester.widget<RadioListTile<ReviewTargetKind>>(
+        find.byKey(const ValueKey('review-target-proposed-10')),
+      );
+      expect(proposed.value, ReviewTargetKind.proposed);
+      expect(repos.products.detailRequests, isEmpty);
 
-        await tester.tap(
-          find.widgetWithText(FilledButton, _strings.adminBatchAssign),
-        );
-        await tester.pumpAndSettle();
+      await _assignAll(tester);
 
-        expect(find.byType(ProductEditBlock), findsOneWidget);
-        expect(_fieldText(tester, 0), 'Arroz 5kg');
-        expect(_fieldText(tester, 1), 'Marca Boa');
-        expect(_fieldText(tester, 2), 'kg');
-        expect(repos.products.detailRequests, isEmpty);
-
-        await _assignAll(tester);
-
-        final assignment = repos.admin.batchAssignRequests.single.single;
-        expect(assignment.action, AssignmentAction.existing);
-        expect(assignment.productId, 7);
-      },
-    );
+      final assignment = repos.admin.batchAssignRequests.single.single;
+      expect(assignment.action, AssignmentAction.existing);
+      expect(assignment.productId, 7);
+    });
 
     testWidgets('approves a proposal without loading the public product', (
       tester,
@@ -491,7 +492,7 @@ void main() {
       expect(repos.admin.needsReviewCalls, 2);
     });
 
-    testWidgets('updates different-name existing products individually', (
+    testWidgets('submits proposed targets without renaming the products', (
       tester,
     ) async {
       final repos = await _pumpReviewScreen(
@@ -521,27 +522,23 @@ void main() {
       );
 
       await _selectAllAndOpenEditors(tester);
-
-      final fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), 'Arroz Novo');
-      await tester.enterText(fields.at(3), 'Feijão Novo');
-      await tester.pump();
-
       await _assignAll(tester);
 
       expect(repos.admin.mergeCalls, isEmpty);
-      expect(repos.admin.updateProductCalls, hasLength(2));
-      final patches = {
-        for (final call in repos.admin.updateProductCalls) call.id: call.patch,
-      };
-      expect(patches[5]?.name, 'Arroz Novo');
-      expect(patches[6]?.name, 'Feijão Novo');
+      expect(repos.admin.updateProductCalls, isEmpty);
+
+      final assignments = repos.admin.batchAssignRequests.single;
+
+      expect(assignments, hasLength(2));
       expect(
-        repos.admin.batchAssignRequests.single.every(
-          (assignment) => assignment.action == AssignmentAction.existing,
+        assignments.every(
+          (assignment) =>
+              assignment.action == AssignmentAction.existing &&
+              assignment.productId != null,
         ),
         isTrue,
       );
+      expect(assignments.map((assignment) => assignment.productId), [5, 6]);
     });
 
     testWidgets('falls back to batch creation when no product exists', (
@@ -588,7 +585,12 @@ void main() {
 
         await _selectAllAndOpenEditors(tester);
 
+        expect(find.byType(ReviewTargetSelector), findsOneWidget);
         expect(find.byType(ProductEditBlock), findsOneWidget);
+        final create = tester.widget<RadioListTile<ReviewTargetKind>>(
+          find.byKey(const ValueKey('review-target-create-10')),
+        );
+        expect(create.value, ReviewTargetKind.create);
         expect(_fieldText(tester, 0), 'APRESUNTADO SOFT PIG KG');
         expect(_fieldText(tester, 1), isEmpty);
         expect(_fieldText(tester, 2), 'kg');
@@ -646,7 +648,7 @@ void main() {
         find.textContaining(_strings.adminReviewPartialFailure),
         findsOneWidget,
       );
-      expect(find.byType(ProductEditBlock), findsWidgets);
+      expect(find.byType(ReviewTargetSelector), findsWidgets);
     });
 
     testWidgets('moves between selection and edit steps', (tester) async {
@@ -666,19 +668,19 @@ void main() {
       );
 
       expect(find.byType(Checkbox), findsOneWidget);
-      expect(find.byType(ProductEditBlock), findsNothing);
+      expect(find.byType(ReviewTargetSelector), findsNothing);
 
       await _selectAllAndOpenEditors(tester);
 
       expect(find.byType(Checkbox), findsNothing);
-      expect(find.byType(ProductEditBlock), findsOneWidget);
+      expect(find.byType(ReviewTargetSelector), findsOneWidget);
       expect(find.text(_strings.goBack), findsOneWidget);
 
       await tester.tap(find.text(_strings.goBack));
       await tester.pumpAndSettle();
 
       expect(find.byType(Checkbox), findsOneWidget);
-      expect(find.byType(ProductEditBlock), findsNothing);
+      expect(find.byType(ReviewTargetSelector), findsNothing);
     });
 
     testWidgets('validates required name and unit before submitting', (
@@ -742,19 +744,81 @@ void main() {
       expect(assignment.unit, 'un');
     });
 
-    testWidgets('trims existing-product updates before patching', (
+    testWidgets(
+      'selecting an existing product uses the admin picker and read-only summary',
+
+      (tester) async {
+        final repos = await _pumpReviewScreen(
+          tester,
+          items: [_item(10, 'Produto Novo', unit: 'un')],
+        );
+        repos.admin.searchResult = ProductPage(
+          items: [
+            sampleProduct(
+              id: 42,
+              name: 'Arroz Existente',
+              brand: 'Marca X',
+              unit: 'kg',
+            ),
+          ],
+          page: const Page(total: 1, totalPages: 1),
+        );
+
+        await _selectAllAndOpenEditors(tester);
+
+        await tester.tap(
+          find.byKey(const ValueKey('review-target-existing-10')),
+        );
+        await tester.pumpAndSettle();
+
+        final picker = find.byKey(const ValueKey('review-product-picker'));
+        expect(picker, findsOneWidget);
+
+        await tester.enterText(
+          find.descendant(of: picker, matching: find.byType(TextField)),
+          'arroz',
+        );
+        await tester.pump(const Duration(milliseconds: 800));
+        await tester.pumpAndSettle();
+
+        expect(repos.admin.searchCalls, 1);
+        expect(repos.admin.searchRequests.single.q, 'arroz');
+        expect(find.text('Arroz Existente'), findsOneWidget);
+        expect(
+          find.text('${_strings.adminProductCanonicalStemLabel}: arroz'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Arroz Existente'));
+        await tester.pumpAndSettle();
+
+        expect(picker, findsNothing);
+        expect(find.text('Arroz Existente'), findsOneWidget);
+        expect(find.text('Marca X'), findsOneWidget);
+        expect(find.text('${_strings.productUnitLabel}: kg'), findsOneWidget);
+        expect(find.text(_strings.adminChangeProduct), findsOneWidget);
+
+        await tester.tap(find.text(_strings.adminChangeProduct));
+        await tester.pumpAndSettle();
+
+        expect(picker, findsOneWidget);
+        Navigator.of(tester.element(picker)).pop();
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets('switching between targets preserves the create draft', (
       tester,
     ) async {
-      final repos = await _pumpReviewScreen(
+      await _pumpReviewScreen(
         tester,
         items: [
           _item(
             10,
             'Arroz',
             proposedProduct: const ReviewProductView(
-              id: 5,
-              name: 'Arroz Antigo',
-              brand: 'Marca A',
+              id: 7,
+              name: 'Arroz',
               unit: 'kg',
             ),
           ),
@@ -763,13 +827,115 @@ void main() {
 
       await _selectAllAndOpenEditors(tester);
 
-      await tester.enterText(find.byType(TextField).at(0), '  Arroz Novo  ');
-      await tester.pump();
-      await _assignAll(tester);
+      await tester.tap(find.byKey(const ValueKey('review-target-create-10')));
+      await tester.pumpAndSettle();
 
-      final patch = repos.admin.updateProductCalls.single.patch;
-      expect(repos.admin.updateProductCalls.single.id, 5);
-      expect(patch.name, 'Arroz Novo');
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), 'Rascunho');
+      await tester.enterText(fields.at(1), 'Marca R');
+      await tester.enterText(fields.at(2), 'un');
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('review-target-proposed-10')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProductEditBlock), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('review-target-create-10')));
+      await tester.pumpAndSettle();
+
+      expect(_fieldText(tester, 0), 'Rascunho');
+      expect(_fieldText(tester, 1), 'Marca R');
+      expect(_fieldText(tester, 2), 'un');
+    });
+
+    testWidgets('warns when a proposal name and canonical stem disagree', (
+      tester,
+    ) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            10,
+            'APRESUNTADO SOFT PIG KG',
+            proposedProduct: const ReviewProductView(
+              id: 8,
+              name: 'Apresuntado',
+              brand: 'Pig',
+              unit: 'kg',
+              canonicalStem: 'tijolo',
+            ),
+          ),
+        ],
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      expect(
+        find.text(_strings.adminIdentityMismatch('tijolo')),
+        findsOneWidget,
+      );
+      expect(find.text(_strings.adminIdentityMismatchHint), findsOneWidget);
+    });
+
+    testWidgets('does not warn when the stem matches or is missing', (
+      tester,
+    ) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            10,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+              canonicalStem: 'arroz',
+            ),
+          ),
+          _item(
+            20,
+            'Feijão',
+            proposedProduct: const ReviewProductView(
+              id: 8,
+              name: 'Feijão',
+              unit: 'kg',
+            ),
+          ),
+        ],
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      expect(find.textContaining('Identidade:'), findsNothing);
+    });
+
+    testWidgets('fits a narrow layout with large text', (tester) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            10,
+            'APRESUNTADO SOFT PIG KG',
+            proposedProduct: const ReviewProductView(
+              id: 8,
+              name: 'Apresuntado',
+              brand: 'Pig',
+              unit: 'kg',
+              canonicalStem: 'tijolo',
+            ),
+          ),
+        ],
+        physicalSize: const Size(320, 800),
+        textScaler: const TextScaler.linear(2),
+      );
+
+      await _selectAllAndOpenEditors(tester);
+      expect(tester.takeException(), isNull);
+
+      await tester.drag(find.byType(ListView).last, const Offset(0, -1000));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }

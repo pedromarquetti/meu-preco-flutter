@@ -215,7 +215,7 @@ void main() {
       tester,
     ) async {
       final repository = FakeProductRepository();
-      final controller = ProductSearchController(repository: repository);
+      final controller = ProductSearchController(source: repository);
       await pumpScreen(
         tester,
         ProductSearchScreen(controller: controller),

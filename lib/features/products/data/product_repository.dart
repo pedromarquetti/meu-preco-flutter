@@ -1,14 +1,16 @@
 import '../../../core/errors/app_exception.dart';
 import '../../../core/http/api_client.dart';
 import '../../../core/models/models.dart';
+import '../product_search_controller.dart';
 
 /// Product catalog reads: search, detail, and price history.
 ///
 /// Supermarket listing endpoints are intentionally absent: the current UX
 /// reaches store context through the supermarket embedded in each price point
 /// of [ProductHistory], so no comparison screen needs the extra calls yet.
-abstract interface class ProductRepository {
+abstract interface class ProductRepository implements ProductSearchSource {
   /// `GET /products` — fuzzy catalog search.
+  @override
   Future<ProductPage> search({
     String? q,
     String? gtin,

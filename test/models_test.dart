@@ -399,6 +399,7 @@ void main() {
           'name': 'limao tahiti',
           'brand': 'Marca Boa',
           'unit': 'UN',
+          'canonical_stem': 'tijolo',
         },
         'resolved_by': 2,
         'proposal_status': 'rejected',
@@ -410,7 +411,9 @@ void main() {
       expect(item.proposalStatus, ProposalStatus.rejected);
       expect(item.lastReviewAction, ReviewAction.reject);
       expect(item.proposedProduct?.brand, 'Marca Boa');
+      expect(item.proposedProduct?.canonicalStem, 'tijolo');
       expect(item.proposedProduct?.toProductView().brand, 'Marca Boa');
+      expect(item.proposedProduct?.toProductView().canonicalStem, 'tijolo');
       expect(item.toJson()['proposal_status'], 'rejected');
       expect(item.toJson()['last_review_action'], 'reject');
     });

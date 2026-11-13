@@ -107,7 +107,7 @@ void main() {
           ..searchResult = pageOf([
             sampleProduct(id: 11, name: 'Café Especial'),
           ]);
-        final controller = ProductSearchController(repository: repository);
+        final controller = ProductSearchController(source: repository);
         ProductView? selected;
 
         await pumpAdminWidget(
@@ -135,6 +135,69 @@ void main() {
 
         expect(() => controller.addListener(() {}), returnsNormally);
         controller.dispose();
+      },
+    );
+
+    testWidgets('uses an injected search source instead of the catalog', (
+      tester,
+    ) async {
+      final repository = FakeProductRepository();
+      final adminRepository = FakeAdminRepository()
+        ..searchResult = pageOf([sampleProduct(id: 8, name: 'Apresuntado')]);
+      ProductView? selected;
+
+      await pumpAdminWidget(
+        tester,
+        Scaffold(
+          body: SizedBox(
+            height: 900,
+            child: ProductSearchBlock(
+              source: adminRepository,
+              onProductSelected: (product) => selected = product,
+            ),
+          ),
+        ),
+        repository: repository,
+        adminRepository: adminRepository,
+      );
+
+      await search(tester, find.byType(TextField), 'apresuntado');
+      await tester.tap(find.text('Apresuntado'));
+      await tester.pumpAndSettle();
+
+      expect(selected?.id, 8);
+      expect(adminRepository.searchCalls, 1);
+      expect(adminRepository.searchRequests.single.q, 'apresuntado');
+      expect(repository.searchCalls, 0);
+    });
+
+    testWidgets(
+      'disposes its internal controller and cancels a pending search',
+      (tester) async {
+        final repository = FakeProductRepository();
+        final adminRepository = FakeAdminRepository();
+
+        await pumpAdminWidget(
+          tester,
+          Scaffold(
+            body: SizedBox(
+              height: 900,
+              child: ProductSearchBlock(
+                source: adminRepository,
+                onProductSelected: (_) {},
+              ),
+            ),
+          ),
+          repository: repository,
+          adminRepository: adminRepository,
+        );
+
+        await tester.enterText(find.byType(TextField), 'cafe');
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(milliseconds: 800));
+
+        expect(adminRepository.searchCalls, 0);
       },
     );
 

@@ -1,9 +1,10 @@
 import '../../../core/errors/app_exception.dart';
 import '../../../core/http/api_client.dart';
 import '../../../core/models/models.dart';
+import '../../products/product_search_controller.dart';
 
 /// Admin operations: user management and needs-review queue.
-abstract interface class AdminRepository {
+abstract interface class AdminRepository implements ProductSearchSource {
   Future<UserPage> listUsers({int page = 1, int pageSize = 50});
 
   /// Looks up one account by id, or returns `null` when it no longer exists.
@@ -22,11 +23,18 @@ abstract interface class AdminRepository {
   });
   Future<BatchAssignResult> batchAssign(List<Assignment> assignments);
   Future<ProductView> updateProduct(int id, ProductPatch patch);
-  Future<ProductPage> searchProducts({
+
+  /// `GET /admin/products` — search including unpublished products.
+  @override
+  Future<ProductPage> search({
     String? q,
+    String? gtin,
+    String? unit,
+    String? brand,
     int page = 1,
-    int pageSize = 50,
+    int limit = 20,
   });
+
   Future<MergeResult> mergeProducts(int fromId, int toId);
 }
 
@@ -138,17 +146,23 @@ class ApiAdminRepository implements AdminRepository {
   }
 
   @override
-  Future<ProductPage> searchProducts({
+  Future<ProductPage> search({
     String? q,
+    String? gtin,
+    String? unit,
+    String? brand,
     int page = 1,
-    int pageSize = 50,
+    int limit = 20,
   }) async {
     final data = await client.get(
-      '/products',
+      '/admin/products',
       query: <String, String>{
         if (q != null && q.trim().isNotEmpty) 'q': q.trim(),
+        if (gtin != null && gtin.isNotEmpty) 'gtin': gtin,
+        if (unit != null && unit.isNotEmpty) 'unit': unit,
+        if (brand != null && brand.isNotEmpty) 'brand': brand,
         'page': '$page',
-        'limit': '$pageSize',
+        'limit': '$limit',
       },
     );
     return ProductPage.fromJson(_asObject(data));

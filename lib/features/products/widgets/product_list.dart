@@ -21,6 +21,7 @@ class ProductList extends StatelessWidget {
     this.selectedProductId,
     this.onLoadMore,
     this.isLoadingMore = false,
+    this.showCanonicalStem = false,
   });
 
   final List<ProductView> products;
@@ -31,6 +32,7 @@ class ProductList extends StatelessWidget {
   final int? selectedProductId;
   final VoidCallback? onLoadMore;
   final bool isLoadingMore;
+  final bool showCanonicalStem;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +89,7 @@ class ProductList extends StatelessWidget {
         product: product,
         onTap: () => onProductSelected(product),
         trailing: trailingBuilder?.call(product),
+        showCanonicalStem: showCanonicalStem,
       ),
     );
   }

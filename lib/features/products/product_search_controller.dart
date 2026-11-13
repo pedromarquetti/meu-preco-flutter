@@ -4,7 +4,21 @@ import 'package:flutter/foundation.dart';
 
 import '../../core/errors/app_exception.dart';
 import '../../core/models/models.dart';
-import 'data/product_repository.dart';
+
+/// Minimal product-search contract shared by catalog and admin search.
+///
+/// Keeping this separate from the full product repository lets the search
+/// controller and widgets depend on only the query they need.
+abstract interface class ProductSearchSource {
+  Future<ProductPage> search({
+    String? q,
+    String? gtin,
+    String? unit,
+    String? brand,
+    int page = 1,
+    int limit = 20,
+  });
+}
 
 /// Debounced, paginated product search.
 ///
@@ -13,12 +27,12 @@ import 'data/product_repository.dart';
 /// slower older request can never overwrite a newer result.
 class ProductSearchController extends ChangeNotifier {
   ProductSearchController({
-    required ProductRepository repository,
+    required ProductSearchSource source,
     this.debounce = const Duration(milliseconds: 350),
     this.pageSize = 20,
-  }) : _repository = repository; // ignore: prefer_initializing_formals
+  }) : _source = source; // ignore: prefer_initializing_formals
 
-  final ProductRepository _repository;
+  final ProductSearchSource _source;
 
   /// Quiet period required after the last keystroke.
   final Duration debounce;
@@ -98,7 +112,7 @@ class ProductSearchController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _repository.search(
+      final result = await _source.search(
         q: _query,
         page: page,
         limit: pageSize,

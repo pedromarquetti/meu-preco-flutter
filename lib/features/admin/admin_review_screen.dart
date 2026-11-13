@@ -13,8 +13,8 @@ import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'data/admin_repository.dart';
 import 'review_decision.dart';
-import 'widgets/product_edit_block.dart';
 import 'widgets/review_queue_item_card.dart';
+import 'widgets/review_target_selector.dart';
 
 class AdminReviewScreen extends StatefulWidget {
   const AdminReviewScreen({super.key});
@@ -439,13 +439,16 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     TextButton(
                       onPressed: _submitting ? null : _backToSelection,
                       child: Text(strings.goBack),
                     ),
-                    const Spacer(),
                     FilledButton.icon(
                       onPressed: _submitting ? null : _assignAll,
                       icon: _submitting
@@ -560,15 +563,13 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
         final item = decision.reviewItem;
         final id = decision.priceLogId;
 
-        if (id == null) {
+        if (id == null || item == null) {
           return const SizedBox.shrink();
         }
 
-        final suggestedName =
-            _nonEmpty(item?.suggestedStem) ?? _nonEmpty(item?.description);
-        final proposer = item?.resolvedBy == null
+        final proposer = item.resolvedBy == null
             ? null
-            : _proposers[item!.resolvedBy];
+            : _proposers[item.resolvedBy];
 
         return Card(
           key: ValueKey('decision-$id'),
@@ -578,42 +579,34 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  '${strings.description}: ${item?.description ?? '-'}',
+                  '${strings.description}: ${item.description ?? '-'}',
                   style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
-                if (item != null) ...[
-                  const SizedBox(height: 4),
+                const SizedBox(height: 4),
+                Text(
+                  '${item.storeName ?? '-'} • ${item.totalPrice ?? '-'}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+
+                if (item.isProposal && item.resolvedBy != null) ...[
+                  const SizedBox(height: 2),
                   Text(
-                    '${item.storeName ?? '-'} • ${item.totalPrice ?? '-'}',
+                    proposalAuthorLabel(strings, item, proposer),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  if (item.isProposal && item.resolvedBy != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      proposalAuthorLabel(strings, item, proposer),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
                 ],
                 const SizedBox(height: 12),
-                ProductEditBlock(
-                  initialProduct: decision.targetProduct,
-                  suggestedName: suggestedName,
-                  initialName: decision.name,
-                  initialBrand: decision.brand,
-                  initialUnit: decision.unit,
-                  onChanged: (patch) {
+                ReviewTargetSelector(
+                  item: item,
+                  decision: decision,
+                  searchSource: _repository,
+                  onTargetChanged: (updated) {
                     setState(() {
                       final currentIndex = _decisions.indexWhere(
                         (d) => d.priceLogId == id,
                       );
                       if (currentIndex == -1) return;
-                      _decisions[currentIndex] = _decisions[currentIndex]
-                          .copyWith(
-                            name: patch.name,
-                            brand: patch.brand,
-                            unit: patch.unit,
-                          );
+                      _decisions[currentIndex] = updated;
                     });
                   },
                 ),

@@ -115,14 +115,15 @@ class ReviewQueueItemCard extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 8),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 8,
+        runSpacing: 8,
         children: [
           TextButton(
             onPressed: reviewing ? null : onReject,
             child: Text(strings.adminRejectAction),
           ),
-          const SizedBox(width: 8),
           FilledButton(
             onPressed: reviewing ? null : onApprove,
             child: reviewing

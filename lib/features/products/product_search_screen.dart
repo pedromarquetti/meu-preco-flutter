@@ -36,7 +36,7 @@ class _ProductSearchScreenState extends State<ProductSearchScreen> {
     _controller =
         widget.controller ??
         ProductSearchController(
-          repository: context.appDependencies.productsRepository,
+          source: context.appDependencies.productsRepository,
         );
     _scrollController.addListener(_onScroll);
   }

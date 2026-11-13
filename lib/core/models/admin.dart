@@ -163,6 +163,7 @@ class ReviewProductView {
     this.name,
     this.brand,
     this.unit,
+    this.canonicalStem,
   });
 
   factory ReviewProductView.fromJson(JsonMap json) => ReviewProductView(
@@ -172,6 +173,7 @@ class ReviewProductView {
     name: json.stringOrNull('name'),
     brand: json.stringOrNull('brand'),
     unit: json.stringOrNull('unit'),
+    canonicalStem: json.stringOrNull('canonical_stem'),
   );
 
   final int? id;
@@ -180,6 +182,12 @@ class ReviewProductView {
   final String? name;
   final String? brand;
   final String? unit;
+
+  /// Stored product identity, when the backend exposes it.
+  ///
+  /// It can disagree with [name] after a rename, which the review UI surfaces
+  /// before the admin reassigns or approves the row.
+  final String? canonicalStem;
 
   /// Projects the proposal onto the shared catalog shape so the edit UI can
   /// consume it without another product request.
@@ -190,6 +198,7 @@ class ReviewProductView {
     name: name,
     brand: brand,
     unit: unit,
+    canonicalStem: canonicalStem,
   );
 
   JsonMap toJson() => {
@@ -199,6 +208,7 @@ class ReviewProductView {
     'name': name,
     'brand': brand,
     'unit': unit,
+    'canonical_stem': canonicalStem,
   };
 }
 

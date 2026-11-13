@@ -136,6 +136,46 @@ void main() {
     );
   });
 
+  test(
+    'search calls the admin product endpoint and decodes the page',
+    () async {
+      late http.Request request;
+      final repository = repositoryFor((incoming) async {
+        request = incoming;
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'id': 8,
+                'name': 'Apresuntado',
+                'unit': 'kg',
+                'canonical_stem': 'tijolo',
+              },
+            ],
+            'page': {'page': 1, 'limit': 20, 'total': 1, 'total_pages': 1},
+          }),
+          200,
+        );
+      });
+
+      final result = await repository.search(
+        q: 'apresuntado',
+        page: 1,
+        limit: 20,
+      );
+
+      expect(request.method, 'GET');
+      expect(
+        request.url.toString(),
+        'https://api.example.com/api/v1/admin/products?q=apresuntado&page=1&limit=20',
+      );
+      expect(result.items.single.id, 8);
+      expect(result.items.single.name, 'Apresuntado');
+      expect(result.items.single.canonicalStem, 'tijolo');
+      expect(result.page?.totalPages, 1);
+    },
+  );
+
   test('reviewPriceLog posts an approval decision', () async {
     late http.Request request;
     final repository = repositoryFor((incoming) async {

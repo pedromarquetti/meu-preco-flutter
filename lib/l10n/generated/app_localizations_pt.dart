@@ -769,13 +769,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminUpdated => 'Atualizados';
 
   @override
-  String get adminReviewLoadingDetails => 'Carregando detalhes...';
-
-  @override
-  String get adminReviewDetailsError =>
-      'Não foi possível carregar os detalhes deste item.';
-
-  @override
   String get adminReviewNameRequired =>
       'Informe o nome de todos os itens selecionados.';
 
@@ -835,6 +828,48 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get adminReviewDecisionSuccess => 'Decisão registrada';
+
+  @override
+  String get adminTargetProposed => 'Usar o produto proposto';
+
+  @override
+  String get adminTargetCreate => 'Criar novo produto';
+
+  @override
+  String get adminTargetExisting => 'Usar um produto existente';
+
+  @override
+  String get adminTargetProposedHint =>
+      'O item será associado ao produto proposto.';
+
+  @override
+  String get adminTargetCreateHint =>
+      'Um novo produto será criado com os dados abaixo.';
+
+  @override
+  String get adminTargetExistingHint =>
+      'O item será associado ao produto escolhido, sem renomeá-lo.';
+
+  @override
+  String get adminSelectExistingProduct => 'Selecionar produto existente';
+
+  @override
+  String get adminChangeProduct => 'Alterar produto';
+
+  @override
+  String get adminCreateProductTitle => 'Novo produto';
+
+  @override
+  String get adminProductCanonicalStemLabel => 'Identidade';
+
+  @override
+  String adminIdentityMismatch(String stem) {
+    return 'Identidade: $stem';
+  }
+
+  @override
+  String get adminIdentityMismatchHint =>
+      'O nome exibido difere da identidade armazenada. Confirme o produto antes de continuar.';
 
   @override
   String get themeSettingsSection => 'Tema';

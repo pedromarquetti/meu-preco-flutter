@@ -408,7 +408,7 @@ class FakeAdminRepository implements AdminRepository {
   Object? needsReviewError;
   Object? reviewPriceLogError;
   Object? batchAssignError;
-  Object? searchProductsError;
+  Object? searchError;
   Object? updateProductError;
   Object? mergeError;
 
@@ -427,14 +427,34 @@ class FakeAdminRepository implements AdminRepository {
   int needsReviewCalls = 0;
   int reviewPriceLogCalls = 0;
   int batchAssignCalls = 0;
-  int searchProductsCalls = 0;
+  int searchCalls = 0;
 
   final List<({int id, ProductPatch patch})> updateProductCalls = [];
   final List<({int fromId, int toId})> mergeCalls = [];
   final List<List<Assignment>> batchAssignRequests = [];
   final List<({int priceLogId, PriceLogReviewAction action})>
   reviewPriceLogRequests = [];
-  final List<({String? q, int page, int pageSize})> searchProductRequests = [];
+  final List<
+    ({
+      String? q,
+      String? gtin,
+      String? unit,
+      String? brand,
+      int page,
+      int limit,
+    })
+  >
+  searchRequests =
+      <
+        ({
+          String? q,
+          String? gtin,
+          String? unit,
+          String? brand,
+          int page,
+          int limit,
+        })
+      >[];
 
   @override
   Future<UserPage> listUsers({int page = 1, int pageSize = 50}) async {
@@ -518,14 +538,24 @@ class FakeAdminRepository implements AdminRepository {
   }
 
   @override
-  Future<ProductPage> searchProducts({
+  Future<ProductPage> search({
     String? q,
+    String? gtin,
+    String? unit,
+    String? brand,
     int page = 1,
-    int pageSize = 50,
+    int limit = 20,
   }) async {
-    searchProductsCalls++;
-    searchProductRequests.add((q: q, page: page, pageSize: pageSize));
-    if (searchProductsError != null) throw searchProductsError!;
+    searchCalls++;
+    searchRequests.add((
+      q: q,
+      gtin: gtin,
+      unit: unit,
+      brand: brand,
+      page: page,
+      limit: limit,
+    ));
+    if (searchError != null) throw searchError!;
     return searchResult ?? ProductPage(items: const [], page: const Page());
   }
 

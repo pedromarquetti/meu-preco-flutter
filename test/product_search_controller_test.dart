@@ -21,7 +21,7 @@ void main() {
     int pageSize = 5,
   }) {
     final controller = ProductSearchController(
-      repository: repository,
+      source: repository,
       debounce: debounce,
       pageSize: pageSize,
     );

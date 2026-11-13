@@ -1522,18 +1522,6 @@ abstract class AppLocalizations {
   /// **'Atualizados'**
   String get adminUpdated;
 
-  /// Loading product details in review step 2
-  ///
-  /// In pt, this message translates to:
-  /// **'Carregando detalhes...'**
-  String get adminReviewLoadingDetails;
-
-  /// Failed to load product details in review step 2
-  ///
-  /// In pt, this message translates to:
-  /// **'Não foi possível carregar os detalhes deste item.'**
-  String get adminReviewDetailsError;
-
   /// Validation message for a missing product name
   ///
   /// In pt, this message translates to:
@@ -1623,6 +1611,78 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Decisão registrada'**
   String get adminReviewDecisionSuccess;
+
+  /// Radio option to assign the row to its proposed product
+  ///
+  /// In pt, this message translates to:
+  /// **'Usar o produto proposto'**
+  String get adminTargetProposed;
+
+  /// Radio option to create a new product for the row
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar novo produto'**
+  String get adminTargetCreate;
+
+  /// Radio option to assign the row to an existing product
+  ///
+  /// In pt, this message translates to:
+  /// **'Usar um produto existente'**
+  String get adminTargetExisting;
+
+  /// Helper text for the proposed-product target
+  ///
+  /// In pt, this message translates to:
+  /// **'O item será associado ao produto proposto.'**
+  String get adminTargetProposedHint;
+
+  /// Helper text for the create-product target
+  ///
+  /// In pt, this message translates to:
+  /// **'Um novo produto será criado com os dados abaixo.'**
+  String get adminTargetCreateHint;
+
+  /// Helper text for the existing-product target
+  ///
+  /// In pt, this message translates to:
+  /// **'O item será associado ao produto escolhido, sem renomeá-lo.'**
+  String get adminTargetExistingHint;
+
+  /// Title of the product picker used to choose an existing product
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecionar produto existente'**
+  String get adminSelectExistingProduct;
+
+  /// Action to reopen the existing-product picker
+  ///
+  /// In pt, this message translates to:
+  /// **'Alterar produto'**
+  String get adminChangeProduct;
+
+  /// Heading above the new-product draft fields
+  ///
+  /// In pt, this message translates to:
+  /// **'Novo produto'**
+  String get adminCreateProductTitle;
+
+  /// Label for the stored canonical product identity
+  ///
+  /// In pt, this message translates to:
+  /// **'Identidade'**
+  String get adminProductCanonicalStemLabel;
+
+  /// Warning shown when a product name and canonical stem disagree
+  ///
+  /// In pt, this message translates to:
+  /// **'Identidade: {stem}'**
+  String adminIdentityMismatch(String stem);
+
+  /// Explains why a name and canonical stem mismatch matters
+  ///
+  /// In pt, this message translates to:
+  /// **'O nome exibido difere da identidade armazenada. Confirme o produto antes de continuar.'**
+  String get adminIdentityMismatchHint;
 
   /// Settings section header for theme selection
   ///

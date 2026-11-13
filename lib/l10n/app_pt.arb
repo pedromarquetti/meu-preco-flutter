@@ -237,8 +237,6 @@
   "adminCreated": "Criados",
   "adminMerged": "Mesclados",
   "adminUpdated": "Atualizados",
-  "adminReviewLoadingDetails": "Carregando detalhes...",
-  "adminReviewDetailsError": "Não foi possível carregar os detalhes deste item.",
   "adminReviewNameRequired": "Informe o nome de todos os itens selecionados.",
   "adminReviewUnitRequired": "Informe a unidade de todos os itens selecionados.",
   "adminReviewMergeTargetRequired": "Selecione um produto de destino válido para cada mesclagem.",
@@ -254,6 +252,18 @@
   "adminProposalPublishHint": "Propor mantém os itens na fila até a aprovação.",
   "adminReviewAlreadyProcessed": "Este item já foi processado por outro administrador.",
   "adminReviewDecisionSuccess": "Decisão registrada",
+  "adminTargetProposed": "Usar o produto proposto",
+  "adminTargetCreate": "Criar novo produto",
+  "adminTargetExisting": "Usar um produto existente",
+  "adminTargetProposedHint": "O item será associado ao produto proposto.",
+  "adminTargetCreateHint": "Um novo produto será criado com os dados abaixo.",
+  "adminTargetExistingHint": "O item será associado ao produto escolhido, sem renomeá-lo.",
+  "adminSelectExistingProduct": "Selecionar produto existente",
+  "adminChangeProduct": "Alterar produto",
+  "adminCreateProductTitle": "Novo produto",
+  "adminProductCanonicalStemLabel": "Identidade",
+  "adminIdentityMismatch": "Identidade: {stem}",
+  "adminIdentityMismatchHint": "O nome exibido difere da identidade armazenada. Confirme o produto antes de continuar.",
   "themeSettingsSection": "Tema",
   "@@locale": "pt",
   "@priceChartSemantics": {
@@ -334,12 +344,6 @@
   "@adminUpdated": {
     "description": "Updated count"
   },
-  "@adminReviewLoadingDetails": {
-    "description": "Loading product details in review step 2"
-  },
-  "@adminReviewDetailsError": {
-    "description": "Failed to load product details in review step 2"
-  },
   "@adminReviewNameRequired": {
     "description": "Validation message for a missing product name"
   },
@@ -389,6 +393,47 @@
   },
   "@adminReviewAlreadyProcessed": {
     "description": "Race message when another admin already reviewed the item"
+  },
+  "@adminTargetProposed": {
+    "description": "Radio option to assign the row to its proposed product"
+  },
+  "@adminTargetCreate": {
+    "description": "Radio option to create a new product for the row"
+  },
+  "@adminTargetExisting": {
+    "description": "Radio option to assign the row to an existing product"
+  },
+  "@adminTargetProposedHint": {
+    "description": "Helper text for the proposed-product target"
+  },
+  "@adminTargetCreateHint": {
+    "description": "Helper text for the create-product target"
+  },
+  "@adminTargetExistingHint": {
+    "description": "Helper text for the existing-product target"
+  },
+  "@adminSelectExistingProduct": {
+    "description": "Title of the product picker used to choose an existing product"
+  },
+  "@adminChangeProduct": {
+    "description": "Action to reopen the existing-product picker"
+  },
+  "@adminCreateProductTitle": {
+    "description": "Heading above the new-product draft fields"
+  },
+  "@adminProductCanonicalStemLabel": {
+    "description": "Label for the stored canonical product identity"
+  },
+  "@adminIdentityMismatch": {
+    "description": "Warning shown when a product name and canonical stem disagree",
+    "placeholders": {
+      "stem": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminIdentityMismatchHint": {
+    "description": "Explains why a name and canonical stem mismatch matters"
   },
   "@appTitle": {
     "description": "AppTitle"
