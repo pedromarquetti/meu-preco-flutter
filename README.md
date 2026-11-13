@@ -65,13 +65,15 @@ user log-in
 |    |
 |   ▼
 |   Home Page
-|      └─► Scan new NFCe ─► User presented with either Scan QR with camera or paste the NFCe key
+|      └─► Scan new NFCe ─► User presented with either Scan QR with camera or paste the NFCe key/QR code content
 |     └─► Search for product ─► User can search for product
 |                                └─► Product page ─► graph of historical prices + list of prices
 ▼
 Admin Page
     └─► Register user screen
-    └─► Resolve `uid_uncertain`
+    └─► needs_review screen
+    └─► Products screen (manage/edit products)
+    └─► Merge products screen
 ```
 
 ## API docs

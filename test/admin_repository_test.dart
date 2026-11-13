@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -133,5 +134,120 @@ void main() {
             .having((error) => error.message, 'message', 'Unit is required'),
       ),
     );
+  });
+
+  test('reviewPriceLog posts an approval decision', () async {
+    late http.Request request;
+    final repository = repositoryFor((incoming) async {
+      request = incoming;
+      return http.Response(
+        jsonEncode({'id': 42, 'name': 'Arroz', 'unit': 'kg'}),
+        200,
+      );
+    });
+
+    final result = await repository.reviewPriceLog(
+      priceLogId: 42,
+      action: PriceLogReviewAction.approve,
+    );
+
+    expect(request.method, 'POST');
+    expect(
+      request.url.toString(),
+      'https://api.example.com/api/v1/admin/products/price-logs/42/review',
+    );
+    expect(jsonDecode(request.body), {'action': 'approve'});
+    expect(result.id, 42);
+    expect(result.name, 'Arroz');
+  });
+
+  test('reviewPriceLog posts a rejection decision', () async {
+    late http.Request request;
+    final repository = repositoryFor((incoming) async {
+      request = incoming;
+      return http.Response('{}', 200);
+    });
+
+    await repository.reviewPriceLog(
+      priceLogId: 7,
+      action: PriceLogReviewAction.reject,
+    );
+
+    expect(jsonDecode(request.body), {'action': 'reject'});
+  });
+
+  test('findUser gets one account and caches the result', () async {
+    var requests = 0;
+    final repository = repositoryFor((incoming) async {
+      requests++;
+      expect(incoming.method, 'GET');
+      expect(
+        incoming.url.toString(),
+        'https://api.example.com/api/v1/admin/user/7',
+      );
+      return http.Response(
+        jsonEncode({
+          'id': 7,
+          'name': 'Ada',
+          'email': 'ada@example.com',
+          'role': 'admin',
+        }),
+        200,
+      );
+    });
+
+    final first = await repository.findUser(7);
+    final second = await repository.findUser(7);
+
+    expect(first?.name, 'Ada');
+    expect(first?.role, UserRole.admin);
+    expect(second?.name, 'Ada');
+    expect(requests, 1);
+  });
+
+  test('findUser returns null when the account no longer exists', () async {
+    final repository = repositoryFor(
+      (_) async => http.Response(
+        jsonEncode({
+          'error': {'code': 'not_found', 'message': 'User not found'},
+        }),
+        404,
+      ),
+    );
+
+    expect(await repository.findUser(99), isNull);
+  });
+
+  test('findUser shares one request across concurrent lookups', () async {
+    final gate = Completer<void>();
+    var requests = 0;
+    final repository = repositoryFor((_) async {
+      requests++;
+      await gate.future;
+      return http.Response(
+        jsonEncode({'id': 3, 'name': 'Grace', 'email': 'grace@example.com'}),
+        200,
+      );
+    });
+
+    final lookups = [repository.findUser(3), repository.findUser(3)];
+    gate.complete();
+    final users = await Future.wait(lookups);
+
+    expect(requests, 1);
+    expect(users.every((user) => user?.id == 3), isTrue);
+  });
+
+  test('findUser surfaces typed failures', () async {
+    final repository = repositoryFor(
+      (_) async => http.Response(
+        jsonEncode({
+          'error': {'code': 'internal_error', 'message': 'boom'},
+        }),
+        500,
+      ),
+    );
+
+    await expectLater(repository.findUser(1), throwsA(isA<ApiException>()));
   });
 }

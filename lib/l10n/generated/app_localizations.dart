@@ -1312,6 +1312,18 @@ abstract class AppLocalizations {
   /// **'Associados'**
   String get commitAssignedLabel;
 
+  /// No description provided for @commitPendingReviewLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aguardando aprovação'**
+  String get commitPendingReviewLabel;
+
+  /// No description provided for @commitPendingReviewHelp.
+  ///
+  /// In pt, this message translates to:
+  /// **'Os itens associados manualmente aguardam aprovação de um administrador antes de aparecerem publicamente.'**
+  String get commitPendingReviewHelp;
+
   /// Done
   ///
   /// In pt, this message translates to:
@@ -1453,7 +1465,7 @@ abstract class AppLocalizations {
   /// Batch assign action
   ///
   /// In pt, this message translates to:
-  /// **'Atribuir em lote'**
+  /// **'Propor produtos'**
   String get adminBatchAssign;
 
   /// Suggested name
@@ -1489,7 +1501,7 @@ abstract class AppLocalizations {
   /// Assigned count
   ///
   /// In pt, this message translates to:
-  /// **'Atribuídos'**
+  /// **'Propostas atualizadas'**
   String get adminAssigned;
 
   /// Created count
@@ -1545,6 +1557,72 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Algumas operações falharam e os itens não foram recarregados'**
   String get adminReviewPartialFailure;
+
+  /// No description provided for @adminApproveAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aprovar'**
+  String get adminApproveAction;
+
+  /// No description provided for @adminRejectAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Rejeitar'**
+  String get adminRejectAction;
+
+  /// No description provided for @adminProposalPending.
+  ///
+  /// In pt, this message translates to:
+  /// **'Proposta de associação aguardando aprovação'**
+  String get adminProposalPending;
+
+  /// No description provided for @adminProposalRejected.
+  ///
+  /// In pt, this message translates to:
+  /// **'Proposta rejeitada; ela continua disponível para revisão'**
+  String get adminProposalRejected;
+
+  /// Attribution for a proposal
+  ///
+  /// In pt, this message translates to:
+  /// **'Proposto por: {name}'**
+  String adminProposalBy(String name);
+
+  /// Attribution fallback when the proposer cannot be resolved
+  ///
+  /// In pt, this message translates to:
+  /// **'Proposto por: usuário #{id}'**
+  String adminProposalByFallback(int id);
+
+  /// Accessibility label for selecting a review row
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecionar {name}'**
+  String adminSelectItem(String name);
+
+  /// Number of selected review items in step 2
+  ///
+  /// In pt, this message translates to:
+  /// **'{count} itens selecionados'**
+  String adminSelectedCount(int count);
+
+  /// Explains that proposing keeps rows in review until approval
+  ///
+  /// In pt, this message translates to:
+  /// **'Propor mantém os itens na fila até a aprovação.'**
+  String get adminProposalPublishHint;
+
+  /// Race message when another admin already reviewed the item
+  ///
+  /// In pt, this message translates to:
+  /// **'Este item já foi processado por outro administrador.'**
+  String get adminReviewAlreadyProcessed;
+
+  /// No description provided for @adminReviewDecisionSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Decisão registrada'**
+  String get adminReviewDecisionSuccess;
 
   /// Settings section header for theme selection
   ///

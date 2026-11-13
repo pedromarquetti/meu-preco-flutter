@@ -385,6 +385,45 @@ void main() {
 
       expect(page.items.single.description, 'ARROZ');
       expect(page.items.single.totalPrice?.amount, '24.6912');
+      expect(page.items.single.proposalStatus, ProposalStatus.pending);
+      expect(page.items.single.lastReviewAction, isNull);
+    });
+
+    test('ReviewItem decodes proposal state and brand', () {
+      final item = ReviewItem.fromJson({
+        'price_log_id': 6,
+        'description': 'FILEZINHO FRANGO',
+        'proposed_product': {
+          'id': 1,
+          'product_key': 'limao',
+          'name': 'limao tahiti',
+          'brand': 'Marca Boa',
+          'unit': 'UN',
+        },
+        'resolved_by': 2,
+        'proposal_status': 'rejected',
+        'last_review_action': 'reject',
+      });
+
+      expect(item.isProposal, isTrue);
+      expect(item.isRejected, isTrue);
+      expect(item.proposalStatus, ProposalStatus.rejected);
+      expect(item.lastReviewAction, ReviewAction.reject);
+      expect(item.proposedProduct?.brand, 'Marca Boa');
+      expect(item.proposedProduct?.toProductView().brand, 'Marca Boa');
+      expect(item.toJson()['proposal_status'], 'rejected');
+      expect(item.toJson()['last_review_action'], 'reject');
+    });
+
+    test('ReviewItem rejects unknown proposal state values', () {
+      expect(
+        () => ReviewItem.fromJson({'proposal_status': 'maybe'}),
+        throwsA(isA<SerializationException>()),
+      );
+      expect(
+        () => ReviewItem.fromJson({'last_review_action': 'maybe'}),
+        throwsA(isA<SerializationException>()),
+      );
     });
 
     test('BatchAssignRequest omits null fields for create actions', () {

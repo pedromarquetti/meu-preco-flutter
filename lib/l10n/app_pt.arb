@@ -202,6 +202,8 @@
   "commitSkippedLabel": "Itens ignorados",
   "commitNeedsReviewLabel": "Para revisão",
   "commitAssignedLabel": "Associados",
+  "commitPendingReviewLabel": "Aguardando aprovação",
+  "commitPendingReviewHelp": "Os itens associados manualmente aguardam aprovação de um administrador antes de aparecerem publicamente.",
   "doneAction": "Concluir",
   "done":"Concluído",
   "deleteReceiptAction": "Excluir cupom",
@@ -225,13 +227,13 @@
   "adminDemoteToUser": "Rebaixar para usuário",
   "adminConfirmRoleChange": "Confirmar alteração de perfil?",
   "adminCannotChangeOwnRole": "Não é possível alterar o próprio perfil",
-  "adminBatchAssign": "Atribuir em lote",
+  "adminBatchAssign": "Propor produtos",
   "batchAssignSuggestedName": "Nome Sugerido",
   "useSuggestionAction": "Usar sugestão",
   "adminSelectAll": "Selecionar todos",
   "adminClearSelection": "Limpar seleção",
   "adminNoSelection": "Nenhum item selecionado",
-  "adminAssigned": "Atribuídos",
+  "adminAssigned": "Propostas atualizadas",
   "adminCreated": "Criados",
   "adminMerged": "Mesclados",
   "adminUpdated": "Atualizados",
@@ -241,6 +243,17 @@
   "adminReviewUnitRequired": "Informe a unidade de todos os itens selecionados.",
   "adminReviewMergeTargetRequired": "Selecione um produto de destino válido para cada mesclagem.",
   "adminReviewPartialFailure": "Algumas operações falharam e os itens não foram recarregados",
+  "adminApproveAction": "Aprovar",
+  "adminRejectAction": "Rejeitar",
+  "adminProposalPending": "Proposta de associação aguardando aprovação",
+  "adminProposalRejected": "Proposta rejeitada; ela continua disponível para revisão",
+  "adminProposalBy": "Proposto por: {name}",
+  "adminProposalByFallback": "Proposto por: usuário #{id}",
+  "adminSelectItem": "Selecionar {name}",
+  "adminSelectedCount": "{count} itens selecionados",
+  "adminProposalPublishHint": "Propor mantém os itens na fila até a aprovação.",
+  "adminReviewAlreadyProcessed": "Este item já foi processado por outro administrador.",
+  "adminReviewDecisionSuccess": "Decisão registrada",
   "themeSettingsSection": "Tema",
   "@@locale": "pt",
   "@priceChartSemantics": {
@@ -338,6 +351,44 @@
   },
   "@adminReviewPartialFailure": {
     "description": "Partial failure message after some review operations fail"
+  },
+  "@adminProposalBy": {
+    "description": "Attribution for a proposal",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminProposalByFallback": {
+    "description": "Attribution fallback when the proposer cannot be resolved",
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminSelectItem": {
+    "description": "Accessibility label for selecting a review row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminSelectedCount": {
+    "description": "Number of selected review items in step 2",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminProposalPublishHint": {
+    "description": "Explains that proposing keeps rows in review until approval"
+  },
+  "@adminReviewAlreadyProcessed": {
+    "description": "Race message when another admin already reviewed the item"
   },
   "@appTitle": {
     "description": "AppTitle"

@@ -27,6 +27,9 @@ String localizedErrorMessage(AppLocalizations strings, Object error) {
         return strings.userExistsError;
       case ApiErrorCode.invalidRequest:
         return strings.invalidRequestError;
+      case ApiErrorCode.badRequest:
+      case ApiErrorCode.invalidReviewAction:
+        return strings.invalidRequestError;
       case ApiErrorCode.invalidFilter:
         return strings.invalidFilterError;
       case ApiErrorCode.invalidRole:
@@ -50,6 +53,7 @@ String localizedErrorMessage(AppLocalizations strings, Object error) {
       case ApiErrorCode.challengeNotFound:
         return strings.captchaNotFoundError;
       case ApiErrorCode.conflict:
+      case ApiErrorCode.alreadyProcessed:
         return strings.conflictError;
       case ApiErrorCode.inUse:
         return strings.inUseError;

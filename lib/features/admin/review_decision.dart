@@ -49,14 +49,23 @@ class ReviewDecision {
     this.targetProductId,
   });
 
-  /// Creates a default decision for a review item with the [InternalAssignmentAction.create] action.
+  /// Seeds a decision from a queue row.
+  ///
+  /// A row with a proposed product starts from that proposal, so entering the
+  /// edit step shows the existing product instead of the raw suggestion. Rows
+  /// without a proposal keep the create path and the suggested name.
   factory ReviewDecision.createFromItem(ReviewItem item) {
+    final proposal = item.proposedProduct;
     return ReviewDecision(
       priceLogId: item.priceLogId,
       reviewItem: item,
-      action: InternalAssignmentAction.create,
-      name: item.suggestedStem ?? item.description ?? '',
-      unit: item.unit,
+      loadedProduct: proposal?.toProductView(),
+      action: proposal?.id == null
+          ? InternalAssignmentAction.create
+          : InternalAssignmentAction.updateExisting,
+      name: proposal?.name ?? item.suggestedStem ?? item.description ?? '',
+      brand: proposal?.brand,
+      unit: proposal?.unit ?? item.unit,
     );
   }
 

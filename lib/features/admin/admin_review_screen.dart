@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:meu_preco_frontend/features/products/data/product_repository.dart';
 
 import '../../app/app_scope.dart';
+import '../../core/errors/api_error_code.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/models/models.dart';
 import '../../core/ui/empty_view.dart';
@@ -9,9 +11,10 @@ import '../../core/ui/error_messages.dart';
 import '../../core/ui/error_view.dart';
 import '../../core/ui/loading_view.dart';
 import '../../l10n/generated/app_localizations.dart';
-import '../../features/admin/widgets/product_edit_block.dart';
 import 'data/admin_repository.dart';
 import 'review_decision.dart';
+import 'widgets/product_edit_block.dart';
+import 'widgets/review_queue_item_card.dart';
 
 class AdminReviewScreen extends StatefulWidget {
   const AdminReviewScreen({super.key});
@@ -23,8 +26,6 @@ class AdminReviewScreen extends StatefulWidget {
 enum _BatchAssignStep { select, edit }
 
 class _AdminReviewScreenState extends State<AdminReviewScreen> {
-  late final ProductRepository _productRepository =
-      context.appDependencies.productsRepository;
   late final AdminRepository _repository =
       context.appDependencies.adminRepository;
   List<ReviewItem> _items = [];
@@ -32,15 +33,15 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   Object? _error;
   _BatchAssignStep _step = _BatchAssignStep.select;
   final List<ReviewDecision> _decisions = [];
+  final Map<int, bool> _reviewingProposals = {}; // priceLogId -> isLoading
 
-  /// Tracks loading status and errors for each item in Step 2.
-  final Map<int, bool> _loadingDecisions = {}; // priceLogId -> isLoading
-  final Map<int, Object?> _errorMessages = {}; // priceLogId -> error
+  /// Proposer accounts resolved from `resolved_by`, keyed by user id.
+  final Map<int, UserView> _proposers = {};
+  final Set<int> _proposersLoading = {};
 
-  /// Guards product-detail loads so a stale response cannot overwrite newer
-  /// state after the selection changed or Step 2 was re-entered.
-  int _detailsGeneration = 0;
-  final Map<int, int> _detailRequests = {};
+  /// Guards proposer lookups so a stale response cannot write into a newer
+  /// queue after a refresh.
+  int _proposerGeneration = 0;
 
   bool _submitting = false;
 
@@ -51,26 +52,28 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   }
 
   Future<void> _load() async {
-    _detailsGeneration++;
-    _detailRequests.clear();
+    _proposerGeneration++;
+    final generation = _proposerGeneration;
     setState(() {
       _loading = true;
       _error = null;
       _step = _BatchAssignStep.select;
       _decisions.clear();
-      _loadingDecisions.clear();
-      _errorMessages.clear();
+      _reviewingProposals.clear();
+      _proposers.clear();
+      _proposersLoading.clear();
       _submitting = false;
     });
     try {
       final page = await _repository.listNeedsReview();
-      if (!mounted) return;
+      if (!mounted || generation != _proposerGeneration) return;
       setState(() {
         _items = page.items;
         _loading = false;
       });
+      _resolveProposers();
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _proposerGeneration) return;
       setState(() {
         _error = e;
         _loading = false;
@@ -78,75 +81,80 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     }
   }
 
-  Future<void> _fetchProductDetails(
-    ReviewDecision decision,
-    int generation,
-  ) async {
-    final id = decision.priceLogId;
-    if (id == null) return;
-
-    final token = (_detailRequests[id] ?? 0) + 1;
-    _detailRequests[id] = token;
-    setState(() {
-      _loadingDecisions[id] = true;
-      _errorMessages.remove(id);
-    });
-
-    try {
-      final product = await _productRepository.getProduct(id);
-      if (!mounted || !_isCurrentDetail(id, token, generation)) return;
-      setState(() {
-        final index = _decisions.indexWhere((d) => d.priceLogId == id);
-        if (index == -1) {
-          _loadingDecisions[id] = false;
-          return;
-        }
-        final current = _decisions[index];
-        final suggestion =
-            _nonEmpty(current.reviewItem?.suggestedStem) ??
-            _nonEmpty(current.reviewItem?.description);
-        final currentName = _nonEmpty(current.name);
-        final nameIsUneditedSuggestion =
-            currentName == null ||
-            (suggestion != null &&
-                currentName.toLowerCase() == suggestion.toLowerCase());
-
-        _decisions[index] = current.copyWith(
-          loadedProduct: product,
-          // Existing products must show their persisted values. A name the
-          // admin already typed is kept untouched.
-          name: nameIsUneditedSuggestion
-              ? (_nonEmpty(product.name) ?? current.name)
-              : current.name,
-          action: product.id == null
-              ? InternalAssignmentAction.create
-              : InternalAssignmentAction.updateExisting,
+  /// Resolves every distinct proposer in the background. Attribution is
+  /// informational, so the queue renders immediately and falls back to the
+  /// raw user id when a lookup fails.
+  void _resolveProposers() {
+    final generation = _proposerGeneration;
+    final ids =
+        <int>{
+          for (final item in _items)
+            if (item.isProposal && item.resolvedBy != null) item.resolvedBy!,
+        }..removeWhere(
+          (id) => _proposers.containsKey(id) || _proposersLoading.contains(id),
         );
-        _loadingDecisions[id] = false;
-      });
-    } on NotFoundException {
-      if (!mounted || !_isCurrentDetail(id, token, generation)) return;
-      // A queue row without a linked product is the normal create path.
-      setState(() {
-        final index = _decisions.indexWhere((d) => d.priceLogId == id);
-        if (index != -1) {
-          _decisions[index] = _decisions[index].copyWith(
-            action: InternalAssignmentAction.create,
-          );
-        }
-        _loadingDecisions[id] = false;
-      });
-    } catch (e) {
-      if (!mounted || !_isCurrentDetail(id, token, generation)) return;
-      setState(() {
-        _errorMessages[id] = e;
-        _loadingDecisions[id] = false;
-      });
+
+    if (ids.isEmpty) return;
+
+    setState(() => _proposersLoading.addAll(ids));
+    for (final id in ids) {
+      unawaited(_resolveProposer(id, generation));
     }
   }
 
-  bool _isCurrentDetail(int id, int token, int generation) =>
-      generation == _detailsGeneration && _detailRequests[id] == token;
+  Future<void> _resolveProposer(int id, int generation) async {
+    try {
+      final user = await _repository.findUser(id);
+      if (!mounted || generation != _proposerGeneration) return;
+      setState(() {
+        _proposersLoading.remove(id);
+        if (user != null) _proposers[id] = user;
+      });
+    } catch (_) {
+      // A failed lookup must not break the queue; the card shows `#id`.
+      if (!mounted || generation != _proposerGeneration) return;
+      setState(() => _proposersLoading.remove(id));
+    }
+  }
+
+  Future<void> _reviewProposal(
+    ReviewItem item,
+    PriceLogReviewAction action,
+  ) async {
+    final id = item.priceLogId;
+    if (id == null || _reviewingProposals[id] == true) return;
+    final strings = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _reviewingProposals[id] = true);
+    try {
+      await _repository.reviewPriceLog(priceLogId: id, action: action);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(strings.adminReviewDecisionSuccess)),
+      );
+      await _load();
+    } catch (error) {
+      if (!mounted) return;
+      final alreadyProcessed =
+          error is ConflictException &&
+          ApiErrorCode.fromWire(error.code) == ApiErrorCode.alreadyProcessed;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            alreadyProcessed
+                ? strings.adminReviewAlreadyProcessed
+                : localizedErrorMessage(strings, error),
+          ),
+        ),
+      );
+      if (alreadyProcessed) {
+        // Another admin won the race: the queue is stale, so reload it.
+        await _load();
+      } else {
+        setState(() => _reviewingProposals[id] = false);
+      }
+    }
+  }
 
   void _goToStep2() {
     final strings = AppLocalizations.of(context);
@@ -157,33 +165,12 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       return;
     }
 
-    setState(() {
-      _step = _BatchAssignStep.edit;
-      _detailsGeneration++;
-      _detailRequests.clear();
-      _loadingDecisions.clear();
-      _errorMessages.clear();
-    });
-
-    final generation = _detailsGeneration;
-    for (final decision in _decisions) {
-      if (decision.priceLogId != null) {
-        _fetchProductDetails(decision, generation);
-      }
-    }
+    setState(() => _step = _BatchAssignStep.edit);
   }
 
   void _backToSelection() {
     if (_submitting) return;
-    setState(() {
-      _step = _BatchAssignStep.select;
-      // Cancel any in-flight detail load; the selection is re-fetched when
-      // Step 2 is entered again.
-      _detailsGeneration++;
-      _detailRequests.clear();
-      _loadingDecisions.clear();
-      _errorMessages.clear();
-    });
+    setState(() => _step = _BatchAssignStep.select);
   }
 
   /// Number of items that can actually be selected (have a log id).
@@ -192,10 +179,6 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
 
   bool get _allSelected =>
       _selectableCount > 0 && _decisions.length == _selectableCount;
-
-  bool get _hasPendingDetails =>
-      _loadingDecisions.values.any((loading) => loading) ||
-      _errorMessages.isNotEmpty;
 
   void _toggleSelection(ReviewItem item, bool selected) {
     final id = item.priceLogId;
@@ -208,8 +191,6 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
         }
       } else {
         _decisions.removeWhere((d) => d.priceLogId == id);
-        _loadingDecisions.remove(id);
-        _errorMessages.remove(id);
       }
     });
   }
@@ -227,8 +208,6 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 .map(ReviewDecision.createFromItem),
           );
       }
-      _loadingDecisions.clear();
-      _errorMessages.clear();
     });
   }
 
@@ -416,7 +395,13 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       if (mergedCount > 0) '${strings.adminMerged}: $mergedCount',
       if (updatedCount > 0) '${strings.adminUpdated}: $updatedCount',
     ];
-    messenger.showSnackBar(SnackBar(content: Text(summary.join(', '))));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          '${summary.join(', ')}. ${strings.adminProposalPublishHint}',
+        ),
+      ),
+    );
     await _load();
   }
 
@@ -461,24 +446,41 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextButton(
-                  onPressed: _submitting ? null : _backToSelection,
-                  child: Text(strings.goBack),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: _submitting ? null : _backToSelection,
+                      child: Text(strings.goBack),
+                    ),
+                    const Spacer(),
+                    FilledButton.icon(
+                      onPressed: _submitting ? null : _assignAll,
+                      icon: _submitting
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.check),
+                      label: Text(strings.adminBatchAssign),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: _submitting || _hasPendingDetails
-                      ? null
-                      : _assignAll,
-                  icon: _submitting
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.check),
-                  label: Text(strings.adminBatchAssign),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    strings.adminSelectedCount(_decisions.length),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    strings.adminProposalPublishHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
               ],
             ),
@@ -522,17 +524,29 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
               itemBuilder: (context, index) {
                 final item = _items[index];
                 final id = item.priceLogId;
-                return CheckboxListTile(
-                  value:
-                      id != null &&
-                      _decisions.any((decision) => decision.priceLogId == id),
-                  onChanged: id == null
-                      ? null
-                      : (value) => _toggleSelection(item, value == true),
-                  title: Text(item.description ?? item.suggestedStem ?? '-'),
-                  subtitle: Text(
-                    '${item.storeName ?? ''} • ${item.totalPrice ?? ''}',
-                  ),
+                final selected =
+                    id != null &&
+                    _decisions.any((decision) => decision.priceLogId == id);
+                final reviewing = id != null && _reviewingProposals[id] == true;
+                final canReview = item.isProposal && id != null;
+                final proposer = item.resolvedBy == null
+                    ? null
+                    : _proposers[item.resolvedBy];
+
+                return ReviewQueueItemCard(
+                  key: ValueKey('review-${item.priceLogId}-${item.line}'),
+                  item: item,
+                  selected: selected,
+                  onSelectionChanged: (value) => _toggleSelection(item, value),
+                  proposer: proposer,
+                  reviewing: reviewing,
+                  onApprove: canReview
+                      ? () =>
+                            _reviewProposal(item, PriceLogReviewAction.approve)
+                      : null,
+                  onReject: canReview && !item.isRejected
+                      ? () => _reviewProposal(item, PriceLogReviewAction.reject)
+                      : null,
                 );
               },
             ),
@@ -560,61 +574,14 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
           return const SizedBox.shrink();
         }
 
-        if (_loadingDecisions[id] ?? false) {
-          return Card(
-            key: ValueKey(id),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const LinearProgressIndicator(),
-                  const SizedBox(height: 12),
-                  Text(strings.adminReviewLoadingDetails),
-                ],
-              ),
-            ),
-          );
-        }
-
-        final detailsError = _errorMessages[id];
-        if (detailsError != null) {
-          return Card(
-            key: ValueKey(id),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    strings.adminReviewDetailsError,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(localizedErrorMessage(strings, detailsError)),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          _fetchProductDetails(decision, _detailsGeneration),
-                      icon: const Icon(Icons.refresh),
-                      label: Text(strings.retryAction),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
         final suggestedName =
             _nonEmpty(item?.suggestedStem) ?? _nonEmpty(item?.description);
+        final proposer = item?.resolvedBy == null
+            ? null
+            : _proposers[item!.resolvedBy];
 
         return Card(
-          key: ValueKey(id),
+          key: ValueKey('decision-$id'),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -630,6 +597,13 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                     '${item.storeName ?? '-'} • ${item.totalPrice ?? '-'}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (item.isProposal && item.resolvedBy != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      proposalAuthorLabel(strings, item, proposer),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ],
                 const SizedBox(height: 12),
                 ProductEditBlock(

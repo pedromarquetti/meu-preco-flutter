@@ -246,6 +246,7 @@ class CommitResult {
     this.autoSaved,
     this.assigned,
     this.needsReview,
+    this.pendingReview,
     this.skipped,
     this.nfceId,
     this.accessKey,
@@ -258,6 +259,7 @@ class CommitResult {
     autoSaved: json.intOrNull('auto_saved'),
     assigned: json.intOrNull('assigned'),
     needsReview: json.intOrNull('needs_review'),
+    pendingReview: json.intOrNull('pending_review'),
     skipped: json.intOrNull('skipped'),
     nfceId: json.intOrNull('nfce_id'),
     accessKey: json.stringOrNull('access_key'),
@@ -269,6 +271,9 @@ class CommitResult {
   final int? autoSaved;
   final int? assigned;
   final int? needsReview;
+
+  /// Total rows awaiting administrative review (`assigned + needs_review`).
+  final int? pendingReview;
   final int? skipped;
   final int? nfceId;
   final String? accessKey;
@@ -280,6 +285,7 @@ class CommitResult {
     'auto_saved': autoSaved,
     'assigned': assigned,
     'needs_review': needsReview,
+    'pending_review': pendingReview,
     'skipped': skipped,
     'nfce_id': nfceId,
     'access_key': accessKey,

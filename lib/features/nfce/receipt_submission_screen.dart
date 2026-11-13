@@ -552,6 +552,17 @@ class _ReceiptSubmissionScreenState extends State<ReceiptSubmissionScreen> {
                 label: strings.commitNeedsReviewLabel,
                 value: result.needsReview,
               ),
+              _CountRow(
+                label: strings.commitPendingReviewLabel,
+                value: result.pendingReview,
+              ),
+              if ((result.pendingReview ?? 0) > 0) ...[
+                const SizedBox(height: 12),
+                _InfoBanner(
+                  icon: Icons.admin_panel_settings_outlined,
+                  text: strings.commitPendingReviewHelp,
+                ),
+              ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _controller.busy ? null : _controller.reset,

@@ -657,6 +657,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get commitAssignedLabel => 'Associados';
 
   @override
+  String get commitPendingReviewLabel => 'Aguardando aprovação';
+
+  @override
+  String get commitPendingReviewHelp =>
+      'Os itens associados manualmente aguardam aprovação de um administrador antes de aparecerem publicamente.';
+
+  @override
   String get doneAction => 'Concluir';
 
   @override
@@ -732,7 +739,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não é possível alterar o próprio perfil';
 
   @override
-  String get adminBatchAssign => 'Atribuir em lote';
+  String get adminBatchAssign => 'Propor produtos';
 
   @override
   String get batchAssignSuggestedName => 'Nome Sugerido';
@@ -750,7 +757,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminNoSelection => 'Nenhum item selecionado';
 
   @override
-  String get adminAssigned => 'Atribuídos';
+  String get adminAssigned => 'Propostas atualizadas';
 
   @override
   String get adminCreated => 'Criados';
@@ -783,6 +790,51 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get adminReviewPartialFailure =>
       'Algumas operações falharam e os itens não foram recarregados';
+
+  @override
+  String get adminApproveAction => 'Aprovar';
+
+  @override
+  String get adminRejectAction => 'Rejeitar';
+
+  @override
+  String get adminProposalPending =>
+      'Proposta de associação aguardando aprovação';
+
+  @override
+  String get adminProposalRejected =>
+      'Proposta rejeitada; ela continua disponível para revisão';
+
+  @override
+  String adminProposalBy(String name) {
+    return 'Proposto por: $name';
+  }
+
+  @override
+  String adminProposalByFallback(int id) {
+    return 'Proposto por: usuário #$id';
+  }
+
+  @override
+  String adminSelectItem(String name) {
+    return 'Selecionar $name';
+  }
+
+  @override
+  String adminSelectedCount(int count) {
+    return '$count itens selecionados';
+  }
+
+  @override
+  String get adminProposalPublishHint =>
+      'Propor mantém os itens na fila até a aprovação.';
+
+  @override
+  String get adminReviewAlreadyProcessed =>
+      'Este item já foi processado por outro administrador.';
+
+  @override
+  String get adminReviewDecisionSuccess => 'Decisão registrada';
 
   @override
   String get themeSettingsSection => 'Tema';

@@ -403,8 +403,10 @@ class FakeAdminRepository implements AdminRepository {
   MergeResult? mergeResult;
 
   Object? listUsersError;
+  Object? findUserError;
   Object? updateUserRoleError;
   Object? needsReviewError;
+  Object? reviewPriceLogError;
   Object? batchAssignError;
   Object? searchProductsError;
   Object? updateProductError;
@@ -415,16 +417,23 @@ class FakeAdminRepository implements AdminRepository {
   Completer<void>? batchAssignGate;
   Completer<void>? updateProductGate;
   Completer<void>? mergeGate;
+  Completer<void>? findUserGate;
+
+  final Map<int, UserView> usersById = {};
 
   int listUsersCalls = 0;
+  int findUserCalls = 0;
   int updateUserRoleCalls = 0;
   int needsReviewCalls = 0;
+  int reviewPriceLogCalls = 0;
   int batchAssignCalls = 0;
   int searchProductsCalls = 0;
 
   final List<({int id, ProductPatch patch})> updateProductCalls = [];
   final List<({int fromId, int toId})> mergeCalls = [];
   final List<List<Assignment>> batchAssignRequests = [];
+  final List<({int priceLogId, PriceLogReviewAction action})>
+  reviewPriceLogRequests = [];
   final List<({String? q, int page, int pageSize})> searchProductRequests = [];
 
   @override
@@ -443,6 +452,14 @@ class FakeAdminRepository implements AdminRepository {
           ],
           page: const Page(total: 1, totalPages: 1),
         );
+  }
+
+  @override
+  Future<UserView?> findUser(int id) async {
+    findUserCalls++;
+    await findUserGate?.future;
+    if (findUserError != null) throw findUserError!;
+    return usersById[id];
   }
 
   @override
@@ -479,6 +496,17 @@ class FakeAdminRepository implements AdminRepository {
     if (batchAssignError != null) throw batchAssignError!;
     return batchAssignResult ??
         const BatchAssignResult(assigned: null, created: 0);
+  }
+
+  @override
+  Future<ReviewDecisionResult> reviewPriceLog({
+    required int priceLogId,
+    required PriceLogReviewAction action,
+  }) async {
+    reviewPriceLogCalls++;
+    reviewPriceLogRequests.add((priceLogId: priceLogId, action: action));
+    if (reviewPriceLogError != null) throw reviewPriceLogError!;
+    return const ReviewDecisionResult();
   }
 
   @override

@@ -15,22 +15,34 @@ import 'helpers.dart';
 
 AppLocalizations get _strings => lookupAppLocalizations(const Locale('pt'));
 
-ReviewItem _item(int id, String name, {String unit = 'kg'}) => ReviewItem(
+ReviewItem _item(
+  int id,
+  String name, {
+  String unit = 'kg',
+  ReviewProductView? proposedProduct,
+  int? resolvedBy,
+  ProposalStatus proposalStatus = ProposalStatus.pending,
+  ReviewAction? lastReviewAction,
+}) => ReviewItem(
   priceLogId: id,
   description: name,
   suggestedStem: name,
   unit: unit,
   storeName: 'Mercado',
   totalPrice: const Decimal('10.00'),
+  proposedProduct: proposedProduct,
+  resolvedBy: resolvedBy,
+  proposalStatus: proposalStatus,
+  lastReviewAction: lastReviewAction,
 );
 
 Future<({FakeAdminRepository admin, FakeProductRepository products})>
 _pumpReviewScreen(
   WidgetTester tester, {
   required List<ReviewItem> items,
-  Map<int, ProductView> products = const {},
-  Map<int, Object> productErrors = const {},
-  Completer<void>? detailGate,
+  Map<int, UserView> users = const {},
+  Object? findUserError,
+  Completer<void>? findUserGate,
   Object? mergeError,
   Object? batchAssignError,
   Object? updateProductError,
@@ -48,12 +60,12 @@ _pumpReviewScreen(
     ..mergeError = mergeError
     ..batchAssignError = batchAssignError
     ..updateProductError = updateProductError
-    ..batchAssignGate = batchAssignGate;
+    ..batchAssignGate = batchAssignGate
+    ..findUserError = findUserError
+    ..findUserGate = findUserGate
+    ..usersById.addAll(users);
 
-  final productsRepository = FakeProductRepository()
-    ..detailResults.addAll(products)
-    ..detailErrors.addAll(productErrors)
-    ..detailGate = detailGate;
+  final productsRepository = FakeProductRepository();
 
   final dependencies = buildTestDependencies(
     adminRepository: adminRepository,
@@ -74,7 +86,7 @@ _pumpReviewScreen(
 }
 
 Future<void> _selectAllAndOpenEditors(WidgetTester tester) async {
-  final checkboxes = find.byType(CheckboxListTile);
+  final checkboxes = find.byType(Checkbox);
   for (var index = 0; index < checkboxes.evaluate().length; index++) {
     await tester.tap(checkboxes.at(index));
     await tester.pump();
@@ -95,30 +107,37 @@ Future<void> _assignAll(WidgetTester tester) async {
 void main() {
   group('AdminReviewScreen', () {
     testWidgets(
-      'loads details and merges same-name products deterministically',
+      'merges same-name proposals deterministically without public lookups',
       (tester) async {
         final repos = await _pumpReviewScreen(
           tester,
-          items: [_item(10, 'Arroz'), _item(20, 'Arroz')],
-          products: {
-            10: const ProductView(
-              id: 7,
-              name: 'Arroz',
-              brand: 'Marca A',
-              unit: 'kg',
+          items: [
+            _item(
+              10,
+              'Arroz',
+              proposedProduct: const ReviewProductView(
+                id: 7,
+                name: 'Arroz',
+                brand: 'Marca A',
+                unit: 'kg',
+              ),
             ),
-            20: const ProductView(
-              id: 3,
-              name: 'Arroz',
-              brand: 'Marca B',
-              unit: 'kg',
+            _item(
+              20,
+              'Arroz',
+              proposedProduct: const ReviewProductView(
+                id: 3,
+                name: 'Arroz',
+                brand: 'Marca B',
+                unit: 'kg',
+              ),
             ),
-          },
+          ],
         );
 
         await _selectAllAndOpenEditors(tester);
 
-        expect(repos.products.detailRequests, containsAll([10, 20]));
+        expect(repos.products.detailRequests, isEmpty);
         expect(find.byType(ProductEditBlock), findsNWidgets(2));
 
         await _assignAll(tester);
@@ -144,26 +163,361 @@ void main() {
       },
     );
 
+    testWidgets(
+      'tapping a proposed product selects it and prefills the editor',
+      (tester) async {
+        final repos = await _pumpReviewScreen(
+          tester,
+          items: [
+            _item(
+              10,
+              'Arroz recebido',
+              proposedProduct: const ReviewProductView(
+                id: 7,
+                name: 'Arroz 5kg',
+                brand: 'Marca Boa',
+                unit: 'kg',
+              ),
+            ),
+          ],
+        );
+
+        expect(find.textContaining('Arroz 5kg'), findsOneWidget);
+        expect(find.text('Marca Boa'), findsOneWidget);
+        expect(find.byType(ProductEditBlock), findsNothing);
+
+        await tester.tap(find.textContaining('Arroz 5kg'));
+        await tester.pump();
+
+        // Selection alone stays on the queue; it does not open the editor.
+        expect(find.byType(ProductEditBlock), findsNothing);
+
+        await tester.tap(
+          find.widgetWithText(FilledButton, _strings.adminBatchAssign),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ProductEditBlock), findsOneWidget);
+        expect(_fieldText(tester, 0), 'Arroz 5kg');
+        expect(_fieldText(tester, 1), 'Marca Boa');
+        expect(_fieldText(tester, 2), 'kg');
+        expect(repos.products.detailRequests, isEmpty);
+
+        await _assignAll(tester);
+
+        final assignment = repos.admin.batchAssignRequests.single.single;
+        expect(assignment.action, AssignmentAction.existing);
+        expect(assignment.productId, 7);
+      },
+    );
+
+    testWidgets('approves a proposal without loading the public product', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            10,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz 5kg',
+              unit: 'kg',
+              gtin: '7890000000000',
+            ),
+          ),
+        ],
+      );
+
+      expect(find.text(_strings.adminProposalPending), findsOneWidget);
+      expect(find.text(_strings.adminApproveAction), findsOneWidget);
+      expect(repos.products.detailRequests, isEmpty);
+
+      await tester.tap(find.text(_strings.adminApproveAction));
+      await tester.pumpAndSettle();
+
+      expect(repos.admin.reviewPriceLogRequests.single.priceLogId, 10);
+      expect(
+        repos.admin.reviewPriceLogRequests.single.action,
+        PriceLogReviewAction.approve,
+      );
+      expect(repos.admin.needsReviewCalls, 2);
+    });
+
+    testWidgets('rejects a pending proposal', (tester) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            11,
+            'Feijão recebido',
+            proposedProduct: const ReviewProductView(
+              id: 8,
+              name: 'Feijão',
+              unit: 'kg',
+            ),
+          ),
+        ],
+      );
+
+      await tester.tap(find.text(_strings.adminRejectAction));
+      await tester.pumpAndSettle();
+
+      expect(repos.admin.reviewPriceLogRequests.single.priceLogId, 11);
+      expect(
+        repos.admin.reviewPriceLogRequests.single.action,
+        PriceLogReviewAction.reject,
+      );
+    });
+
+    testWidgets('disables Reject but keeps Approve for a rejected proposal', (
+      tester,
+    ) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            12,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+            proposalStatus: ProposalStatus.rejected,
+            lastReviewAction: ReviewAction.reject,
+          ),
+        ],
+      );
+
+      final reject = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, _strings.adminRejectAction),
+      );
+      final approve = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, _strings.adminApproveAction),
+      );
+
+      expect(reject.onPressed, isNull);
+      expect(approve.onPressed, isNotNull);
+      expect(find.text(_strings.adminProposalRejected), findsOneWidget);
+    });
+
+    testWidgets('keeps Reject enabled for a pending proposal', (tester) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            13,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+          ),
+        ],
+      );
+
+      final reject = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, _strings.adminRejectAction),
+      );
+      expect(reject.onPressed, isNotNull);
+    });
+
+    testWidgets('hides review actions for unresolved rows', (tester) async {
+      await _pumpReviewScreen(tester, items: [_item(14, 'Produto novo')]);
+
+      expect(find.text(_strings.adminApproveAction), findsNothing);
+      expect(find.text(_strings.adminRejectAction), findsNothing);
+      expect(find.textContaining('Proposto por'), findsNothing);
+    });
+
+    testWidgets('shows the resolved proposer name', (tester) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            15,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+            resolvedBy: 2,
+          ),
+        ],
+        users: {
+          2: const UserView(
+            id: 2,
+            name: 'Ada',
+            email: 'ada@example.com',
+            role: UserRole.user,
+          ),
+        },
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text(_strings.adminProposalBy('Ada')), findsOneWidget);
+      expect(repos.admin.findUserCalls, 1);
+    });
+
+    testWidgets('falls back to the user id while the lookup is pending', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            16,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+            resolvedBy: 2,
+          ),
+        ],
+        users: {
+          2: const UserView(
+            id: 2,
+            name: 'Ada',
+            email: 'ada@example.com',
+            role: UserRole.user,
+          ),
+        },
+        findUserGate: gate,
+      );
+
+      expect(find.text(_strings.adminProposalByFallback(2)), findsOneWidget);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text(_strings.adminProposalBy('Ada')), findsOneWidget);
+    });
+
+    testWidgets('falls back to the user id when the lookup fails', (
+      tester,
+    ) async {
+      await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            17,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+            resolvedBy: 3,
+          ),
+        ],
+        findUserError: const NetworkException(),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text(_strings.adminProposalByFallback(3)), findsOneWidget);
+    });
+
+    testWidgets(
+      'select-all includes proposals and allows individual deselect',
+      (tester) async {
+        await _pumpReviewScreen(
+          tester,
+          items: [
+            _item(
+              18,
+              'Arroz recebido',
+              proposedProduct: const ReviewProductView(
+                id: 7,
+                name: 'Arroz',
+                unit: 'kg',
+              ),
+            ),
+            _item(19, 'Produto novo'),
+          ],
+        );
+
+        await tester.tap(find.text(_strings.adminSelectAll));
+        await tester.pump();
+
+        var checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
+        expect(checkboxes.every((checkbox) => checkbox.value == true), isTrue);
+        expect(find.text(_strings.adminClearSelection), findsOneWidget);
+
+        await tester.tap(find.byType(Checkbox).first);
+        await tester.pump();
+
+        checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
+        expect(checkboxes.first.value, isFalse);
+        expect(checkboxes.last.value, isTrue);
+        expect(find.text(_strings.adminSelectAll), findsOneWidget);
+      },
+    );
+
+    testWidgets('reloads the queue when another admin already processed it', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            20,
+            'Arroz recebido',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+          ),
+        ],
+      );
+
+      repos.admin.reviewPriceLogError = const ConflictException(
+        code: 'already_processed',
+      );
+
+      await tester.tap(find.text(_strings.adminApproveAction));
+      await tester.pumpAndSettle();
+
+      expect(find.text(_strings.adminReviewAlreadyProcessed), findsOneWidget);
+      expect(repos.admin.needsReviewCalls, 2);
+    });
+
     testWidgets('updates different-name existing products individually', (
       tester,
     ) async {
       final repos = await _pumpReviewScreen(
         tester,
-        items: [_item(10, 'Arroz'), _item(20, 'Feijão')],
-        products: {
-          10: const ProductView(
-            id: 5,
-            name: 'Arroz Antigo',
-            brand: 'Marca A',
-            unit: 'kg',
+        items: [
+          _item(
+            10,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 5,
+              name: 'Arroz Antigo',
+              brand: 'Marca A',
+              unit: 'kg',
+            ),
           ),
-          20: const ProductView(
-            id: 6,
-            name: 'Feijão Velho',
-            brand: 'Marca B',
-            unit: 'kg',
+          _item(
+            20,
+            'Feijão',
+            proposedProduct: const ReviewProductView(
+              id: 6,
+              name: 'Feijão Velho',
+              brand: 'Marca B',
+              unit: 'kg',
+            ),
           ),
-        },
+        ],
       );
 
       await _selectAllAndOpenEditors(tester);
@@ -196,7 +550,6 @@ void main() {
       final repos = await _pumpReviewScreen(
         tester,
         items: [_item(10, 'Produto Novo', unit: 'un')],
-        productErrors: {10: const NotFoundException()},
       );
 
       await _selectAllAndOpenEditors(tester);
@@ -216,11 +569,26 @@ void main() {
     ) async {
       final repos = await _pumpReviewScreen(
         tester,
-        items: [_item(10, 'Arroz'), _item(20, 'Arroz')],
-        products: {
-          10: const ProductView(id: 7, name: 'Arroz', unit: 'kg'),
-          20: const ProductView(id: 3, name: 'Arroz', unit: 'kg'),
-        },
+        items: [
+          _item(
+            10,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+          ),
+          _item(
+            20,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 3,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+          ),
+        ],
         mergeError: const NetworkException(),
       );
 
@@ -240,85 +608,33 @@ void main() {
     testWidgets('moves between selection and edit steps', (tester) async {
       await _pumpReviewScreen(
         tester,
-        items: [_item(10, 'Arroz')],
-        products: {10: const ProductView(id: 5, name: 'Arroz', unit: 'kg')},
+        items: [
+          _item(
+            10,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 5,
+              name: 'Arroz',
+              unit: 'kg',
+            ),
+          ),
+        ],
       );
 
-      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(Checkbox), findsOneWidget);
       expect(find.byType(ProductEditBlock), findsNothing);
 
       await _selectAllAndOpenEditors(tester);
 
-      expect(find.byType(CheckboxListTile), findsNothing);
+      expect(find.byType(Checkbox), findsNothing);
       expect(find.byType(ProductEditBlock), findsOneWidget);
       expect(find.text(_strings.goBack), findsOneWidget);
 
       await tester.tap(find.text(_strings.goBack));
       await tester.pumpAndSettle();
 
-      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(Checkbox), findsOneWidget);
       expect(find.byType(ProductEditBlock), findsNothing);
-    });
-
-    testWidgets('shows a loading state while product details are fetched', (
-      tester,
-    ) async {
-      final gate = Completer<void>();
-      await _pumpReviewScreen(
-        tester,
-        items: [_item(10, 'Arroz')],
-        products: {
-          10: const ProductView(id: 5, name: 'Arroz Carregado', unit: 'kg'),
-        },
-        detailGate: gate,
-      );
-
-      final checkboxes = find.byType(CheckboxListTile);
-      await tester.tap(checkboxes.first);
-      await tester.pump();
-      await tester.tap(
-        find.widgetWithText(FilledButton, _strings.adminBatchAssign),
-      );
-      await tester.pump();
-
-      expect(find.text(_strings.adminReviewLoadingDetails), findsOneWidget);
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
-      expect(find.byType(ProductEditBlock), findsNothing);
-
-      gate.complete();
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ProductEditBlock), findsOneWidget);
-      expect(find.text(_strings.adminReviewLoadingDetails), findsNothing);
-      expect(_fieldText(tester, 0), 'Arroz Carregado');
-    });
-
-    testWidgets('retries a failed product-detail load', (tester) async {
-      final repos = await _pumpReviewScreen(
-        tester,
-        items: [_item(10, 'Arroz')],
-        productErrors: {10: const NetworkException()},
-      );
-
-      await _selectAllAndOpenEditors(tester);
-
-      expect(find.text(_strings.adminReviewDetailsError), findsOneWidget);
-      expect(find.byType(ProductEditBlock), findsNothing);
-
-      repos.products
-        ..detailErrors.clear()
-        ..detailResults[10] = const ProductView(
-          id: 5,
-          name: 'Arroz Recuperado',
-          unit: 'kg',
-        );
-
-      await tester.tap(find.text(_strings.retryAction));
-      await tester.pumpAndSettle();
-
-      expect(find.text(_strings.adminReviewDetailsError), findsNothing);
-      expect(find.byType(ProductEditBlock), findsOneWidget);
-      expect(_fieldText(tester, 0), 'Arroz Recuperado');
     });
 
     testWidgets('validates required name and unit before submitting', (
@@ -327,7 +643,6 @@ void main() {
       final repos = await _pumpReviewScreen(
         tester,
         items: [_item(10, 'Produto Novo', unit: 'un')],
-        productErrors: {10: const NotFoundException()},
       );
 
       await _selectAllAndOpenEditors(tester);
@@ -364,7 +679,6 @@ void main() {
       final repos = await _pumpReviewScreen(
         tester,
         items: [_item(10, 'Produto Novo', unit: 'un')],
-        productErrors: {10: const NotFoundException()},
       );
 
       await _selectAllAndOpenEditors(tester);
@@ -389,15 +703,18 @@ void main() {
     ) async {
       final repos = await _pumpReviewScreen(
         tester,
-        items: [_item(10, 'Arroz')],
-        products: {
-          10: const ProductView(
-            id: 5,
-            name: 'Arroz Antigo',
-            brand: 'Marca A',
-            unit: 'kg',
+        items: [
+          _item(
+            10,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 5,
+              name: 'Arroz Antigo',
+              brand: 'Marca A',
+              unit: 'kg',
+            ),
           ),
-        },
+        ],
       );
 
       await _selectAllAndOpenEditors(tester);

@@ -336,6 +336,7 @@ class ApiClient {
           statusCode: status,
         ),
         ApiErrorCode.conflict ||
+        ApiErrorCode.alreadyProcessed ||
         ApiErrorCode.inUse ||
         ApiErrorCode.userExists ||
         ApiErrorCode.challengeUsed ||
@@ -358,7 +359,9 @@ class ApiClient {
         ApiErrorCode.invalidPassword ||
         ApiErrorCode.invalidQrPayload ||
         ApiErrorCode.invalidRequest ||
+        ApiErrorCode.badRequest ||
         ApiErrorCode.invalidResolution ||
+        ApiErrorCode.invalidReviewAction ||
         ApiErrorCode.invalidRole ||
         ApiErrorCode.challengeExpired ||
         ApiErrorCode.previewExpired ||
