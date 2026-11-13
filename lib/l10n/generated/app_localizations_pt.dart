@@ -799,6 +799,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Proposta rejeitada; ela continua disponível para revisão';
 
   @override
+  String get adminReassignBeforeApprove =>
+      'Reatribua a proposta antes de aprovar.';
+
+  @override
   String adminProposalBy(String name) {
     return 'Proposto por: $name';
   }
@@ -869,7 +873,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get adminIdentityMismatchHint =>
-      'O nome exibido difere da identidade armazenada. Confirme o produto antes de continuar.';
+      'Renomear não altera a identidade armazenada. Confirme o produto antes de continuar.';
 
   @override
   String get themeSettingsSection => 'Tema';

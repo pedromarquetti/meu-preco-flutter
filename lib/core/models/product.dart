@@ -1,6 +1,22 @@
 import 'json.dart';
 import 'pagination.dart';
 
+/// Normalizes product identity values for UI comparisons.
+///
+/// This deliberately performs only the comparison normalization required by
+/// the client: surrounding whitespace is ignored and case is folded.
+String normalizeProductIdentity(String? value) =>
+    value?.trim().toLowerCase() ?? '';
+
+/// Whether a stored canonical identity is present and differs from the name.
+bool hasProductIdentityMismatch(String? name, String? canonicalStem) {
+  final normalizedName = normalizeProductIdentity(name);
+  final normalizedStem = normalizeProductIdentity(canonicalStem);
+  return normalizedName.isNotEmpty &&
+      normalizedStem.isNotEmpty &&
+      normalizedName != normalizedStem;
+}
+
 /// A product in the shared catalog.
 class ProductView {
   const ProductView({

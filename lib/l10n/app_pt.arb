@@ -245,6 +245,7 @@
   "adminRejectAction": "Rejeitar",
   "adminProposalPending": "Proposta de associação aguardando aprovação",
   "adminProposalRejected": "Proposta rejeitada; ela continua disponível para revisão",
+  "adminReassignBeforeApprove": "Reatribua a proposta antes de aprovar.",
   "adminProposalBy": "Proposto por: {name}",
   "adminProposalByFallback": "Proposto por: usuário #{id}",
   "adminSelectItem": "Selecionar {name}",
@@ -263,7 +264,7 @@
   "adminCreateProductTitle": "Novo produto",
   "adminProductCanonicalStemLabel": "Identidade",
   "adminIdentityMismatch": "Identidade: {stem}",
-  "adminIdentityMismatchHint": "O nome exibido difere da identidade armazenada. Confirme o produto antes de continuar.",
+  "adminIdentityMismatchHint": "Renomear não altera a identidade armazenada. Confirme o produto antes de continuar.",
   "themeSettingsSection": "Tema",
   "@@locale": "pt",
   "@priceChartSemantics": {
@@ -363,6 +364,9 @@
         "type": "String"
       }
     }
+  },
+  "@adminReassignBeforeApprove": {
+    "description": "Hint shown when a rejected proposal must be reassigned before approval"
   },
   "@adminProposalByFallback": {
     "description": "Attribution fallback when the proposer cannot be resolved",

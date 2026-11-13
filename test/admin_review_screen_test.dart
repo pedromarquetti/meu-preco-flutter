@@ -267,37 +267,99 @@ void main() {
       );
     });
 
-    testWidgets('disables Reject but keeps Approve for a rejected proposal', (
+    testWidgets(
+      'disables both actions and explains reassignment for a rejected proposal',
+      (tester) async {
+        await _pumpReviewScreen(
+          tester,
+          items: [
+            _item(
+              12,
+              'Arroz recebido',
+              proposedProduct: const ReviewProductView(
+                id: 7,
+                name: 'Arroz',
+                unit: 'kg',
+              ),
+              proposalStatus: ProposalStatus.rejected,
+              lastReviewAction: ReviewAction.reject,
+            ),
+          ],
+        );
+
+        final reject = tester.widget<TextButton>(
+          find.widgetWithText(TextButton, _strings.adminRejectAction),
+        );
+        final approve = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, _strings.adminApproveAction),
+        );
+
+        expect(reject.onPressed, isNull);
+        // Approve and reject are both gated by !item.isRejected; a rejected proposal must be reassigned first.
+        expect(approve.onPressed, isNull);
+        expect(find.text(_strings.adminProposalRejected), findsOneWidget);
+        expect(find.text(_strings.adminReassignBeforeApprove), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows a canonical identity warning on a stale proposal', (
       tester,
     ) async {
       await _pumpReviewScreen(
         tester,
         items: [
           _item(
-            12,
-            'Arroz recebido',
+            17,
+            'Apresuntado',
             proposedProduct: const ReviewProductView(
-              id: 7,
-              name: 'Arroz',
+              id: 8,
+              name: 'Apresuntado',
+              canonicalStem: 'tijolo',
               unit: 'kg',
             ),
-            proposalStatus: ProposalStatus.rejected,
-            lastReviewAction: ReviewAction.reject,
           ),
         ],
       );
 
-      final reject = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, _strings.adminRejectAction),
+      expect(
+        find.text(_strings.adminIdentityMismatch('tijolo')),
+        findsOneWidget,
       );
-      final approve = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, _strings.adminApproveAction),
-      );
-
-      expect(reject.onPressed, isNull);
-      expect(approve.onPressed, isNotNull);
-      expect(find.text(_strings.adminProposalRejected), findsOneWidget);
+      expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
     });
+
+    testWidgets(
+      'does not show an identity warning for an empty or matching stem',
+      (tester) async {
+        await _pumpReviewScreen(
+          tester,
+          items: [
+            _item(
+              18,
+              'Arroz',
+              proposedProduct: const ReviewProductView(
+                id: 8,
+                name: 'Arroz',
+                canonicalStem: ' arroz ',
+                unit: 'kg',
+              ),
+            ),
+            _item(
+              19,
+              'Feijão',
+              proposedProduct: const ReviewProductView(
+                id: 9,
+                name: 'Feijão',
+                canonicalStem: '  ',
+                unit: 'kg',
+              ),
+            ),
+          ],
+        );
+
+        expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
+      },
+    );
 
     testWidgets('keeps Reject enabled for a pending proposal', (tester) async {
       await _pumpReviewScreen(

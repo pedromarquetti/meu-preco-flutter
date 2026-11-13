@@ -299,7 +299,7 @@ class _ProductSummary extends StatelessWidget {
             style: theme.textTheme.bodySmall,
           ),
         ],
-        if (stem != null && _identityMismatch(name, stem)) ...[
+        if (stem != null && hasProductIdentityMismatch(name, stem)) ...[
           const SizedBox(height: 8),
           _IdentityWarning(stem: stem),
         ],
@@ -359,11 +359,6 @@ class _IdentityWarning extends StatelessWidget {
       ),
     );
   }
-}
-
-bool _identityMismatch(String? name, String? stem) {
-  if (name == null || stem == null) return false;
-  return name.trim().toLowerCase() != stem.trim().toLowerCase();
 }
 
 String? _nonEmpty(String? value) {

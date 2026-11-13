@@ -88,6 +88,7 @@ class ReviewQueueItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final brand = proposal.brand?.trim();
     final gtin = proposal.gtin?.trim();
+    final canonicalStem = proposal.canonicalStem?.trim();
 
     return [
       const SizedBox(height: 4),
@@ -98,6 +99,36 @@ class ReviewQueueItemCard extends StatelessWidget {
       ),
       if (brand != null && brand.isNotEmpty) Text(brand),
       if (gtin != null && gtin.isNotEmpty) Text('GTIN: $gtin'),
+
+      if (canonicalStem != null &&
+          hasProductIdentityMismatch(proposal.name, canonicalStem)) ...[
+        const SizedBox(height: 4),
+        Semantics(
+          container: true,
+          label: strings.adminIdentityMismatch(canonicalStem),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 18,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  strings.adminIdentityMismatch(canonicalStem),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+
       if (item.resolvedBy != null) ...[
         const SizedBox(height: 4),
         Text(
@@ -114,6 +145,30 @@ class ReviewQueueItemCard extends StatelessWidget {
           color: item.isRejected ? theme.colorScheme.error : null,
         ),
       ),
+      if (item.isRejected) ...[
+        const SizedBox(height: 4),
+        Semantics(
+          container: true,
+          label: strings.adminReassignBeforeApprove,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  strings.adminReassignBeforeApprove,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
       const SizedBox(height: 8),
       Wrap(
         alignment: WrapAlignment.end,

@@ -1570,6 +1570,12 @@ abstract class AppLocalizations {
   /// **'Proposta rejeitada; ela continua disponível para revisão'**
   String get adminProposalRejected;
 
+  /// Hint shown when a rejected proposal must be reassigned before approval
+  ///
+  /// In pt, this message translates to:
+  /// **'Reatribua a proposta antes de aprovar.'**
+  String get adminReassignBeforeApprove;
+
   /// Attribution for a proposal
   ///
   /// In pt, this message translates to:
@@ -1681,7 +1687,7 @@ abstract class AppLocalizations {
   /// Explains why a name and canonical stem mismatch matters
   ///
   /// In pt, this message translates to:
-  /// **'O nome exibido difere da identidade armazenada. Confirme o produto antes de continuar.'**
+  /// **'Renomear não altera a identidade armazenada. Confirme o produto antes de continuar.'**
   String get adminIdentityMismatchHint;
 
   /// Settings section header for theme selection

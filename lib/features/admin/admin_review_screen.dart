@@ -431,23 +431,25 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                     id != null &&
                     _decisions.any((decision) => decision.priceLogId == id);
                 final reviewing = id != null && _reviewingProposals[id] == true;
+
+                // Gating: approve/reject only for non-rejected proposals with a log ID.
                 final canReview = item.isProposal && id != null;
-                final proposer = item.resolvedBy == null
-                    ? null
-                    : _proposers[item.resolvedBy];
+                final canContinue = canReview && !item.isRejected;
 
                 return ReviewQueueItemCard(
                   key: ValueKey('review-${item.priceLogId}-${item.line}'),
                   item: item,
                   selected: selected,
                   onSelectionChanged: (value) => _toggleSelection(item, value),
-                  proposer: proposer,
+                  proposer: item.resolvedBy == null
+                      ? null
+                      : _proposers[item.resolvedBy],
                   reviewing: reviewing,
-                  onApprove: canReview
+                  onApprove: canContinue
                       ? () =>
                             _reviewProposal(item, PriceLogReviewAction.approve)
                       : null,
-                  onReject: canReview && !item.isRejected
+                  onReject: canContinue
                       ? () => _reviewProposal(item, PriceLogReviewAction.reject)
                       : null,
                 );
