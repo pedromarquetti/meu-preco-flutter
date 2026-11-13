@@ -1,111 +1,154 @@
 import '../../core/models/admin.dart';
 import '../../core/models/product.dart';
 
-/// Actions that can be taken for a review item during the batch assignment flow.
-enum InternalAssignmentAction {
-  create,
-  updateExisting,
-  merge;
+/// What a review decision will point the price log at.
+enum ReviewTargetKind { proposed, existing, create }
 
-  /// Maps to [AssignmentAction] when preparing API requests (Phase 17).
-  /// Note: Merge and Update will have specific repository methods in Phase 17.
-  AssignmentAction? toApiAction() => switch (this) {
-    InternalAssignmentAction.create => AssignmentAction.create,
-    InternalAssignmentAction.updateExisting => AssignmentAction.existing,
-    InternalAssignmentAction.merge =>
-      null, // Merge uses a different endpoint/method
-  };
-}
-
-/// Internal model representing a decision for each review item in the batch assignment flow.
-/// This is used to track UI state and user decisions before submitting them as API requests.
+/// Internal model representing a decision for each review item in the batch
+/// assignment flow.
+///
+/// The original proposal is kept separately from [targetProduct], so the UI can
+/// still show what was proposed after the admin chooses a different target.
 class ReviewDecision {
-  final int? priceLogId; // The original log ID from [ReviewItem]
-  final ReviewItem? reviewItem; // Reference to the source review item (for compatibility during transition)
+  const ReviewDecision({
+    this.priceLogId,
+    this.reviewItem,
+    this.proposal,
+    this.target = ReviewTargetKind.create,
+    this.targetProduct,
+    this.name,
+    this.brand,
+    this.unit,
+  });
 
-  /// Optional product details fetched during Step 2 of the flow.
-  final ProductView? loadedProduct;
+  /// The original log ID from [ReviewItem].
+  final int? priceLogId;
 
-  /// User-entered display values for name, brand, and unit.
-  /// These are retained as provided by the user to be used in API updates/creates.
+  /// Reference to the source review item.
+  final ReviewItem? reviewItem;
+
+  /// The product proposed for this row, when one exists. It is kept even when
+  /// [target] is not [ReviewTargetKind.proposed].
+  final ReviewProductView? proposal;
+
+  /// The explicit target of this decision.
+  final ReviewTargetKind target;
+
+  /// The product the row will be assigned to. Non-null for
+  /// [ReviewTargetKind.proposed] and [ReviewTargetKind.existing].
+  final ProductView? targetProduct;
+
+  /// Draft display values for the create path.
   final String? name;
   final String? brand;
   final String? unit;
 
-  /// The action intended for this item: create a new product, update an existing one, or merge with another.
-  final InternalAssignmentAction action;
-
-  /// Optional target product ID used when the action is 'merge' (the source is absorbed into this target).
-  final int? targetProductId;
-
-  const ReviewDecision({
-    this.priceLogId,
-    this.reviewItem,
-    this.loadedProduct,
-    this.name,
-    this.brand,
-    this.unit,
-    required this.action,
-    this.targetProductId,
-  });
-
   /// Seeds a decision from a queue row.
   ///
-  /// A row with a proposed product starts from that proposal, so entering the
-  /// edit step shows the existing product instead of the raw suggestion. Rows
-  /// without a proposal keep the create path and the suggested name.
+  /// A pending proposal becomes the default target. Rejected proposals, rows
+  /// without a proposal, and proposals without an id fall back to creating a
+  /// new product seeded from the receipt suggestion, never from the rejected
+  /// proposal's identity.
   factory ReviewDecision.createFromItem(ReviewItem item) {
     final proposal = item.proposedProduct;
+    final suggestion = item.suggestedStem ?? item.description ?? '';
+    final usableProposal =
+        proposal != null &&
+        proposal.id != null &&
+        item.proposalStatus != ProposalStatus.rejected;
+
+    if (usableProposal) {
+      return ReviewDecision(
+        priceLogId: item.priceLogId,
+        reviewItem: item,
+        proposal: proposal,
+        target: ReviewTargetKind.proposed,
+        targetProduct: proposal.toProductView(),
+        name: proposal.name ?? suggestion,
+        brand: proposal.brand,
+        unit: proposal.unit ?? item.unit,
+      );
+    }
+
     return ReviewDecision(
       priceLogId: item.priceLogId,
       reviewItem: item,
-      loadedProduct: proposal?.toProductView(),
-      action: proposal?.id == null
-          ? InternalAssignmentAction.create
-          : InternalAssignmentAction.updateExisting,
-      name: proposal?.name ?? item.suggestedStem ?? item.description ?? '',
-      brand: proposal?.brand,
-      unit: proposal?.unit ?? item.unit,
+      proposal: proposal,
+      target: ReviewTargetKind.create,
+      name: suggestion,
+      unit: item.unit,
     );
   }
 
-  /// Returns the normalized name for comparison purposes (trimmed and lowercase).
-  /// Used to determine if two products have effectively the same name regardless of casing or extra whitespace.
+  bool get isCreate => target == ReviewTargetKind.create;
+
+  bool get isExisting => target == ReviewTargetKind.existing;
+
+  int? get targetProductId => targetProduct?.id;
+
+  /// Whether the pending proposal can be approved as-is.
+  bool get canApproveProposal =>
+      target == ReviewTargetKind.proposed &&
+      proposal?.id != null &&
+      reviewItem?.isRejected != true;
+
+  /// Targets the original proposal again, keeping the create draft untouched.
+  ReviewDecision useProposal() {
+    final proposal = this.proposal;
+    if (proposal == null || proposal.id == null) return this;
+    return ReviewDecision(
+      priceLogId: priceLogId,
+      reviewItem: reviewItem,
+      proposal: proposal,
+      target: ReviewTargetKind.proposed,
+      targetProduct: proposal.toProductView(),
+      name: name,
+      brand: brand,
+      unit: unit,
+    );
+  }
+
+  /// Targets an existing catalog product without renaming it.
+  ReviewDecision useExisting(ProductView product) => ReviewDecision(
+    priceLogId: priceLogId,
+    reviewItem: reviewItem,
+    proposal: proposal,
+    target: ReviewTargetKind.existing,
+    targetProduct: product,
+    name: name,
+    brand: brand,
+    unit: unit,
+  );
+
+  /// Switches to creating a new product, optionally replacing the draft fields.
+  ReviewDecision createNew({String? name, String? brand, String? unit}) =>
+      ReviewDecision(
+        priceLogId: priceLogId,
+        reviewItem: reviewItem,
+        proposal: proposal,
+        target: ReviewTargetKind.create,
+        name: name ?? this.name,
+        brand: brand ?? this.brand,
+        unit: unit ?? this.unit,
+      );
+
+  /// Returns the normalized name for comparison purposes (trimmed and
+  /// lowercase).
   String get normalizedName {
     final raw = name ?? '';
     return raw.trim().toLowerCase();
   }
 
-  /// Checks if this decision represents a product with the same name as another [ReviewDecision].
-  bool isSameProductAs(ReviewDecision? other) {
-    if (other == null || normalizedName.isEmpty) return false;
-    return normalizedName == other.normalizedName;
-  }
-
-  ReviewDecision copyWith({
-    int? priceLogId,
-    ReviewItem? reviewItem,
-    ProductView? loadedProduct,
-    String? name,
-    String? brand,
-    String? unit,
-    InternalAssignmentAction? action,
-    int? targetProductId,
-  }) {
-    return ReviewDecision(
-      priceLogId: priceLogId ?? this.priceLogId,
-      reviewItem: reviewItem ?? this.reviewItem,
-      loadedProduct: loadedProduct ?? this.loadedProduct,
-      name: name ?? this.name,
-      brand: brand ?? this.brand,
-      unit: unit ?? this.unit,
-      action: action ?? this.action,
-      targetProductId: targetProductId ?? this.targetProductId,
-    );
-  }
-
-  /// Documentation for Merge Direction:
-  /// When merging two products, the selected target product [targetProductId] is retained
-  /// and its identity/data persists in the system. The source product (the one being reviewed)
-  /// is absorbed into this target. This direction is deterministic across all UI components.
+  /// Updates the draft values without changing the selected target.
+  ReviewDecision copyWith({String? name, String? brand, String? unit}) =>
+      ReviewDecision(
+        priceLogId: priceLogId,
+        reviewItem: reviewItem,
+        proposal: proposal,
+        target: target,
+        targetProduct: targetProduct,
+        name: name ?? this.name,
+        brand: brand ?? this.brand,
+        unit: unit ?? this.unit,
+      );
 }

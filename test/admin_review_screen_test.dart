@@ -564,6 +564,50 @@ void main() {
       expect(assignment.unit, 'un');
     });
 
+    testWidgets(
+      'rejected proposal defaults to creating a product from the suggestion',
+      (tester) async {
+        final repos = await _pumpReviewScreen(
+          tester,
+          items: [
+            _item(
+              10,
+              'APRESUNTADO SOFT PIG KG',
+              unit: 'kg',
+              proposedProduct: const ReviewProductView(
+                id: 8,
+                name: 'tijolo',
+                brand: 'de barro',
+                unit: 'un',
+              ),
+              proposalStatus: ProposalStatus.rejected,
+              lastReviewAction: ReviewAction.reject,
+            ),
+          ],
+        );
+
+        await _selectAllAndOpenEditors(tester);
+
+        expect(find.byType(ProductEditBlock), findsOneWidget);
+        expect(_fieldText(tester, 0), 'APRESUNTADO SOFT PIG KG');
+        expect(_fieldText(tester, 1), isEmpty);
+        expect(_fieldText(tester, 2), 'kg');
+        expect(find.textContaining('tijolo'), findsNothing);
+
+        await _assignAll(tester);
+
+        expect(repos.admin.updateProductCalls, isEmpty);
+        expect(repos.admin.mergeCalls, isEmpty);
+        final assignment = repos.admin.batchAssignRequests.single.single;
+        expect(assignment.action, AssignmentAction.create);
+        expect(assignment.productId, isNull);
+        expect(assignment.name, 'APRESUNTADO SOFT PIG KG');
+        expect(assignment.brand, isNull);
+        expect(assignment.unit, 'kg');
+        expect(repos.admin.needsReviewCalls, 2);
+      },
+    );
+
     testWidgets('reports partial failure and keeps the queue unrefreshed', (
       tester,
     ) async {

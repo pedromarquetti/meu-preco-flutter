@@ -230,17 +230,24 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       return;
     }
 
-    // Validate required display values before mutating anything.
+    // Validate required target/display values before mutating anything.
     for (final decision in decisions) {
-      if (_effectiveName(decision) == null) {
+      if (decision.isCreate) {
+        if (_effectiveName(decision) == null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(strings.adminReviewNameRequired)),
+          );
+          return;
+        }
+        if (_effectiveUnit(decision) == null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(strings.adminReviewUnitRequired)),
+          );
+          return;
+        }
+      } else if (decision.targetProductId == null) {
         messenger.showSnackBar(
-          SnackBar(content: Text(strings.adminReviewNameRequired)),
-        );
-        return;
-      }
-      if (_effectiveUnit(decision) == null) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(strings.adminReviewUnitRequired)),
+          SnackBar(content: Text(strings.adminReviewMergeTargetRequired)),
         );
         return;
       }
@@ -250,49 +257,31 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     final updatePatches = <int, ProductPatch>{};
     final mergePairs = <({int from, int to})>{};
 
-    // Honour explicit merge decisions first.
-    final groupedDecisions = <ReviewDecision>[];
-    for (final decision in decisions) {
-      if (decision.action != InternalAssignmentAction.merge) {
-        groupedDecisions.add(decision);
-        continue;
-      }
-      final fromId = decision.loadedProduct?.id;
-      final toId = decision.targetProductId;
-      if (fromId == null || toId == null || fromId == toId) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(strings.adminReviewMergeTargetRequired)),
-        );
-        return;
-      }
-      mergePairs.add((from: fromId, to: toId));
-      targetByLogId[decision.priceLogId!] = toId;
-    }
-
-    // Classify same-name decisions. The lowest existing product ID is the
-    // retained target; every other existing product is absorbed into it.
+    // Same-name non-create decisions still converge on the lowest product id.
+    // Create decisions stay independent: selecting one must never patch or
+    // merge an existing product as a side effect.
     final groups = <String, List<ReviewDecision>>{};
-    for (final decision in groupedDecisions) {
-      final name = _effectiveName(decision)!;
+    for (final decision in decisions) {
+      if (decision.isCreate) continue;
+      final name = _effectiveName(decision);
+      if (name == null) continue;
       groups.putIfAbsent(name.toLowerCase(), () => []).add(decision);
     }
 
     for (final group in groups.values) {
       final existing =
-          group.where((decision) => decision.loadedProduct?.id != null).toList()
-            ..sort(
-              (a, b) => a.loadedProduct!.id!.compareTo(b.loadedProduct!.id!),
-            );
+          group.where((decision) => decision.targetProductId != null).toList()
+            ..sort((a, b) => a.targetProductId!.compareTo(b.targetProductId!));
       if (existing.isEmpty) continue;
 
-      final masterId = existing.first.loadedProduct!.id!;
+      final masterId = existing.first.targetProductId!;
       final masterPatch = _updatePatchFor(existing.first);
       if (masterPatch != null) {
         updatePatches[masterId] = masterPatch;
       }
 
       for (final decision in existing.skip(1)) {
-        final fromId = decision.loadedProduct!.id!;
+        final fromId = decision.targetProductId!;
         if (fromId != masterId) {
           mergePairs.add((from: fromId, to: masterId));
         }
@@ -308,16 +297,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
     final assignments = <Assignment>[];
     for (final decision in decisions) {
       final logId = decision.priceLogId!;
-      final targetId = targetByLogId[logId];
-      if (targetId != null) {
-        assignments.add(
-          Assignment(
-            id: logId,
-            action: AssignmentAction.existing,
-            productId: targetId,
-          ),
-        );
-      } else {
+      if (decision.isCreate) {
         assignments.add(
           Assignment(
             id: logId,
@@ -327,7 +307,17 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
             unit: _effectiveUnit(decision),
           ),
         );
+        continue;
       }
+
+      final targetId = targetByLogId[logId] ?? decision.targetProductId;
+      assignments.add(
+        Assignment(
+          id: logId,
+          action: AssignmentAction.existing,
+          productId: targetId,
+        ),
+      );
     }
 
     setState(() => _submitting = true);
@@ -406,16 +396,16 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
   }
 
   String? _effectiveName(ReviewDecision decision) =>
-      _nonEmpty(decision.name) ?? _nonEmpty(decision.loadedProduct?.name);
+      _nonEmpty(decision.name) ?? _nonEmpty(decision.targetProduct?.name);
 
   String? _effectiveBrand(ReviewDecision decision) =>
-      _nonEmpty(decision.brand) ?? _nonEmpty(decision.loadedProduct?.brand);
+      _nonEmpty(decision.brand) ?? _nonEmpty(decision.targetProduct?.brand);
 
   String? _effectiveUnit(ReviewDecision decision) =>
-      _nonEmpty(decision.unit) ?? _nonEmpty(decision.loadedProduct?.unit);
+      _nonEmpty(decision.unit) ?? _nonEmpty(decision.targetProduct?.unit);
 
   ProductPatch? _updatePatchFor(ReviewDecision decision) {
-    final product = decision.loadedProduct;
+    final product = decision.targetProduct;
     if (product == null || product.id == null) return null;
 
     final name = _effectiveName(decision);
@@ -607,7 +597,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                 ],
                 const SizedBox(height: 12),
                 ProductEditBlock(
-                  initialProduct: decision.loadedProduct,
+                  initialProduct: decision.targetProduct,
                   suggestedName: suggestedName,
                   initialName: decision.name,
                   initialBrand: decision.brand,
