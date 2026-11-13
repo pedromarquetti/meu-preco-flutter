@@ -114,63 +114,58 @@ Future<void> _assignAll(WidgetTester tester) async {
 
 void main() {
   group('AdminReviewScreen', () {
-    testWidgets(
-      'merges same-name proposals deterministically without public lookups',
-      (tester) async {
-        final repos = await _pumpReviewScreen(
-          tester,
-          items: [
-            _item(
-              10,
-              'Arroz',
-              proposedProduct: const ReviewProductView(
-                id: 7,
-                name: 'Arroz',
-                brand: 'Marca A',
-                unit: 'kg',
-              ),
+    testWidgets('submits same-name proposals independently without merging', (
+      tester,
+    ) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [
+          _item(
+            10,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 7,
+              name: 'Arroz',
+              brand: 'Marca A',
+              unit: 'kg',
             ),
-            _item(
-              20,
-              'Arroz',
-              proposedProduct: const ReviewProductView(
-                id: 3,
-                name: 'Arroz',
-                brand: 'Marca B',
-                unit: 'kg',
-              ),
-            ),
-          ],
-        );
-
-        await _selectAllAndOpenEditors(tester);
-
-        expect(repos.products.detailRequests, isEmpty);
-        expect(find.byType(ReviewTargetSelector), findsNWidgets(2));
-        expect(find.byType(ProductEditBlock), findsNothing);
-
-        await _assignAll(tester);
-
-        // The lowest product id is retained and the other one is absorbed.
-        expect(repos.admin.mergeCalls, hasLength(1));
-        expect(repos.admin.mergeCalls.single.fromId, 7);
-        expect(repos.admin.mergeCalls.single.toId, 3);
-
-        // Both review rows link to the retained product.
-        expect(repos.admin.batchAssignCalls, 1);
-        final assignments = repos.admin.batchAssignRequests.single;
-        expect(assignments, hasLength(2));
-        expect(
-          assignments.every(
-            (assignment) =>
-                assignment.action == AssignmentAction.existing &&
-                assignment.productId == 3,
           ),
-          isTrue,
-        );
-        expect(repos.admin.needsReviewCalls, 2);
-      },
-    );
+          _item(
+            20,
+            'Arroz',
+            proposedProduct: const ReviewProductView(
+              id: 3,
+              name: 'Arroz',
+              brand: 'Marca B',
+              unit: 'kg',
+            ),
+          ),
+        ],
+      );
+
+      await _selectAllAndOpenEditors(tester);
+
+      expect(repos.products.detailRequests, isEmpty);
+      expect(find.byType(ReviewTargetSelector), findsNWidgets(2));
+      expect(find.byType(ProductEditBlock), findsNothing);
+
+      await _assignAll(tester);
+
+      expect(repos.admin.mergeCalls, isEmpty);
+      expect(repos.admin.updateProductCalls, isEmpty);
+
+      expect(repos.admin.batchAssignCalls, 1);
+      final assignments = repos.admin.batchAssignRequests.single;
+      expect(assignments, hasLength(2));
+      expect(
+        assignments.every(
+          (assignment) => assignment.action == AssignmentAction.existing,
+        ),
+        isTrue,
+      );
+      expect(assignments.map((assignment) => assignment.productId), [7, 3]);
+      expect(repos.admin.needsReviewCalls, 2);
+    });
 
     testWidgets('pending proposal defaults to the proposed target', (
       tester,
@@ -610,7 +605,7 @@ void main() {
       },
     );
 
-    testWidgets('reports partial failure and keeps the queue unrefreshed', (
+    testWidgets('reports batch failure and keeps decisions for retry', (
       tester,
     ) async {
       final repos = await _pumpReviewScreen(
@@ -635,13 +630,14 @@ void main() {
             ),
           ),
         ],
-        mergeError: const NetworkException(),
+        batchAssignError: const NetworkException(),
       );
 
       await _selectAllAndOpenEditors(tester);
       await _assignAll(tester);
 
-      expect(repos.admin.mergeCalls, hasLength(1));
+      expect(repos.admin.mergeCalls, isEmpty);
+      expect(repos.admin.updateProductCalls, isEmpty);
       expect(repos.admin.batchAssignCalls, 1);
       expect(repos.admin.needsReviewCalls, 1);
       expect(
@@ -649,6 +645,55 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(ReviewTargetSelector), findsWidgets);
+
+      repos.admin.batchAssignError = null;
+      await _assignAll(tester);
+
+      expect(repos.admin.batchAssignCalls, 2);
+      expect(repos.admin.needsReviewCalls, 2);
+    });
+
+    testWidgets('reloads after a batch reports a missing row', (tester) async {
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Produto Novo')],
+        batchAssignError: const NotFoundException(code: 'not_found'),
+      );
+
+      await _selectAllAndOpenEditors(tester);
+      await _assignAll(tester);
+
+      expect(repos.admin.batchAssignCalls, 1);
+      expect(repos.admin.needsReviewCalls, 2);
+      expect(find.textContaining(_strings.notFoundError), findsOneWidget);
+    });
+
+    testWidgets('ignores duplicate batch taps while submitting', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final repos = await _pumpReviewScreen(
+        tester,
+        items: [_item(10, 'Produto Novo')],
+        batchAssignGate: gate,
+      );
+
+      await _selectAllAndOpenEditors(tester);
+      final submit = find.widgetWithText(
+        FilledButton,
+        _strings.adminBatchAssign,
+      );
+      await tester.tap(submit);
+      await tester.pump();
+      expect(repos.admin.batchAssignCalls, 1);
+
+      await tester.tap(submit);
+      await tester.pump();
+      expect(repos.admin.batchAssignCalls, 1);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(repos.admin.needsReviewCalls, 2);
     });
 
     testWidgets('moves between selection and edit steps', (tester) async {
@@ -706,7 +751,7 @@ void main() {
       expect(repos.admin.updateProductCalls, isEmpty);
 
       // Let the first snackbar dismiss so the next one can be shown.
-      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 10));
       await tester.pumpAndSettle();
 
       await tester.enterText(fields.at(0), 'Produto Válido');

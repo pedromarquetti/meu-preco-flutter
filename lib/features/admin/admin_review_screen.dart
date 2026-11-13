@@ -16,14 +16,15 @@ import 'review_decision.dart';
 import 'widgets/review_queue_item_card.dart';
 import 'widgets/review_target_selector.dart';
 
+/// The step of batch assignment flow (selection → edit).
+enum _BatchAssignStep { select, edit }
+
 class AdminReviewScreen extends StatefulWidget {
   const AdminReviewScreen({super.key});
 
   @override
   State<AdminReviewScreen> createState() => _AdminReviewScreenState();
 }
-
-enum _BatchAssignStep { select, edit }
 
 class _AdminReviewScreenState extends State<AdminReviewScreen> {
   late final AdminRepository _repository =
@@ -141,9 +142,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            alreadyProcessed
-                ? strings.adminReviewAlreadyProcessed
-                : localizedErrorMessage(strings, error),
+            alreadyProcessed ? strings.adminReviewAlreadyProcessed : '$error',
           ),
         ),
       );
@@ -221,144 +220,77 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       return;
     }
 
-    final decisions =
-        _decisions.where((decision) => decision.priceLogId != null).toList()
-          ..sort((a, b) => a.priceLogId!.compareTo(b.priceLogId!));
+    // Filter to decisions with valid log IDs and sort for deterministic processing.
+    final decisions = _decisions.where((d) => d.priceLogId != null).toList()
+      ..sort((a, b) => a.priceLogId!.compareTo(b.priceLogId!));
 
     if (decisions.isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(strings.adminNoSelection)));
       return;
     }
 
-    // Validate required target/display values before mutating anything.
+    // Validate every decision before sending anything. A proposed target is an
+    // existing assignment too: it must carry the proposal product id.
+    final validationFailures = <int, String>{};
     for (final decision in decisions) {
+      final id = decision.priceLogId!;
       if (decision.isCreate) {
-        if (_effectiveName(decision) == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(strings.adminReviewNameRequired)),
-          );
-          return;
+        if (decision.name?.trim().isEmpty != false) {
+          validationFailures[id] = strings.adminReviewNameRequired;
+        } else if (decision.unit?.trim().isEmpty != false) {
+          validationFailures[id] = strings.adminReviewUnitRequired;
         }
-        if (_effectiveUnit(decision) == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(strings.adminReviewUnitRequired)),
-          );
-          return;
-        }
-      } else if (decision.targetProductId == null) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(strings.adminReviewMergeTargetRequired)),
-        );
-        return;
+      } else if (decision.targetProductId == null ||
+          decision.targetProductId! <= 0) {
+        validationFailures[id] = strings.adminReviewMergeTargetRequired;
       }
     }
 
-    final targetByLogId = <int, int>{};
-    final updatePatches = <int, ProductPatch>{};
-    final mergePairs = <({int from, int to})>{};
-
-    // Same-name non-create decisions still converge on the lowest product id.
-    // Create decisions stay independent: selecting one must never patch or
-    // merge an existing product as a side effect.
-    final groups = <String, List<ReviewDecision>>{};
-    for (final decision in decisions) {
-      if (decision.isCreate) continue;
-      final name = _effectiveName(decision);
-      if (name == null) continue;
-      groups.putIfAbsent(name.toLowerCase(), () => []).add(decision);
-    }
-
-    for (final group in groups.values) {
-      final existing =
-          group.where((decision) => decision.targetProductId != null).toList()
-            ..sort((a, b) => a.targetProductId!.compareTo(b.targetProductId!));
-      if (existing.isEmpty) continue;
-
-      final masterId = existing.first.targetProductId!;
-      final masterPatch = _updatePatchFor(existing.first);
-      if (masterPatch != null) {
-        updatePatches[masterId] = masterPatch;
-      }
-
-      for (final decision in existing.skip(1)) {
-        final fromId = decision.targetProductId!;
-        if (fromId != masterId) {
-          mergePairs.add((from: fromId, to: masterId));
-        }
-      }
-
-      for (final decision in group) {
-        targetByLogId[decision.priceLogId!] = masterId;
-      }
-    }
-
-    // Every selected price log must still be resolved, including the rows
-    // whose duplicate products are being merged.
-    final assignments = <Assignment>[];
-    for (final decision in decisions) {
-      final logId = decision.priceLogId!;
-      if (decision.isCreate) {
-        assignments.add(
-          Assignment(
-            id: logId,
-            action: AssignmentAction.create,
-            name: _effectiveName(decision),
-            brand: _effectiveBrand(decision),
-            unit: _effectiveUnit(decision),
+    if (validationFailures.isNotEmpty) {
+      // Show all per-row errors at once so the admin can fix them in context.
+      final errorLines = validationFailures.entries
+          .map((e) => Text(e.value))
+          .toList();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [const SizedBox(height: 4), ...errorLines],
           ),
-        );
-        continue;
-      }
-
-      final targetId = targetByLogId[logId] ?? decision.targetProductId;
-      assignments.add(
-        Assignment(
-          id: logId,
-          action: AssignmentAction.existing,
-          productId: targetId,
+          duration: const Duration(seconds: 10),
         ),
       );
+      return;
     }
 
     setState(() => _submitting = true);
-    final failures = <Object>[];
-    var mergedCount = 0;
-    var updatedCount = 0;
     BatchAssignResult? batchResult;
+    Object? failure;
 
     try {
-      final orderedMerges = mergePairs.toList()
-        ..sort((a, b) {
-          final byFrom = a.from.compareTo(b.from);
-          return byFrom != 0 ? byFrom : a.to.compareTo(b.to);
-        });
-      for (final pair in orderedMerges) {
-        try {
-          await _repository.mergeProducts(pair.from, pair.to);
-          mergedCount++;
-        } catch (e) {
-          failures.add(e);
-        }
-      }
-
-      final orderedUpdates = updatePatches.entries.toList()
-        ..sort((a, b) => a.key.compareTo(b.key));
-      for (final entry in orderedUpdates) {
-        try {
-          await _repository.updateProduct(entry.key, entry.value);
-          updatedCount++;
-        } catch (e) {
-          failures.add(e);
-        }
-      }
-
-      if (assignments.isNotEmpty) {
-        try {
-          batchResult = await _repository.batchAssign(assignments);
-        } catch (e) {
-          failures.add(e);
-        }
-      }
+      // Build one assignment per decision. This deliberately performs no
+      // product update, grouping, or merge.
+      final assignments = <Assignment>[
+        for (final decision in decisions)
+          if (decision.isCreate)
+            Assignment(
+              id: decision.priceLogId!,
+              action: AssignmentAction.create,
+              name: decision.name!.trim(),
+              brand: _trimOrNull(decision.brand),
+              unit: decision.unit!.trim(),
+            )
+          else
+            Assignment(
+              id: decision.priceLogId!,
+              action: AssignmentAction.existing,
+              productId: decision.targetProductId!,
+            ),
+      ];
+      batchResult = await _repository.batchAssign(assignments);
+    } catch (e) {
+      failure = e;
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -367,59 +299,40 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
 
     if (!mounted) return;
 
-    if (failures.isNotEmpty) {
+    // Keep the draft for ordinary failures so the admin can correct or retry
+    // without selecting and editing every row again.
+    if (failure != null) {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
             '${strings.adminReviewPartialFailure}: '
-            '${localizedErrorMessage(strings, failures.first)}',
+            '${localizedErrorMessage(strings, failure)}',
           ),
         ),
       );
+      final code = failure is AppException ? failure.code : null;
+      final errorCode = ApiErrorCode.fromWire(code);
+      if (errorCode == ApiErrorCode.alreadyProcessed ||
+          errorCode == ApiErrorCode.notFound) {
+        await _load();
+      }
       return;
     }
 
     final summary = <String>[
       '${strings.adminAssigned}: ${batchResult?.assigned ?? 0}',
       '${strings.adminCreated}: ${batchResult?.created ?? 0}',
-      if (mergedCount > 0) '${strings.adminMerged}: $mergedCount',
-      if (updatedCount > 0) '${strings.adminUpdated}: $updatedCount',
+      strings.adminProposalPublishHint,
     ];
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          '${summary.join(', ')}. ${strings.adminProposalPublishHint}',
-        ),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(summary.join('. '))));
+
+    // Reload the queue to reflect new assignments.
     await _load();
   }
 
-  String? _effectiveName(ReviewDecision decision) =>
-      _nonEmpty(decision.name) ?? _nonEmpty(decision.targetProduct?.name);
-
-  String? _effectiveBrand(ReviewDecision decision) =>
-      _nonEmpty(decision.brand) ?? _nonEmpty(decision.targetProduct?.brand);
-
-  String? _effectiveUnit(ReviewDecision decision) =>
-      _nonEmpty(decision.unit) ?? _nonEmpty(decision.targetProduct?.unit);
-
-  ProductPatch? _updatePatchFor(ReviewDecision decision) {
-    final product = decision.targetProduct;
-    if (product == null || product.id == null) return null;
-
-    final name = _effectiveName(decision);
-    final brand = _effectiveBrand(decision);
-    final unit = _effectiveUnit(decision);
-    final patch = ProductPatch(
-      name: name != null && name != product.name ? name : null,
-      brand: brand != null && brand != product.brand ? brand : null,
-      unit: unit != null && unit != product.unit ? unit : null,
-    );
-    if (patch.name == null && patch.brand == null && patch.unit == null) {
-      return null;
-    }
-    return patch;
+  String? _trimOrNull(String? value) {
+    final trimmed = value?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 
   @override
@@ -452,10 +365,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
                     FilledButton.icon(
                       onPressed: _submitting ? null : _assignAll,
                       icon: _submitting
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                          ? const CircularProgressIndicator(strokeWidth: 2)
                           : const Icon(Icons.check),
                       label: Text(strings.adminBatchAssign),
                     ),
@@ -617,9 +527,4 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       },
     );
   }
-}
-
-String? _nonEmpty(String? value) {
-  final trimmed = value?.trim();
-  return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
 }
