@@ -20,6 +20,7 @@
     - [Web deployment and limitations](#web-deployment-and-limitations)
   - [GitHub Actions and releases](#github-actions-and-releases)
     - [Workflow overview](#workflow-overview)
+    - [Pages deployment](#pages-deployment)
     - [Release workflow](#release-workflow)
     - [Versioning and tags](#versioning-and-tags)
     - [Required variables and secrets](#required-variables-and-secrets)
@@ -345,20 +346,45 @@ CI installs the exact Flutter version declared in `pubspec.yaml`
 
 ### Workflow overview
 
-| Workflow      | Triggers                                                          | Output                                                                                         |
-| ------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `ci.yml`      | Pull requests; pushes to `master`; tags `v*.*.*`; `workflow_call` | Format, analysis, tests, Android debug build, Web build; exposes `web-build-<run_id>` artifact |
-| `build.yml`   | Manual dispatch; `release: published`                             | `android-debug-<run_id>` and `web-<run_id>` workflow artifacts                                 |
-| `release.yml` | Tags matching `v*.*.*`; manual dispatch                           | Validated signed APK and Web bundle, unsigned iOS validation; GitHub Release on tag refs       |
+| Workflow      | Triggers                                                          | Output                                                                                                    |
+| ------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `ci.yml`      | Pull requests; pushes to `master`; tags `v*.*.*`; `workflow_call` | Format, analysis, tests, Android debug build, Web build; exposes `web-build-<run_id>` artifact            |
+| `pages.yml`   | Tags matching `v*.*.*`                                            | Calls `ci.yml`, builds and validates the Pages bundle, uploads the Pages artifact, deploys `github-pages` |
+| `build.yml`   | Manual dispatch; `release: published`                             | `android-debug-<run_id>` and `web-<run_id>` workflow artifacts                                            |
+| `release.yml` | Tags matching `v*.*.*`; manual dispatch                           | Validated signed APK and Web bundle, unsigned iOS validation; GitHub Release on tag refs                  |
 
 `ci.yml` is the single validation definition. Other workflows call it with
 `uses: ./.github/workflows/ci.yml` instead of duplicating Flutter setup or
 dependency installation. Its `workflow_call` outputs expose the validated Web
 artifact name (`web-artifact-name`) and path (`web-artifact-path`).
 
+`pages.yml` uses that reusable call as its gate: a failing CI check prevents the
+Pages build and deployment from starting. It triggers only on `v*.*.*` tags;
+there is no manual dispatch path that can publish Pages.
+
 `build.yml` also runs after a release is published to rebuild debug/Web
 validation artifacts; it never modifies the release. Signing and publication use
 the protected `android-release`, `web-release`, and `release` environments.
+
+### Pages deployment
+
+- **Trigger:** only pushed tags matching `v*.*.*`. Pull requests and `master`
+  pushes run CI but never deploy Pages.
+- **Gate:** `pages.yml` calls the reusable `ci.yml` for the same tag commit. If
+  formatting, analysis, tests, the Android debug build, or the Web build fails,
+  the Pages build and deploy jobs do not run.
+- **Bundle:** `scripts/build_web_pages.sh` builds with the repository-derived
+  `--base-href`, the pinned Flutter toolchain, and no baked API origin. The
+  workflow then re-runs `scripts/verify_web_bundle.sh` and
+  `scripts/verify_web_routing.sh` before uploading.
+- **Deploy:** the build job uploads `build/web` with
+  `actions/upload-pages-artifact@v4`; a separate `deploy` job runs in the
+  `github-pages` environment with only `pages: write` and `id-token: write`.
+- **One-time setup:** in Settings → Pages → Build and deployment, set **Source**
+  to **GitHub Actions**. The deployment URL is shown in the `github-pages`
+  environment and in the workflow run.
+- **Rollback:** tags are immutable. Publish a newer corrective tag with a higher
+  version code instead of moving or deleting an existing one.
 
 ### Release workflow
 

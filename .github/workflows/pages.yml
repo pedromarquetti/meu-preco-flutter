@@ -1,0 +1,64 @@
+name: Pages
+
+# Publishes the Flutter Web bundle only for immutable version tags, and only
+# after the reusable CI workflow succeeds for that exact tag commit. GitHub
+# Actions cannot express `needs` across two independently triggered workflows,
+# so validation is called synchronously from this same workflow.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      # Single source for the Pages sub-path; the build script and both
+      # verification scripts must agree on it.
+      BASE_HREF: /${{ github.event.repository.name }}/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pinned Flutter toolchain
+        uses: ./.github/actions/setup-flutter
+
+      - name: Build Pages bundle
+        run: scripts/build_web_pages.sh
+
+      - name: Validate Pages bundle
+        run: |
+          scripts/verify_web_bundle.sh build/web "$BASE_HREF"
+          scripts/verify_web_routing.sh build/web "$BASE_HREF"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
