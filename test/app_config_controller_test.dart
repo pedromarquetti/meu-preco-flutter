@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/core/config/app_config.dart';
 import 'package:meu_preco_frontend/core/config/app_config_controller.dart';
-import 'package:meu_preco_frontend/core/config/build_config.dart';
 
 import 'fakes.dart';
 
@@ -91,6 +90,14 @@ void main() {
   });
 
   group('AppConfigController', () {
+    test('a fresh controller has no configured server', () {
+      final store = InMemoryKeyValueStore();
+      final controller = AppConfigController(store: store);
+
+      expect(controller.config, isNull);
+      expect(controller.isConfigured, isFalse);
+    });
+
     test('saveOrigin persists, notifies, and reloads', () async {
       final store = InMemoryKeyValueStore();
       final controller = AppConfigController(store: store);
@@ -99,8 +106,11 @@ void main() {
 
       await controller.saveOrigin('https://api.example.com/api/v1/');
 
-      expect(controller.config.apiOrigin.toString(), 'https://api.example.com');
-      expect(controller.isConfiguredByUser, isTrue);
+      expect(
+        controller.config!.apiOrigin.toString(),
+        'https://api.example.com',
+      );
+      expect(controller.isConfigured, isTrue);
       expect(notifications, 1);
       expect(
         store.entries[AppConfigController.apiOriginKey],
@@ -109,8 +119,8 @@ void main() {
 
       final restored = AppConfigController(store: store);
       await restored.load();
-      expect(restored.config.apiOrigin.toString(), 'https://api.example.com');
-      expect(restored.isConfiguredByUser, isTrue);
+      expect(restored.config!.apiOrigin.toString(), 'https://api.example.com');
+      expect(restored.isConfigured, isTrue);
     });
 
     test('saveOrigin rejects invalid origins without notifying', () async {
@@ -124,43 +134,34 @@ void main() {
         throwsA(isA<FormatException>()),
       );
       expect(notifications, 0);
-      expect(controller.isConfiguredByUser, isFalse);
+      expect(controller.isConfigured, isFalse);
       expect(store.entries, isEmpty);
     });
 
-    test('resetToDefault clears the override', () async {
+    test('clearOrigin forgets the selected server', () async {
       final store = InMemoryKeyValueStore();
       final controller = AppConfigController(store: store);
       await controller.saveOrigin('https://api.example.com');
-      await controller.resetToDefault();
+      await controller.clearOrigin();
 
-      expect(controller.isConfiguredByUser, isFalse);
+      expect(controller.isConfigured, isFalse);
+      expect(controller.config, isNull);
       expect(store.entries, isEmpty);
-      expect(
-        controller.config.apiOrigin.toString(),
-        AppConfig.defaults().apiOrigin.toString(),
-      );
     });
 
-    test(
-      'a cold start after reset restores the build default, not the override',
-      () async {
-        final store = InMemoryKeyValueStore();
-        final controller = AppConfigController(store: store);
-        await controller.saveOrigin('https://api.example.com');
-        await controller.resetToDefault();
+    test('a cold start after clearOrigin has no configured server', () async {
+      final store = InMemoryKeyValueStore();
+      final controller = AppConfigController(store: store);
+      await controller.saveOrigin('https://api.example.com');
+      await controller.clearOrigin();
 
-        final restored = AppConfigController(store: store);
-        await restored.load();
+      final restored = AppConfigController(store: store);
+      await restored.load();
 
-        expect(restored.isConfiguredByUser, isFalse);
-        expect(
-          restored.config.apiOrigin.toString(),
-          AppConfig.defaults().apiOrigin.toString(),
-        );
-        expect(store.entries, isEmpty);
-      },
-    );
+      expect(restored.isConfigured, isFalse);
+      expect(restored.config, isNull);
+      expect(store.entries, isEmpty);
+    });
 
     test('load ignores a stored invalid origin', () async {
       final store = InMemoryKeyValueStore();
@@ -168,7 +169,8 @@ void main() {
       final controller = AppConfigController(store: store);
 
       await controller.load();
-      expect(controller.isConfiguredByUser, isFalse);
+      expect(controller.isConfigured, isFalse);
+      expect(controller.config, isNull);
     });
 
     test('an origin change clears the session before persisting it', () async {
@@ -176,6 +178,7 @@ void main() {
       final events = <String>[];
       final controller = AppConfigController(
         store: store,
+        initialConfig: AppConfig.tryFromOrigin('https://old.example.com'),
         onOriginChanged: () async {
           events.add('reset');
           expect(store.entries, isEmpty);
@@ -191,7 +194,7 @@ void main() {
       );
     });
 
-    test('saving the same normalized origin keeps the session', () async {
+    test('the first origin does not clear anything', () async {
       final store = InMemoryKeyValueStore();
       var resets = 0;
       final controller = AppConfigController(
@@ -200,29 +203,39 @@ void main() {
       );
 
       await controller.saveOrigin('https://api.example.com');
-      await controller.saveOrigin('https://api.example.com/api/v1/');
 
-      expect(resets, 1);
+      expect(resets, 0);
     });
 
-    test(
-      'resetToDefault clears the session only when it changes origin',
-      () async {
-        final store = InMemoryKeyValueStore();
-        var resets = 0;
-        final controller = AppConfigController(
-          store: store,
-          onOriginChanged: () async => resets++,
-        );
+    test('saving the same normalized origin keeps the session', () async {
+      final store = InMemoryKeyValueStore();
+      var resets = 0;
+      final controller = AppConfigController(
+        store: store,
+        initialConfig: AppConfig.tryFromOrigin('https://api.example.com'),
+        onOriginChanged: () async => resets++,
+      );
 
-        await controller.saveOrigin('https://api.example.com');
-        await controller.resetToDefault();
-        await controller.resetToDefault();
+      await controller.saveOrigin('https://api.example.com/api/v1/');
 
-        expect(resets, 2);
-        expect(controller.isConfiguredByUser, isFalse);
-      },
-    );
+      expect(resets, 0);
+    });
+
+    test('clearOrigin clears the session only when a server was set', () async {
+      final store = InMemoryKeyValueStore();
+      var resets = 0;
+      final controller = AppConfigController(
+        store: store,
+        onOriginChanged: () async => resets++,
+      );
+
+      await controller.saveOrigin('https://api.example.com');
+      await controller.clearOrigin();
+      await controller.clearOrigin();
+
+      expect(resets, 1);
+      expect(controller.isConfigured, isFalse);
+    });
 
     test('an invalid origin never clears the session', () async {
       final store = InMemoryKeyValueStore();
@@ -258,22 +271,11 @@ void main() {
         );
 
         expect(
-          controller.config.apiOrigin.toString(),
+          controller.config!.apiOrigin.toString(),
           'https://old.example.com',
         );
         expect(store.entries, isEmpty);
       },
     );
-  });
-
-  group('build configuration', () {
-    test('the compile-time API origin carries no credentials', () {
-      final raw = Uri.parse(BuildConfig.apiOrigin);
-
-      expect(AppConfig.tryFromOrigin(BuildConfig.apiOrigin), isNotNull);
-      expect(raw.userInfo, isEmpty);
-      expect(raw.query, isEmpty);
-      expect(raw.fragment, isEmpty);
-    });
   });
 }

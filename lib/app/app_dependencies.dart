@@ -40,7 +40,7 @@ class AppDependencies {
     http.Client? httpClient,
   }) {
     final rawClient = httpClient ?? http.Client();
-    AppConfig currentConfig() => configController.config;
+    AppConfig? currentConfig() => configController.config;
 
     // Unauthenticated transport for auth and operational endpoints.
     final transportApi = ApiClient(
@@ -143,15 +143,14 @@ class AppDependencies {
   /// Does nothing when no origin has been chosen yet: the server selection
   /// screen is the entry point in that case.
   Future<void> verifyServer() async {
-    if (!configController.isConfiguredByUser) return;
-    final result = await healthChecker.check(
-      configController.config.apiOrigin.toString(),
-    );
+    final config = configController.config;
+    if (config == null) return;
+    final result = await healthChecker.check(config.apiOrigin.toString());
     serverGate = result.ok ? null : result;
   }
 
-  /// The currently active configuration.
-  AppConfig get config => configController.config;
+  /// The currently active configuration, or `null` before a server is chosen.
+  AppConfig? get config => configController.config;
 
   /// Live provider of the active configuration.
   ConfigProvider get configProvider =>
@@ -171,11 +170,17 @@ class AppDependencies {
       themeController: themeController,
       credentialStore: SecureCredentialStore.create(),
     );
-    await dependencies.verifyServer();
-    await dependencies.authSession.restore();
-    // Confirm the restored session in the background; the optimistic state is
-    // enough to render and route the first frame.
-    unawaited(dependencies.authSession.validate());
+    if (dependencies.configController.isConfigured) {
+      await dependencies.verifyServer();
+      await dependencies.authSession.restore();
+      // Confirm the restored session in the background; the optimistic state
+      // is enough to render and route the first frame.
+      unawaited(dependencies.authSession.validate());
+    } else {
+      // No target server means no credential may survive. This also clears
+      // sessions left by older builds that shipped a baked-in origin.
+      await dependencies.authSession.logout();
+    }
     return dependencies;
   }
 

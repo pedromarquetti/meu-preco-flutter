@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/app/app.dart';
+import 'package:meu_preco_frontend/app/router.dart';
 import 'package:meu_preco_frontend/core/config/app_config_controller.dart';
 import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/http/server_health_service.dart';
@@ -32,6 +33,8 @@ Future<void> pumpApp(
 }
 
 Future<void> continueFromServer(WidgetTester tester) async {
+  // No origin is built in, so the field starts empty and must be filled.
+  await tester.enterText(find.byType(TextFormField), 'https://api.example.com');
   await tester.tap(find.widgetWithText(FilledButton, _strings.saveAndContinue));
   await tester.pumpAndSettle();
 }
@@ -53,6 +56,37 @@ void main() {
 
     expect(find.text(_strings.serverConfigTitle), findsOneWidget);
     expect(find.text(_strings.saveAndContinue), findsOneWidget);
+  });
+
+  testWidgets('a Web deep link cannot skip server selection', (tester) async {
+    tester.platformDispatcher.defaultRouteNameTestValue = AppRoutes.login;
+    addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
+
+    await pumpApp(tester);
+
+    expect(find.text(_strings.serverConfigTitle), findsOneWidget);
+    expect(find.text(_strings.loginTitle), findsNothing);
+  });
+
+  testWidgets('a Web deep link to login works when a server is saved', (
+    tester,
+  ) async {
+    tester.platformDispatcher.defaultRouteNameTestValue = AppRoutes.login;
+    addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
+
+    final store = InMemoryKeyValueStore();
+    await store.writeString(
+      AppConfigController.apiOriginKey,
+      'https://saved.example.com',
+    );
+    final dependencies = buildTestDependencies(store: store);
+    await dependencies.configController.load();
+
+    await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_strings.loginTitle), findsOneWidget);
+    expect(find.text(_strings.serverConfigTitle), findsNothing);
   });
 
   testWidgets('successful health check routes to login', (tester) async {
@@ -94,7 +128,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      dependencies.configController.config.apiOrigin.toString(),
+      dependencies.configController.config!.apiOrigin.toString(),
       'https://saved.example.com',
     );
     expect(find.text(_strings.serverConfigTitle), findsNothing);
@@ -229,6 +263,26 @@ void main() {
       find.textContaining('${_strings.homeGreeting}, Ada'),
       findsOneWidget,
     );
+    expect(find.text(_strings.sessionNotPersistedWarning), findsNothing);
+  });
+
+  testWidgets('a blocked credential store still signs in and warns', (
+    tester,
+  ) async {
+    // Plain-HTTP Web has no secure context, so the browser refuses to encrypt
+    // the session; the in-memory session must remain usable.
+    final store = InMemoryCredentialStore()
+      ..writeError = const CredentialStorageException(
+        code: 'secure_context_required',
+      );
+    await pumpApp(tester, credentialStore: store);
+
+    await continueFromServer(tester);
+    await signIn(tester);
+
+    expect(find.text(_strings.homeTitle), findsOneWidget);
+    expect(find.text(_strings.sessionNotPersistedWarning), findsOneWidget);
+    expect(store.session, isNull);
   });
 
   testWidgets('login accepts a display name instead of an email', (

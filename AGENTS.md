@@ -239,8 +239,8 @@ dart format --set-exit-if-changed lib test
 flutter analyze
 flutter test
 flutter test test/fake_server_integration_test.dart
-flutter build apk --debug --dart-define=API_ORIGIN=https://api.example
-flutter build web --dart-define=API_ORIGIN=https://api.example
+flutter build apk --debug
+flutter build web
 dart run flutter_launcher_icons
 ```
 

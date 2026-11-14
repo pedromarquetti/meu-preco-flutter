@@ -17,8 +17,9 @@ extension AppScope on BuildContext {
   /// Reactive accessor for configuration changes.
   AppConfigController get configController => watch<AppConfigController>();
 
-  /// The currently active configuration (rebuilds when it changes).
-  AppConfig get appConfig => configController.config;
+  /// The currently active configuration, or `null` before a server is chosen
+  /// (rebuilds when it changes).
+  AppConfig? get appConfig => configController.config;
 
   /// Reactive accessor for authentication state.
   AuthSession get authSession => watch<AuthSession>();

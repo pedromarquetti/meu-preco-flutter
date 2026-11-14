@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meu_preco_frontend/app/app.dart';
 import 'package:meu_preco_frontend/app/app_dependencies.dart';
-import 'package:meu_preco_frontend/core/config/app_config.dart';
 import 'package:meu_preco_frontend/core/config/app_config_controller.dart';
 import 'package:meu_preco_frontend/core/http/server_health_service.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
@@ -44,27 +43,23 @@ Future<AppDependencies> openSettings(
     credentialStore: InMemoryCredentialStore(_session),
     store: store,
   );
-  // Ensure we start from server config screen
-  dependencies.configController.resetToDefault();
+  // Every test needs a configured server because none is built in.
+  await dependencies.configController.saveOrigin('https://api.example.com');
   dependencies.serverGate = null;
   await dependencies.authSession.restore();
   await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
   await tester.pumpAndSettle();
 
-  // If we're on server screen, save and continue
-  if (find.byType(TextButton).evaluate().isNotEmpty ||
-      find
-          .widgetWithText(FilledButton, _strings.saveAndContinue)
-          .evaluate()
-          .isNotEmpty) {
-    try {
-      await tester.tap(
-        find.widgetWithText(FilledButton, _strings.saveAndContinue),
-      );
-      await tester.pumpAndSettle();
-    } catch (e) {
-      // might already be on home
-    }
+  // Confirm the server if the app still booted on the selection screen.
+  if (find.text(_strings.serverConfigTitle).evaluate().isNotEmpty) {
+    await tester.enterText(
+      find.byType(TextFormField),
+      'https://api.example.com',
+    );
+    await tester.tap(
+      find.widgetWithText(FilledButton, _strings.saveAndContinue),
+    );
+    await tester.pumpAndSettle();
   }
 
   await tester.tap(find.byTooltip(_strings.settingsTitle));
@@ -85,10 +80,7 @@ void main() {
       find.text('${_strings.roleLabel}: ${_strings.userRoleLabel}'),
       findsOneWidget,
     );
-    expect(
-      find.textContaining(AppConfig.defaults().apiOrigin.toString()),
-      findsWidgets,
-    );
+    expect(find.textContaining('https://api.example.com'), findsWidgets);
   });
 
   testWidgets('changing the host applies and persists it', (tester) async {
@@ -97,17 +89,20 @@ void main() {
 
     await tester.enterText(
       find.byType(TextFormField),
-      'https://api.example.com',
+      'https://new.example.com',
     );
     await tester.tap(
       find.widgetWithText(FilledButton, _strings.testConnection),
     );
     await tester.pumpAndSettle();
 
-    expect(dependencies.config.apiOrigin.toString(), 'https://api.example.com');
+    expect(
+      dependencies.config!.apiOrigin.toString(),
+      'https://new.example.com',
+    );
     expect(
       store.entries[AppConfigController.apiOriginKey],
-      'https://api.example.com',
+      'https://new.example.com',
     );
     expect(dependencies.authSession.isAuthenticated, isFalse);
     expect(find.text(_strings.loginTitle), findsOneWidget);
@@ -116,7 +111,7 @@ void main() {
   testWidgets('an invalid host is rejected without saving', (tester) async {
     final store = InMemoryKeyValueStore();
     final dependencies = await openSettings(tester, store: store);
-    final before = dependencies.config.apiOrigin.toString();
+    final before = dependencies.config!.apiOrigin.toString();
 
     await tester.enterText(find.byType(TextFormField), 'not-a-url');
     await tester.tap(
@@ -125,7 +120,7 @@ void main() {
     await tester.pump();
 
     expect(find.text(_strings.invalidServerUrl), findsOneWidget);
-    expect(dependencies.config.apiOrigin.toString(), before);
+    expect(dependencies.config!.apiOrigin.toString(), before);
   });
 
   testWidgets('a host failing the health gate is not saved', (tester) async {
@@ -133,7 +128,7 @@ void main() {
     // starts failing for the settings save attempt.
     final health = FakeServerHealthChecker();
     final dependencies = await openSettings(tester, healthChecker: health);
-    final before = dependencies.config.apiOrigin.toString();
+    final before = dependencies.config!.apiOrigin.toString();
     health.result = const ServerHealthResult.failed(errorCode: 'unreachable');
 
     await tester.enterText(
@@ -146,37 +141,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(_strings.serverConnectionFailure), findsOneWidget);
-    expect(dependencies.config.apiOrigin.toString(), before);
+    expect(dependencies.config!.apiOrigin.toString(), before);
   });
 
-  testWidgets('reset restores the default and clears the override', (
+  testWidgets('clear server forgets the origin and returns to selection', (
     tester,
   ) async {
     final store = InMemoryKeyValueStore();
     final dependencies = await openSettings(tester, store: store);
-    await dependencies.configController.saveOrigin('https://api.example.com');
-    await tester.pumpAndSettle();
-
-    // Changing the origin signs out; sign back in to reach Settings again.
-    await dependencies.authSession.login(
-      identifier: 'ada@example.com',
-      password: 'secret123',
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip(_strings.settingsTitle));
-    await tester.pumpAndSettle();
 
     await tester.tap(
-      find.widgetWithText(OutlinedButton, _strings.settingsResetToDefault),
+      find.widgetWithText(OutlinedButton, _strings.settingsClearServer),
     );
     await tester.pumpAndSettle();
 
-    expect(
-      dependencies.config.apiOrigin.toString(),
-      AppConfig.defaults().apiOrigin.toString(),
-    );
+    expect(dependencies.config, isNull);
+    expect(dependencies.configController.isConfigured, isFalse);
     expect(store.entries, isEmpty);
     expect(dependencies.authSession.isAuthenticated, isFalse);
+    expect(find.text(_strings.serverConfigTitle), findsOneWidget);
   });
 
   testWidgets('connectivity check reports health and readiness', (

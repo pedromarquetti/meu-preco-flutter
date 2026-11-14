@@ -29,7 +29,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: context.appDependencies.config.apiOrigin.toString(),
+      text: context.appDependencies.config?.apiOrigin.toString() ?? '',
     );
     // Surface a saved server that failed its boot-time health check.
     _result = context.appDependencies.serverGate;

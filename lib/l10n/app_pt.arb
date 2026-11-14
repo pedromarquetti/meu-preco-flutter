@@ -62,6 +62,7 @@
   "forbiddenError": "Você não tem permissão para esta ação",
   "notFoundError": "O recurso solicitado não foi encontrado",
   "sessionExpiredMessage": "Sua sessão expirou. Entre novamente.",
+  "sessionNotPersistedWarning": "O navegador bloqueou o armazenamento seguro da sessão. Você continua conectado até recarregar a página. Para manter a sessão, acesse o app por HTTPS ou localhost.",
   "accountSection": "Conta",
   "currentUserLabel": "Usuário",
   "roleLabel": "Perfil",
@@ -118,7 +119,7 @@
   "readinessStatusLabel": "Prontidão",
   "readinessHealthyLabel": "Pronto para uso",
   "readinessUnavailableLabel": "Indisponível",
-  "settingsResetToDefault": "Restaurar padrão",
+  "settingsClearServer": "Limpar servidor",
   "logoutAction": "Sair",
   "loadingLabel": "Carregando...",
   "emptyLabel": "Nada por aqui ainda",
@@ -553,6 +554,9 @@
   "@sessionExpiredMessage": {
     "description": "SessionExpired"
   },
+  "@sessionNotPersistedWarning": {
+    "description": "Shown on the home screen when the session could not be saved because the browser storage is blocked (for example plain-HTTP Web)"
+  },
   "@accountSection": {
     "description": "AccountSection"
   },
@@ -706,8 +710,8 @@
   "@readinessUnavailableLabel": {
     "description": "ReadinessUnavailable"
   },
-  "@settingsResetToDefault": {
-    "description": "SettingsResetToDefault"
+  "@settingsClearServer": {
+    "description": "SettingsClearServer"
   },
   "@logoutAction": {
     "description": "Logout"

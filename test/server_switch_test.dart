@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:meu_preco_frontend/core/config/app_config.dart';
 import 'package:meu_preco_frontend/features/auth/auth_session.dart';
 import 'package:meu_preco_frontend/features/products/data/product_repository.dart';
 
@@ -24,6 +23,9 @@ void main() {
       );
       final products = ApiProductRepository(client: dependencies.apiClient);
 
+      await dependencies.configController.saveOrigin(
+        'https://start.example.com',
+      );
       await dependencies.authSession.login(
         identifier: 'ada@example.com',
         password: 'secret123',
@@ -48,21 +50,38 @@ void main() {
     test('saving the same normalized origin preserves the session', () async {
       final credentials = InMemoryCredentialStore();
       final dependencies = buildTestDependencies(credentialStore: credentials);
+      await dependencies.configController.saveOrigin('https://api.example.com');
       await dependencies.authSession.login(
         identifier: 'ada@example.com',
         password: 'secret123',
       );
 
       await dependencies.configController.saveOrigin(
-        '${AppConfig.defaults().apiOrigin}/api/v1/',
+        'https://api.example.com/api/v1/',
       );
 
       expect(dependencies.authSession.isAuthenticated, isTrue);
       expect(credentials.session, isNotNull);
     });
 
+    test('clearing the server signs out', () async {
+      final credentials = InMemoryCredentialStore();
+      final dependencies = buildTestDependencies(credentialStore: credentials);
+      await dependencies.configController.saveOrigin('https://api.example.com');
+      await dependencies.authSession.login(
+        identifier: 'ada@example.com',
+        password: 'secret123',
+      );
+
+      await dependencies.configController.clearOrigin();
+
+      expect(dependencies.config, isNull);
+      expect(dependencies.authSession.isAuthenticated, isFalse);
+      expect(credentials.session, isNull);
+    });
+
     test(
-      'resetting to the same default origin preserves the session',
+      'clearing an unconfigured server is a no-op for the session',
       () async {
         final credentials = InMemoryCredentialStore();
         final dependencies = buildTestDependencies(
@@ -73,29 +92,12 @@ void main() {
           password: 'secret123',
         );
 
-        await dependencies.configController.resetToDefault();
+        await dependencies.configController.clearOrigin();
 
         expect(dependencies.authSession.isAuthenticated, isTrue);
         expect(credentials.session, isNotNull);
       },
     );
-
-    test('resetting a different origin to the default signs out', () async {
-      final credentials = InMemoryCredentialStore();
-      final dependencies = buildTestDependencies(credentialStore: credentials);
-      await dependencies.configController.saveOrigin(
-        'https://other.example.com',
-      );
-      await dependencies.authSession.login(
-        identifier: 'ada@example.com',
-        password: 'secret123',
-      );
-
-      await dependencies.configController.resetToDefault();
-
-      expect(dependencies.authSession.isAuthenticated, isFalse);
-      expect(credentials.session, isNull);
-    });
 
     test(
       'a cold start does not restore a session after the origin changed',
@@ -107,6 +109,7 @@ void main() {
           credentialStore: credentials,
         );
         await first.configController.load();
+        await first.configController.saveOrigin('https://start.example.com');
         await first.authSession.login(
           identifier: 'ada@example.com',
           password: 'secret123',
@@ -124,7 +127,7 @@ void main() {
         await restarted.authSession.restore();
 
         expect(
-          restarted.config.apiOrigin.toString(),
+          restarted.config!.apiOrigin.toString(),
           'https://other.example.com',
         );
         expect(restarted.authSession.status, AuthStatus.unauthenticated);

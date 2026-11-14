@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/config/app_config_controller.dart';
 import '../features/nfce/receipt_scanner_screen.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -50,15 +51,25 @@ abstract final class AppRoutes {
 /// before showing authenticated screens. [authSession] drives the redirect
 /// guards, so reaching a protected route without a valid session is impossible
 /// through navigation or a deep link.
+///
+/// On Web the browser URL is a deep link and takes precedence over
+/// [initialLocation], so the server gate is also enforced in the redirect:
+/// without a configured origin every location except [AppRoutes.server] is
+/// sent to server selection. [configController] is part of the refresh
+/// listenable so the gate re-evaluates when an origin is saved or cleared.
 GoRouter createRouter({
   required AuthSession authSession,
+  required AppConfigController configController,
   String initialLocation = AppRoutes.server,
 }) {
   return GoRouter(
     initialLocation: initialLocation,
-    refreshListenable: authSession,
-    redirect: (context, state) =>
-        authRedirect(authSession, state.matchedLocation),
+    refreshListenable: Listenable.merge([authSession, configController]),
+    redirect: (context, state) => resolveRedirect(
+      serverConfigured: configController.isConfigured,
+      session: authSession,
+      location: state.matchedLocation,
+    ),
     errorBuilder: (context, state) => _RouteErrorScreen(
       onRecover: () => context.go(
         authRedirect(authSession, AppRoutes.root) ?? AppRoutes.root,
@@ -147,6 +158,23 @@ String bootLocation({
 }) {
   if (!serverConfigured || serverUnreachable) return AppRoutes.server;
   return authenticated ? AppRoutes.home : AppRoutes.login;
+}
+
+/// Resolves the redirect for a navigation, enforcing the server gate first.
+///
+/// Without a configured API origin every location except [AppRoutes.server] is
+/// sent to server selection, so a Web deep link (including a stale `#/login`
+/// hash) can never render a screen that has no server to talk to. When an
+/// origin is configured this delegates to [authRedirect].
+String? resolveRedirect({
+  required bool serverConfigured,
+  required AuthSession session,
+  required String location,
+}) {
+  if (!serverConfigured && location != AppRoutes.server) {
+    return AppRoutes.server;
+  }
+  return authRedirect(session, location);
 }
 
 /// Resolves where a given [location] should be sent for the current session.

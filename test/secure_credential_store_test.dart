@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meu_preco_frontend/core/errors/app_exception.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/core/storage/credential_store.dart';
 import 'package:meu_preco_frontend/core/storage/secure_credential_store.dart';
@@ -110,4 +111,66 @@ void main() {
     expect(await store.read(), isNull);
     expect(data, isEmpty);
   });
+
+  test('maps a missing secure context to an actionable code', () {
+    final error = SecureCredentialStore.mapStorageError(
+      UnsupportedError('FlutterSecureStorageWeb only works in secure contexts'),
+    );
+
+    expect(error.code, 'secure_context_required');
+    expect(error.requiresSecureContext, isTrue);
+  });
+
+  test('maps other platform failures to a generic storage code', () {
+    final error = SecureCredentialStore.mapStorageError(
+      PlatformException(code: 'unavailable'),
+    );
+
+    expect(error.code, 'credential_storage_failed');
+    expect(error.requiresSecureContext, isFalse);
+  });
+
+  test(
+    'write surfaces a typed failure instead of leaking the platform one',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(_channelName),
+            (call) async => throw PlatformException(code: 'unavailable'),
+          );
+
+      await expectLater(
+        store.write(
+          const StoredSession(
+            accessToken: 'access-1',
+            refreshToken: 'refresh-1',
+            user: _user,
+          ),
+        ),
+        throwsA(
+          isA<CredentialStorageException>().having(
+            (error) => error.code,
+            'code',
+            'credential_storage_failed',
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'read surfaces a typed failure instead of restoring a session',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(_channelName),
+            (call) async => throw PlatformException(code: 'unavailable'),
+          );
+
+      await expectLater(
+        store.read(),
+        throwsA(isA<CredentialStorageException>()),
+      );
+    },
+  );
 }

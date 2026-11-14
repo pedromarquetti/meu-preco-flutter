@@ -48,6 +48,23 @@ class ConfigException extends AppException {
   const ConfigException({super.message, super.code});
 }
 
+/// The platform could not read or write the persisted session.
+///
+/// Persistence is best-effort: a session that only lives in memory is still
+/// usable for the current page, so callers typically warn instead of failing.
+/// [requiresSecureContext] identifies the Web case where the browser refuses
+/// `WebCrypto` outside HTTPS or `localhost`.
+class CredentialStorageException extends AppException {
+  const CredentialStorageException({
+    required super.code,
+    super.message,
+    super.retryable = true,
+  });
+
+  /// Whether the failure is caused by the browser's secure-context requirement.
+  bool get requiresSecureContext => code == 'secure_context_required';
+}
+
 /// A payload could not be decoded into (or encoded from) a contract model.
 ///
 /// Raised at the serialization boundary so a malformed response becomes an

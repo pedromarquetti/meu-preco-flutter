@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 
 /// Immutable runtime configuration for talking to a Meu Preço API instance.
 ///
-/// The API origin is user-selectable (see the server configuration screen and
-/// Settings), while the `/api/v1` prefix and request timeout have sensible
-/// build-mode defaults that can be overridden with `--dart-define`.
+/// The API origin is chosen by the user (see the server configuration screen
+/// and Settings), while the `/api/v1` prefix and request timeout have sensible
+/// defaults that can be overridden with `--dart-define`.
 ///
 /// This is the single source of truth for API configuration. Repositories and
 /// services receive an [AppConfig] instead of reading environment values
@@ -23,9 +23,6 @@ class AppConfig {
   /// Default request timeout applied to API calls.
   static const Duration defaultRequestTimeout = Duration(seconds: 20);
 
-  /// Default origin used when nothing else is configured.
-  static const String defaultApiOrigin = 'http://localhost:8080';
-
   /// Lowest valid TCP port (0 means "any port" and is not a usable origin).
   static const int minPort = 1;
 
@@ -43,15 +40,6 @@ class AppConfig {
 
   /// Timeout applied to API requests.
   final Duration requestTimeout;
-
-  /// Creates a config from the build-mode defaults.
-  factory AppConfig.defaults() {
-    return AppConfig(
-      apiOrigin: normalizeOrigin(defaultApiOrigin),
-      apiPrefix: defaultApiPrefix,
-      requestTimeout: defaultRequestTimeout,
-    );
-  }
 
   /// Parses and normalizes a user supplied origin.
   ///
@@ -126,12 +114,6 @@ class AppConfig {
       port: parsed.hasPort ? parsed.port : null,
       path: path,
     );
-  }
-
-  /// Normalizes [raw] into an origin URI, falling back to the default when
-  /// parsing fails.
-  static Uri normalizeOrigin(String raw) {
-    return tryParseOrigin(raw) ?? Uri.parse(defaultApiOrigin);
   }
 
   /// Resolves [path] against the API origin root (used for `/healthz` and

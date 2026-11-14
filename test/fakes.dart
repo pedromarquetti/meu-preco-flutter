@@ -49,6 +49,13 @@ class InMemoryCredentialStore implements CredentialStore {
   int writeCalls = 0;
   int clearCalls = 0;
 
+  /// When set, the matching operation throws it before touching memory, which
+  /// models a blocked platform store (for example Web without a secure
+  /// context) without a second fake.
+  Object? readError;
+  Object? writeError;
+  Object? clearError;
+
   /// Every document written, in order, so tests can assert that a rotating
   /// token pair is persisted as one complete session instead of two writes.
   final List<StoredSession> writes = <StoredSession>[];
@@ -58,12 +65,16 @@ class InMemoryCredentialStore implements CredentialStore {
   @override
   Future<StoredSession?> read() async {
     readCalls++;
+    final error = readError;
+    if (error != null) throw error;
     return _session;
   }
 
   @override
   Future<void> write(StoredSession session) async {
     writeCalls++;
+    final error = writeError;
+    if (error != null) throw error;
     writes.add(session);
     _session = session;
   }
@@ -71,6 +82,8 @@ class InMemoryCredentialStore implements CredentialStore {
   @override
   Future<void> clear() async {
     clearCalls++;
+    final error = clearError;
+    if (error != null) throw error;
     _session = null;
   }
 }

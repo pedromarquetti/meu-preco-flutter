@@ -46,7 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
         identifier: _identifierController.text,
         password: _passwordController.text,
       );
-      // On success the router redirect leaves this screen.
+      // On success the router's refresh listenable leaves this screen.
+      if (!mounted) return;
     } on Object catch (error) {
       if (!mounted) return;
       setState(() {

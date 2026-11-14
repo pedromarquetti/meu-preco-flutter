@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: context.appDependencies.config.apiOrigin.toString(),
+      text: context.appDependencies.config?.apiOrigin.toString() ?? '',
     );
   }
 
@@ -74,16 +74,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> _resetToDefault() async {
+  Future<void> _clearServer() async {
     final deps = context.appDependencies;
-    await deps.configController.resetToDefault();
+    await deps.configController.clearOrigin();
+    deps.serverGate = null;
     if (!mounted) return;
-    _controller.text = deps.config.apiOrigin.toString();
-    setState(() {
-      _result = const ServerHealthResult.ok();
-      _health = null;
-      _readiness = null;
-    });
+    context.go(AppRoutes.server);
   }
 
   /// Probes both `/healthz` (liveness) and `/readyz` (readiness) for the
@@ -245,12 +241,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 8),
                       Text(
                         '${strings.currentHostLabel}: '
-                        '${config.apiOrigin.toString()}',
+                        '${config?.apiOrigin.toString() ?? ''}',
                         style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${strings.apiPrefixLabel}: ${config.apiPrefix}',
+                        '${strings.apiPrefixLabel}: '
+                        '${config?.apiPrefix ?? AppConfig.defaultApiPrefix}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -373,8 +370,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         : Text(strings.testConnection),
                   ),
                   OutlinedButton(
-                    onPressed: _busy ? null : _resetToDefault,
-                    child: Text(strings.settingsResetToDefault),
+                    onPressed: _busy ? null : _clearServer,
+                    child: Text(strings.settingsClearServer),
                   ),
                 ],
               ),

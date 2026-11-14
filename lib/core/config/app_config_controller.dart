@@ -7,37 +7,33 @@ import 'build_config.dart';
 /// Callback invoked when the active API origin is about to change.
 typedef OriginChangedCallback = Future<void> Function();
 
-/// Holds the active [AppConfig] and persists user overrides.
+/// Holds the active [AppConfig] and persists the user-selected API origin.
 ///
-/// The controller is the single place the rest of the app reads API
-/// configuration from. Changes are applied only through explicit [saveOrigin]
-/// or [resetToDefault] calls, never implicitly as a side effect.
+/// No API origin is built into the app: [config] is `null` until the user
+/// chooses a server on the server configuration screen. The choice is stored
+/// and restored on later launches. Changes are applied only through explicit
+/// [saveOrigin] or [clearOrigin] calls, never implicitly as a side effect.
 class AppConfigController extends ChangeNotifier {
   AppConfigController({
     required KeyValueStore store,
     AppConfig? initialConfig,
     OriginChangedCallback? onOriginChanged,
   }) : _store = store, // ignore: prefer_initializing_formals
-       _config = initialConfig ?? _defaultConfig() {
+       _config = initialConfig {
     _onOriginChanged = onOriginChanged;
-    _configuredByUser =
-        _config.apiOrigin.toString() != _defaultConfig().apiOrigin.toString();
   }
 
   static const String apiOriginKey = 'meu_preco.app_config.api_origin';
 
   final KeyValueStore _store;
   OriginChangedCallback? _onOriginChanged;
-  AppConfig _config;
+  AppConfig? _config;
 
-  bool _configuredByUser = false;
+  /// Current, active configuration, or `null` when no server is configured.
+  AppConfig? get config => _config;
 
-  /// Current, active configuration.
-  AppConfig get config => _config;
-
-  /// Whether the user explicitly selected this origin (as opposed to the
-  /// build-mode default).
-  bool get isConfiguredByUser => _configuredByUser;
+  /// Whether the user has selected and saved an API origin.
+  bool get isConfigured => _config != null;
 
   /// Binds the session boundary that runs when the active origin changes.
   ///
@@ -50,66 +46,56 @@ class AppConfigController extends ChangeNotifier {
     _onOriginChanged = callback;
   }
 
-  static AppConfig _defaultConfig() {
-    return AppConfig.tryFromOrigin(
-          BuildConfig.apiOrigin,
-          requestTimeout: BuildConfig.requestTimeout,
-        ) ??
-        AppConfig.defaults();
-  }
-
   /// Loads a persisted origin override, if any.
   Future<void> load() async {
     final stored = await _store.readString(apiOriginKey);
     if (stored == null || stored.isEmpty) return;
-    final parsed = AppConfig.tryFromOrigin(
-      stored,
-      apiPrefix: _config.apiPrefix,
-      requestTimeout: _config.requestTimeout,
-    );
+    final parsed = _parse(stored);
     if (parsed == null) return;
     _config = parsed;
-    _configuredByUser = true;
     notifyListeners();
   }
 
   /// Persists [origin] as the active API origin and notifies listeners.
   ///
-  /// When the normalized origin actually changes, the bound
-  /// [OriginChangedCallback] runs first so the previous server's session is
-  /// cleared before any request can be sent to the new origin.
+  /// When the normalized origin actually changes and a server was already
+  /// configured, the bound [OriginChangedCallback] runs first so the previous
+  /// server's session is cleared before any request can be sent to the new
+  /// origin.
   Future<void> saveOrigin(String origin) async {
-    final parsed = AppConfig.tryFromOrigin(
-      origin,
-      apiPrefix: _config.apiPrefix,
-      requestTimeout: _config.requestTimeout,
-    );
+    final parsed = _parse(origin);
     if (parsed == null) {
       throw const FormatException('Invalid API origin');
     }
 
-    if (parsed.apiOrigin != _config.apiOrigin) {
+    final current = _config;
+    if (current != null && parsed.apiOrigin != current.apiOrigin) {
       await _onOriginChanged?.call();
     }
 
     _config = parsed;
-    _configuredByUser = true;
     await _store.writeString(apiOriginKey, parsed.apiOrigin.toString());
     notifyListeners();
   }
 
-  /// Clears the user override and returns to build-mode defaults.
+  /// Forgets the selected server and returns the app to server selection.
   ///
-  /// Resetting to the same origin keeps the current session; changing the
-  /// origin clears it through the bound [OriginChangedCallback].
-  Future<void> resetToDefault() async {
-    final next = _defaultConfig();
-    if (next.apiOrigin != _config.apiOrigin) {
+  /// Clearing an origin signs out the current session through the bound
+  /// [OriginChangedCallback] so no credential survives without a target.
+  Future<void> clearOrigin() async {
+    if (_config != null) {
       await _onOriginChanged?.call();
     }
-    _config = next;
-    _configuredByUser = false;
+    _config = null;
     await _store.remove(apiOriginKey);
     notifyListeners();
+  }
+
+  AppConfig? _parse(String origin) {
+    return AppConfig.tryFromOrigin(
+      origin,
+      apiPrefix: _config?.apiPrefix ?? AppConfig.defaultApiPrefix,
+      requestTimeout: _config?.requestTimeout ?? BuildConfig.requestTimeout,
+    );
   }
 }

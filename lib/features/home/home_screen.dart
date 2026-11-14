@@ -45,6 +45,10 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (session.persistenceError != null) ...[
+                    _SessionWarning(text: strings.sessionNotPersistedWarning),
+                    const SizedBox(height: 24),
+                  ],
                   if (session.user != null) ...[
                     Text(
                       '${strings.homeGreeting}, ${session.user!.name}',
@@ -70,6 +74,47 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Warns that the session lives only in memory because the browser blocked
+/// secure storage (for example when the Web build is served over plain HTTP
+/// from a LAN address instead of HTTPS or `localhost`).
+class _SessionWarning extends StatelessWidget {
+  const _SessionWarning({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colors.tertiaryContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.shield_outlined, color: colors.onTertiaryContainer),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colors.onTertiaryContainer,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

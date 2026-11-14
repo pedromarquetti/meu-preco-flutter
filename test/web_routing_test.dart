@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:meu_preco_frontend/app/router.dart';
+import 'package:meu_preco_frontend/core/config/app_config_controller.dart';
 import 'package:meu_preco_frontend/core/models/models.dart';
 import 'package:meu_preco_frontend/features/auth/auth_session.dart';
 import 'package:meu_preco_frontend/features/nfce/nfce_entry_mode.dart';
@@ -11,6 +12,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late AuthSession session;
+  late AppConfigController configController;
   late GoRouter router;
 
   setUp(() async {
@@ -28,7 +30,12 @@ void main() {
     );
     await session.restore();
     await session.login(identifier: 'ada@example.com', password: 'secret123');
-    router = createRouter(authSession: session);
+    configController = AppConfigController(store: InMemoryKeyValueStore());
+    await configController.saveOrigin('https://api.example.com');
+    router = createRouter(
+      authSession: session,
+      configController: configController,
+    );
   });
 
   tearDown(() => router.dispose());

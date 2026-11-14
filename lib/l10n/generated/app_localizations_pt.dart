@@ -215,6 +215,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sessionExpiredMessage => 'Sua sessão expirou. Entre novamente.';
 
   @override
+  String get sessionNotPersistedWarning =>
+      'O navegador bloqueou o armazenamento seguro da sessão. Você continua conectado até recarregar a página. Para manter a sessão, acesse o app por HTTPS ou localhost.';
+
+  @override
   String get accountSection => 'Conta';
 
   @override
@@ -386,7 +390,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get readinessUnavailableLabel => 'Indisponível';
 
   @override
-  String get settingsResetToDefault => 'Restaurar padrão';
+  String get settingsClearServer => 'Limpar servidor';
 
   @override
   String get logoutAction => 'Sair';

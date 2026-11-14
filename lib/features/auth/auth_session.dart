@@ -43,6 +43,7 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   String? _refreshToken;
   User? _user;
   Future<bool>? _refreshInFlight;
+  CredentialStorageException? _persistenceError;
 
   /// Incremented whenever the session is reset (logout/expiry) or replaced by a
   /// new sign-in. In-flight refresh/`me` calls capture the value they started
@@ -65,6 +66,14 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   /// The current refresh token, exposed for tests and diagnostics.
   String? get refreshToken => _refreshToken;
 
+  /// The last credential-storage failure, or `null` when persistence works.
+  ///
+  /// A non-null value means the session is usable but only in memory: it
+  /// survives navigation, not a page reload. Persistence is best-effort so a
+  /// blocked browser store (for example plain-HTTP Web, which has no secure
+  /// context) can never turn a successful sign-in into an error.
+  CredentialStorageException? get persistenceError => _persistenceError;
+
   @override
   String? get accessToken => _accessToken;
 
@@ -73,7 +82,18 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
   /// A stored session is trusted optimistically so the UI can render
   /// immediately; call [validate] afterwards to confirm it with the server.
   Future<void> restore() async {
-    final stored = await _credentialStore.read();
+    final StoredSession? stored;
+    try {
+      stored = await _credentialStore.read();
+      _persistenceError = null;
+    } on Object catch (error) {
+      // A storage backend that cannot run (Web outside a secure context) must
+      // not prevent the app from starting; the user can still sign in.
+      _persistenceError = _asStorageError(error);
+      _status = AuthStatus.unauthenticated;
+      notifyListeners();
+      return;
+    }
     if (stored == null) {
       _status = AuthStatus.unauthenticated;
       notifyListeners();
@@ -155,7 +175,7 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
     _user = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
-    await _credentialStore.clear();
+    await _clearStoredCredentials();
   }
 
   @override
@@ -220,8 +240,34 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
     final refresh = _refreshToken;
     final user = _user;
     if (access == null || refresh == null || user == null) return;
-    await _credentialStore.write(
-      StoredSession(accessToken: access, refreshToken: refresh, user: user),
+    try {
+      await _credentialStore.write(
+        StoredSession(accessToken: access, refreshToken: refresh, user: user),
+      );
+      _persistenceError = null;
+    } on Object catch (error) {
+      // Best-effort: the in-memory session stays authenticated and the caller
+      // surfaces [persistenceError] as a warning instead of a login failure.
+      _persistenceError = _asStorageError(error);
+    }
+  }
+
+  /// Clears the persisted session without letting a blocked store keep the
+  /// signed-out state from being announced.
+  Future<void> _clearStoredCredentials() async {
+    try {
+      await _credentialStore.clear();
+      _persistenceError = null;
+    } on Object catch (error) {
+      _persistenceError = _asStorageError(error);
+    }
+  }
+
+  CredentialStorageException _asStorageError(Object error) {
+    if (error is CredentialStorageException) return error;
+    return CredentialStorageException(
+      code: 'credential_storage_failed',
+      message: '$error',
     );
   }
 
@@ -233,7 +279,7 @@ class AuthSession extends ChangeNotifier implements AuthTokenSource {
     _user = null;
     _status = AuthStatus.expired;
     notifyListeners();
-    await _credentialStore.clear();
+    await _clearStoredCredentials();
   }
 
   void _validateLogin(String identifier, String password) {

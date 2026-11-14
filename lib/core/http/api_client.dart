@@ -230,6 +230,12 @@ class ApiClient {
     AppConfig? config,
   }) async {
     final effectiveConfig = config ?? _configProvider();
+    if (effectiveConfig == null) {
+      throw const ConfigException(
+        code: 'api_origin_missing',
+        message: 'No API server has been configured.',
+      );
+    }
     var uri = useApiPrefix
         ? effectiveConfig.resolveApi(path)
         : effectiveConfig.resolveRoot(path);

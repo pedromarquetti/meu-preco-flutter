@@ -97,4 +97,75 @@ void main() {
       expect(authRedirect(session, AppRoutes.login), isNull);
     });
   });
+
+  group('server gate', () {
+    const guardedLocations = <String>[
+      AppRoutes.root,
+      AppRoutes.login,
+      AppRoutes.register,
+      AppRoutes.home,
+      AppRoutes.receiptSubmission,
+      AppRoutes.productSearch,
+      '/products/42',
+      AppRoutes.settings,
+      AppRoutes.admin,
+      '/missing/route',
+    ];
+
+    test(
+      'without a configured server every route opens server selection',
+      () async {
+        final session = await sessionFor(role: UserRole.admin);
+
+        for (final location in guardedLocations) {
+          expect(
+            resolveRedirect(
+              serverConfigured: false,
+              session: session,
+              location: location,
+            ),
+            AppRoutes.server,
+            reason: location,
+          );
+        }
+        expect(
+          resolveRedirect(
+            serverConfigured: false,
+            session: session,
+            location: AppRoutes.server,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test('a configured server keeps the existing auth rules', () async {
+      final session = await sessionFor();
+
+      expect(
+        resolveRedirect(
+          serverConfigured: true,
+          session: session,
+          location: AppRoutes.login,
+        ),
+        isNull,
+      );
+      expect(
+        resolveRedirect(
+          serverConfigured: true,
+          session: session,
+          location: AppRoutes.home,
+        ),
+        AppRoutes.login,
+      );
+      expect(
+        resolveRedirect(
+          serverConfigured: true,
+          session: session,
+          location: AppRoutes.server,
+        ),
+        isNull,
+      );
+    });
+  });
 }

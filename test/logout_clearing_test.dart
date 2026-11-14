@@ -75,6 +75,7 @@ void main() {
       final store = InMemoryKeyValueStore();
       final configController = AppConfigController(store: store);
       await configController.load();
+      await configController.saveOrigin('https://api.example.com');
       final themeController = ThemeController(store: store);
       await themeController.load();
       final dependencies = AppDependencies(

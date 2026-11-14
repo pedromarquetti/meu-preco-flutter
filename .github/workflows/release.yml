@@ -16,21 +16,12 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up pinned Flutter toolchain
         uses: ./.github/actions/setup-flutter
-
-      - name: Validate required inputs
-        run: |
-          if [ -z "${API_ORIGIN:-}" ]; then
-            echo "API_ORIGIN must be set and non-empty for a release." >&2
-            exit 1
-          fi
 
       - name: Validate tag against pubspec version
         if: github.ref_type == 'tag'
@@ -69,7 +60,7 @@ jobs:
         run: flutter test
 
       - name: Build Android debug
-        run: flutter build apk --debug --dart-define=API_ORIGIN="$API_ORIGIN"
+        run: flutter build apk --debug
 
       - name: Build Web
         run: scripts/build_web_pages.sh
@@ -78,21 +69,12 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     environment: android-release
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up pinned Flutter toolchain
         uses: ./.github/actions/setup-flutter
-
-      - name: Validate required vars
-        run: |
-          if [ -z "${API_ORIGIN:-}" ]; then
-            echo "API_ORIGIN must be set and non-empty for a release." >&2
-            exit 1
-          fi
 
       - name: Validate signing secrets
         env:
@@ -150,7 +132,7 @@ jobs:
           } > android/key.properties
 
       - name: Build signed release APK
-        run: flutter build apk --release -PrequireReleaseSigning=true --dart-define=API_ORIGIN="$API_ORIGIN"
+        run: flutter build apk --release -PrequireReleaseSigning=true
 
       - name: Verify release APK exists and is not debug signed
         run: |
@@ -179,21 +161,12 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     environment: web-release
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up pinned Flutter toolchain
         uses: ./.github/actions/setup-flutter
-
-      - name: Validate required vars
-        run: |
-          if [ -z "${API_ORIGIN:-}" ]; then
-            echo "API_ORIGIN must be set and non-empty for a release." >&2
-            exit 1
-          fi
 
       - name: Build Web
         run: scripts/build_web_pages.sh
@@ -212,8 +185,6 @@ jobs:
   ios-unsigned:
     needs: validate
     runs-on: macos-latest
-    env:
-      API_ORIGIN: ${{ vars.API_ORIGIN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -221,15 +192,8 @@ jobs:
       - name: Set up pinned Flutter toolchain
         uses: ./.github/actions/setup-flutter
 
-      - name: Validate required vars
-        run: |
-          if [ -z "${API_ORIGIN:-}" ]; then
-            echo "API_ORIGIN must be set and non-empty for a release." >&2
-            exit 1
-          fi
-
       - name: Build iOS unsigned
-        run: flutter build ios --release --no-codesign --dart-define=API_ORIGIN="$API_ORIGIN"
+        run: flutter build ios --release --no-codesign
 
   release:
     needs: [android-release, web-release, ios-unsigned]

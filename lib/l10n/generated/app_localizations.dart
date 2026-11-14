@@ -472,6 +472,12 @@ abstract class AppLocalizations {
   /// **'Sua sessão expirou. Entre novamente.'**
   String get sessionExpiredMessage;
 
+  /// Shown on the home screen when the session could not be saved because the browser storage is blocked (for example plain-HTTP Web)
+  ///
+  /// In pt, this message translates to:
+  /// **'O navegador bloqueou o armazenamento seguro da sessão. Você continua conectado até recarregar a página. Para manter a sessão, acesse o app por HTTPS ou localhost.'**
+  String get sessionNotPersistedWarning;
+
   /// AccountSection
   ///
   /// In pt, this message translates to:
@@ -808,11 +814,11 @@ abstract class AppLocalizations {
   /// **'Indisponível'**
   String get readinessUnavailableLabel;
 
-  /// SettingsResetToDefault
+  /// SettingsClearServer
   ///
   /// In pt, this message translates to:
-  /// **'Restaurar padrão'**
-  String get settingsResetToDefault;
+  /// **'Limpar servidor'**
+  String get settingsClearServer;
 
   /// Logout
   ///

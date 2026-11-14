@@ -25,10 +25,11 @@ class _MeuPrecoAppState extends State<MeuPrecoApp> {
   late final GoRouter _router = createRouter(
     authSession: widget.dependencies.authSession,
     initialLocation: bootLocation(
-      serverConfigured: widget.dependencies.configController.isConfiguredByUser,
+      serverConfigured: widget.dependencies.configController.isConfigured,
       serverUnreachable: widget.dependencies.serverGate != null,
       authenticated: widget.dependencies.authSession.isAuthenticated,
     ),
+    configController: widget.dependencies.configController,
   );
 
   @override

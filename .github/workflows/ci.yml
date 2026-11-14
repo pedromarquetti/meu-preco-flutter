@@ -3,7 +3,16 @@ name: CI
 on:
   push:
     branches: [master]
+    tags: ['v*.*.*']
   pull_request:
+  workflow_call:
+    outputs:
+      web-artifact-name:
+        description: Name of the validated Web bundle artifact.
+        value: ${{ jobs.build-and-test.outputs.web-artifact-name }}
+      web-artifact-path:
+        description: Path of the Web bundle inside the artifact.
+        value: ${{ jobs.build-and-test.outputs.web-artifact-path }}
 
 permissions:
   contents: read
@@ -12,26 +21,18 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Non-secret test origin used only to validate build-time configuration.
-  API_ORIGIN: http://localhost:8080
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    outputs:
+      web-artifact-name: web-build-${{ github.run_id }}
+      web-artifact-path: build/web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up pinned Flutter toolchain
         uses: ./.github/actions/setup-flutter
-
-      - name: Validate API origin
-        run: |
-          if [ -z "${API_ORIGIN:-}" ]; then
-            echo "API_ORIGIN must be set and non-empty." >&2
-            exit 1
-          fi
 
       - name: Check formatting
         run: dart format --set-exit-if-changed lib test
@@ -43,10 +44,10 @@ jobs:
         run: flutter test
 
       - name: Build Android debug
-        run: flutter build apk --debug --dart-define=API_ORIGIN="$API_ORIGIN"
+        run: flutter build apk --debug
 
       - name: Build Web
-        run: scripts/build_web_pages.sh --allow-http
+        run: scripts/build_web_pages.sh
 
       - name: Upload Web build artifact
         uses: actions/upload-artifact@v4

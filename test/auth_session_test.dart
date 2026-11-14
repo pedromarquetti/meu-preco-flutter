@@ -274,6 +274,78 @@ void main() {
     });
   });
 
+  group('credential storage failures', () {
+    test('login succeeds when the store cannot persist', () async {
+      final (session, _, store) = build();
+      store.writeError = const CredentialStorageException(
+        code: 'secure_context_required',
+      );
+
+      final signedIn = await session.login(
+        identifier: 'ada@example.com',
+        password: 'secret123',
+      );
+
+      expect(signedIn.email, user.email);
+      expect(session.status, AuthStatus.authenticated);
+      expect(session.isAuthenticated, isTrue);
+      expect(session.accessToken, isNotNull);
+      expect(session.persistenceError?.requiresSecureContext, isTrue);
+      expect(store.session, isNull);
+    });
+
+    test('a successful write clears the warning', () async {
+      final (session, _, store) = build();
+      store.writeError = const CredentialStorageException(
+        code: 'secure_context_required',
+      );
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
+      expect(session.persistenceError, isNotNull);
+
+      store.writeError = null;
+      expect(await session.refreshAccessToken(), isTrue);
+
+      expect(session.persistenceError, isNull);
+      expect(store.session, isNotNull);
+    });
+
+    test('an unexpected storage error is still non-fatal', () async {
+      final (session, _, store) = build();
+      store.writeError = StateError('storage exploded');
+
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
+
+      expect(session.status, AuthStatus.authenticated);
+      expect(session.persistenceError?.code, 'credential_storage_failed');
+    });
+
+    test('restore tolerates an unreadable store', () async {
+      final (session, _, store) = build();
+      store.readError = const CredentialStorageException(
+        code: 'secure_context_required',
+      );
+
+      await session.restore();
+
+      expect(session.status, AuthStatus.unauthenticated);
+      expect(session.persistenceError?.requiresSecureContext, isTrue);
+    });
+
+    test('logout still signs out when clearing fails', () async {
+      final (session, _, store) = build();
+      await session.login(identifier: 'ada@example.com', password: 'secret123');
+      store.clearError = const CredentialStorageException(
+        code: 'secure_context_required',
+      );
+
+      await session.logout();
+
+      expect(session.status, AuthStatus.unauthenticated);
+      expect(session.user, isNull);
+      expect(session.persistenceError?.requiresSecureContext, isTrue);
+    });
+  });
+
   test('logout clears credentials and cached state', () async {
     final (session, _, store) = build();
     await session.login(identifier: 'ada@example.com', password: 'secret123');

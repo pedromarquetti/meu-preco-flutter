@@ -85,22 +85,20 @@ a backend. The Swagger docs can be also found
 ## Configuration
 
 The app talks to a single
-[Meu Preço API](https://github.com/pedromarquetti/meu-preco) origin. On first
-boot it always asks for a server on the **select server** screen and only moves
-on to login after `GET /healthz` succeeds. The origin can be changed later on
-the Settings page without rebuilding; changing it signs out the current session
-so a token issued by one server is never sent to another.
+[Meu Preço API](https://github.com/pedromarquetti/meu-preco) origin. No origin
+is built into the app: on first boot every fresh installation (Android, Web,
+iOS, macOS, Windows, Linux) asks for a server on the **select server** screen,
+saves it, and only moves on to login after `GET /healthz` succeeds. Later
+launches reuse the saved origin. The origin can be changed on the Settings page
+without rebuilding; changing or clearing it signs out the current session so a
+token issued by one server is never sent to another.
 
-For deployments, bake a default origin (and optional request timeout) into the
-build with `--dart-define`:
+Optional build-time tuning with `--dart-define`:
 
 ```sh
-flutter build apk \
-  --dart-define=API_ORIGIN=https://api.meupreco.example \
-  --dart-define=API_TIMEOUT_SECONDS=30
+flutter build apk --dart-define=API_TIMEOUT_SECONDS=30
 ```
 
-- `API_ORIGIN` — default API origin (defaults to `http://localhost:8080`).
 - `API_TIMEOUT_SECONDS` — request timeout (defaults to `20`).
 
 The versioned prefix `/api/v1` is applied automatically; a pasted origin that
@@ -136,10 +134,9 @@ dart run flutter_launcher_icons
 ### Start a local API
 
 The app expects a [Meu Preço API](https://github.com/pedromarquetti/meu-preco)
-on a single origin and only proceeds past the **select server** screen after
-`GET /healthz` succeeds. Run the backend locally (default
-`http://localhost:8080`) and point the app at it on first boot, or bake it in
-with `--dart-define=API_ORIGIN=...`.
+and only proceeds past the **select server** screen after `GET /healthz`
+succeeds. Run the backend locally (default `http://localhost:8080`) and enter
+that origin on first boot; the app saves it and reuses it afterwards.
 
 The test suite ships a complete in-process fake API
 (`test/fake_api_server.dart`) bound to a loopback port, so integration tests
@@ -171,11 +168,10 @@ flutter test
 
 #### Android
 
-Build an Android validation artifact with an explicit API origin:
+Build an Android validation artifact:
 
 ```sh
-flutter build apk --debug \
-  --dart-define=API_ORIGIN=https://api.meupreco.example
+flutter build apk --debug
 ```
 
 #### Web
@@ -183,7 +179,7 @@ flutter build apk --debug \
 Build the reproducible GitHub Pages bundle used by Actions:
 
 ```sh
-API_ORIGIN=https://api.meupreco.example scripts/build_web_pages.sh
+scripts/build_web_pages.sh
 ```
 
 The script derives `--base-href` from `GITHUB_REPOSITORY` in Actions or from the
@@ -191,8 +187,8 @@ local `origin` git remote, so forks deploy under their own Pages path without
 editing the repository name. It also:
 
 - verifies the installed Flutter version matches `pubspec.yaml`;
-- builds with `--release`, the derived `--base-href`, and the supplied
-  `API_ORIGIN`;
+- builds with `--release` and the derived `--base-href`, with no API origin
+  baked in (browser users choose their own server);
 - verifies `index.html`, `flutter_bootstrap.js`, and `main.dart.js` exist and
   that `index.html` uses the expected base href;
 - serves the bundle under the derived base path with a local Pages-style server
@@ -200,13 +196,8 @@ editing the repository name. It also:
   missing paths return a real 404 instead of the application shell;
 - rejects public source maps and common credential formats in the bundle.
 
-Release and Pages builds require an HTTPS `API_ORIGIN`. Use `--allow-http` only
-for local or CI validation against an `http://` origin such as
-`http://localhost:8080`:
-
-```sh
-API_ORIGIN=http://localhost:8080 scripts/build_web_pages.sh --allow-http
-```
+Each browser chooses the API origin on first launch; the choice is stored in
+browser storage and reused on later visits.
 
 For custom hosting, override the derived base path with `BASE_HREF` or
 `--base-href` (it must start and end with `/`).
@@ -228,8 +219,7 @@ scripts/verify_web_routing.sh build/web /REPOSITORY/
 Unsigned iOS validation builds (macOS only):
 
 ```sh
-flutter build ios --release --no-codesign \
-  --dart-define=API_ORIGIN=https://api.meupreco.example
+flutter build ios --release --no-codesign
 ```
 
 The debug APK does not require a project release keystore and is suitable for
@@ -274,8 +264,7 @@ jobs:
 ```sh
 flutter clean
 flutter pub get
-flutter build apk --release \
-  --dart-define=API_ORIGIN=https://api.meupreco.example
+flutter build apk --release
 scripts/verify_android_apk.sh
 ```
 
@@ -284,9 +273,7 @@ which CI should pass so a real release can never be produced without signing
 material:
 
 ```sh
-flutter build apk --release \
-  -PrequireReleaseSigning=true \
-  --dart-define=API_ORIGIN=https://api.meupreco.example
+flutter build apk --release -PrequireReleaseSigning=true
 ```
 
 R8 reported missing Google Play Core classes from Flutter's deferred component
@@ -302,10 +289,10 @@ package id, version, and label without printing any secret.
 
 ### Release assumptions
 
-- Production builds talk to an explicitly configured HTTPS origin; the release
-  network security configuration trusts only system certificate authorities and
-  blocks cleartext. The debug build allows cleartext to `localhost`,
-  `127.0.0.1`, and `10.0.2.2` for local development.
+- Production builds talk to the HTTPS origin each user selects at runtime; the
+  release network security configuration trusts only system certificate
+  authorities and blocks cleartext. The debug build allows cleartext to
+  `localhost`, `127.0.0.1`, and `10.0.2.2` for local development.
 - Android releases use a stable upload key with the same identity retained for
   upgrades; losing it prevents updating an already-installed app. Google Play
   App Signing and Play Console publishing are intentionally deferred — the
@@ -319,11 +306,9 @@ package id, version, and label without printing any secret.
 
 ### Web deployment and limitations
 
-- **API origin** — bake the production origin at build time with
-  `--dart-define=API_ORIGIN=https://api.meupreco.example`. Users can still
-  change the server at runtime, but the deployed default must be HTTPS and
-  non-empty; the release/Pages build script refuses an empty or non-HTTPS
-  `vars.API_ORIGIN`.
+- **API origin** — nothing is baked into the bundle. Each browser enters the API
+  origin on first launch, it is saved in browser storage, and later visits reuse
+  it. Users can change or clear the server in Settings at any time.
 - **CORS** — the backend must allow the exact Web origin (scheme, host, and
   port) and the methods and headers used by the app, including `Authorization`
   for bearer tokens and `Content-Type`. Preflight `OPTIONS` requests must also
@@ -334,15 +319,23 @@ package id, version, and label without printing any secret.
 - **Sub-path hosting** — `scripts/build_web_pages.sh` derives the base href from
   the GitHub repository (or the local git remote). Override it with
   `BASE_HREF=/custom-path/` when the bundle is served from a different path.
-- **Routing** — Web uses hash-based routes (`/REPOSITORY/#/settings`), so
-  GitHub Pages static hosting can refresh and deep-link without server rewrites
-  or a `404.html` fallback. The bundle never publishes the application shell as
+- **Routing** — Web uses hash-based routes (`/REPOSITORY/#/settings`), so GitHub
+  Pages static hosting can refresh and deep-link without server rewrites or a
+  `404.html` fallback. The bundle never publishes the application shell as
   `404.html`, so missing assets stay real 404s instead of being masked as HTML.
+  Deep links (including a stale `#/login` in the address bar) are also gated by
+  the configured server: without one, every route opens server selection, so a
+  browser URL can never bypass the first-run setup.
 - **Browser storage** — session and preferences use browser storage
   (localStorage-backed), which is per-origin and can be cleared by the user or
   the browser, unlike the platform keystore used on Android. Changing the
   configured API origin clears the stored session before the new origin is
-  saved.
+  saved. The session document is encrypted with `WebCrypto`, which browsers
+  expose only in a secure context: over plain HTTP (for example
+  `http://192.168.0.107:3000`) signing in works for the current page, but the
+  tokens cannot be stored, so a reload requires signing in again and the home
+  screen shows a warning. Serve the bundle over HTTPS (or use `localhost`) to
+  keep sessions across reloads.
 
 ## GitHub Actions and releases
 
@@ -352,11 +345,16 @@ CI installs the exact Flutter version declared in `pubspec.yaml`
 
 ### Workflow overview
 
-| Workflow      | Triggers                                | Output                                                                                   |
-| ------------- | --------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `ci.yml`      | Pull requests; pushes to `master`       | Format, analysis, tests, Android debug build, Web build; `web-build-<run_id>` artifact   |
-| `build.yml`   | Manual dispatch; `release: published`   | `android-debug-<run_id>` and `web-<run_id>` workflow artifacts                           |
-| `release.yml` | Tags matching `v*.*.*`; manual dispatch | Validated signed APK and Web bundle, unsigned iOS validation; GitHub Release on tag refs |
+| Workflow      | Triggers                                                          | Output                                                                                         |
+| ------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ci.yml`      | Pull requests; pushes to `master`; tags `v*.*.*`; `workflow_call` | Format, analysis, tests, Android debug build, Web build; exposes `web-build-<run_id>` artifact |
+| `build.yml`   | Manual dispatch; `release: published`                             | `android-debug-<run_id>` and `web-<run_id>` workflow artifacts                                 |
+| `release.yml` | Tags matching `v*.*.*`; manual dispatch                           | Validated signed APK and Web bundle, unsigned iOS validation; GitHub Release on tag refs       |
+
+`ci.yml` is the single validation definition. Other workflows call it with
+`uses: ./.github/workflows/ci.yml` instead of duplicating Flutter setup or
+dependency installation. Its `workflow_call` outputs expose the validated Web
+artifact name (`web-artifact-name`) and path (`web-artifact-path`).
 
 `build.yml` also runs after a release is published to rebuild debug/Web
 validation artifacts; it never modifies the release. Signing and publication use
@@ -405,14 +403,13 @@ version: 1.4.2+17
 Configure these in the repository settings and protected environments. Never
 commit or log their values.
 
-| Name                      | Kind                                    | Used by           | Purpose                                                  |
-| ------------------------- | --------------------------------------- | ----------------- | -------------------------------------------------------- |
-| `API_ORIGIN`              | repository variable (`vars.API_ORIGIN`) | Release jobs      | Non-empty HTTPS API origin baked into the build          |
-| `ANDROID_KEYSTORE_BASE64` | secret                                  | `android-release` | Base64-encoded upload keystore                           |
-| `STORE_PASSWORD`          | secret                                  | `android-release` | Keystore password                                        |
-| `KEY_ALIAS`               | secret                                  | `android-release` | Signing key alias                                        |
-| `KEY_PASSWORD`            | secret                                  | `android-release` | Signing key password                                     |
-| `GITHUB_TOKEN`            | automatic                               | `release`         | Creates or updates the GitHub Release; no setup required |
+| Name                      | Kind      | Used by           | Purpose                                                  |
+| ------------------------- | --------- | ----------------- | -------------------------------------------------------- |
+| `ANDROID_KEYSTORE_BASE64` | secret    | `android-release` | Base64-encoded upload keystore                           |
+| `STORE_PASSWORD`          | secret    | `android-release` | Keystore password                                        |
+| `KEY_ALIAS`               | secret    | `android-release` | Signing key alias                                        |
+| `KEY_PASSWORD`            | secret    | `android-release` | Signing key password                                     |
+| `GITHUB_TOKEN`            | automatic | `release`         | Creates or updates the GitHub Release; no setup required |
 
 Create the keystore secret value locally without committing it:
 
@@ -505,7 +502,6 @@ it). Back up any existing `android/key.properties` first, because this
 overwrites it:
 
 ```sh
-export API_ORIGIN=https://api.meupreco.example
 export KEYSTORE_PATH="$HOME/secure/upload-keystore.jks"
 export STORE_PASSWORD='...'
 export KEY_ALIAS='upload'
@@ -519,9 +515,7 @@ umask 077
   printf 'keyPassword=%s\n' "$KEY_PASSWORD"
 } > android/key.properties
 
-flutter build apk --release \
-  -PrequireReleaseSigning=true \
-  --dart-define=API_ORIGIN="$API_ORIGIN"
+flutter build apk --release -PrequireReleaseSigning=true
 
 scripts/verify_android_apk.sh build/app/outputs/flutter-apk/app-release.apk
 rm -f android/key.properties
@@ -531,15 +525,14 @@ unset STORE_PASSWORD KEY_PASSWORD
 Web bundle and the release zip:
 
 ```sh
-API_ORIGIN=https://api.meupreco.example scripts/build_web_pages.sh
+scripts/build_web_pages.sh
 (cd build/web && zip -qr ../web-release.zip .)
 ```
 
 Unsigned iOS (macOS only):
 
 ```sh
-flutter build ios --release --no-codesign \
-  --dart-define=API_ORIGIN="$API_ORIGIN"
+flutter build ios --release --no-codesign
 ```
 
 The release workflow runs the same commands; the CI-specific parts are secret
