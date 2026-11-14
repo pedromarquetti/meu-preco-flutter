@@ -14,56 +14,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  validate:
+  # Tag/version validation is shared with pages.yml through
+  # scripts/verify_release_tag.sh. Manual dispatch skips the tag/version check
+  # and never publishes a GitHub Release or deploys Pages.
+  version:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up pinned Flutter toolchain
-        uses: ./.github/actions/setup-flutter
-
       - name: Validate tag against pubspec version
         if: github.ref_type == 'tag'
-        run: |
-          tag_version="${GITHUB_REF_NAME#v}"
-          declared_version="$(awk '
-            /^version:[[:space:]]*/ {
-              sub(/^version:[[:space:]]*/, "")
-              gsub(/"/, "")
-              print
-              exit
-            }
-          ' pubspec.yaml)"
-          declared_version="${declared_version%%+*}"
-          declared_version="$(printf '%s' "$declared_version" | tr -d '[:space:]')"
+        run: scripts/verify_release_tag.sh "$GITHUB_REF_NAME"
 
-          if [ -z "$declared_version" ]; then
-            echo "Could not read the application version from pubspec.yaml." >&2
-            exit 1
-          fi
-
-          if [ "$tag_version" != "$declared_version" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match pubspec.yaml version ${declared_version}." >&2
-            exit 1
-          fi
-
-          echo "Tag ${GITHUB_REF_NAME} matches pubspec.yaml version ${declared_version}."
-
-      - name: Check formatting
-        run: dart format --set-exit-if-changed lib test
-
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Test
-        run: flutter test
-
-      - name: Build Android debug
-        run: flutter build apk --debug
-
-      - name: Build Web
-        run: scripts/build_web_pages.sh
+  # The single validation definition lives in ci.yml. Calling it keeps Release
+  # and Pages on the same checks and the same validated Web artifact.
+  validate:
+    needs: version
+    uses: ./.github/workflows/ci.yml
 
   android-release:
     needs: validate
@@ -165,11 +133,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up pinned Flutter toolchain
-        uses: ./.github/actions/setup-flutter
+      # Reuse the bundle CI already built and validated instead of maintaining
+      # a second, potentially divergent Web build for the GitHub Release.
+      - name: Download validated Web bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.web-artifact-name }}
+          path: build/web
 
-      - name: Build Web
-        run: scripts/build_web_pages.sh
+      - name: Verify Web bundle
+        env:
+          BASE_HREF: /${{ github.event.repository.name }}/
+        run: |
+          scripts/verify_web_bundle.sh build/web "$BASE_HREF"
+          scripts/verify_web_routing.sh build/web "$BASE_HREF"
 
       - name: Upload Web bundle
         uses: actions/upload-artifact@v4

@@ -17,7 +17,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Same tag/version rule as release.yml, through the shared script, so a tag
+  # cannot publish a GitHub Release while being rejected by Pages (or vice
+  # versa).
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate tag against pubspec version
+        run: scripts/verify_release_tag.sh "$GITHUB_REF_NAME"
+
   validate:
+    needs: version
     uses: ./.github/workflows/ci.yml
 
   build:

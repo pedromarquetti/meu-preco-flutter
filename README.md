@@ -351,7 +351,7 @@ CI installs the exact Flutter version declared in `pubspec.yaml`
 | `ci.yml`      | Pull requests; pushes to `master`; tags `v*.*.*`; `workflow_call` | Format, analysis, tests, Android debug build, Web build; exposes `web-build-<run_id>` artifact            |
 | `pages.yml`   | Tags matching `v*.*.*`                                            | Calls `ci.yml`, builds and validates the Pages bundle, uploads the Pages artifact, deploys `github-pages` |
 | `build.yml`   | Manual dispatch; `release: published`                             | `android-debug-<run_id>` and `web-<run_id>` workflow artifacts                                            |
-| `release.yml` | Tags matching `v*.*.*`; manual dispatch                           | Validated signed APK and Web bundle, unsigned iOS validation; GitHub Release on tag refs                  |
+| `release.yml` | Tags matching `v*.*.*`; manual dispatch                           | Shared version check, calls `ci.yml`, signed APK, CI-validated Web asset; GitHub Release on tag refs      |
 
 `ci.yml` is the single validation definition. Other workflows call it with
 `uses: ./.github/workflows/ci.yml` instead of duplicating Flutter setup or
@@ -362,14 +362,20 @@ artifact name (`web-artifact-name`) and path (`web-artifact-path`).
 Pages build and deployment from starting. It triggers only on `v*.*.*` tags;
 there is no manual dispatch path that can publish Pages.
 
+`release.yml` calls the same workflow and reuses the validated Web artifact for
+the GitHub Release instead of running a second Web build. Signing and
+publication use the protected `android-release`, `web-release`, and `release`
+environments.
+
 `build.yml` also runs after a release is published to rebuild debug/Web
-validation artifacts; it never modifies the release. Signing and publication use
-the protected `android-release`, `web-release`, and `release` environments.
+validation artifacts; it never modifies the release or Pages.
 
 ### Pages deployment
 
 - **Trigger:** only pushed tags matching `v*.*.*`. Pull requests and `master`
   pushes run CI but never deploy Pages.
+- **Version check:** `scripts/verify_release_tag.sh` runs before CI and rejects
+  a tag that does not match `pubspec.yaml`; `release.yml` runs the same script.
 - **Gate:** `pages.yml` calls the reusable `ci.yml` for the same tag commit. If
   formatting, analysis, tests, the Android debug build, or the Web build fails,
   the Pages build and deploy jobs do not run.
@@ -389,18 +395,22 @@ the protected `android-release`, `web-release`, and `release` environments.
 ### Release workflow
 
 - **Trigger:** a pushed tag matching `v*.*.*`, or a manual `workflow_dispatch`.
-- **Version check:** for tag pushes, the tag without the leading `v` must equal
-  the base version in `pubspec.yaml` (the part before `+`). A mismatched tag
-  fails before any artifact job runs.
-- **Validation gates:** formatting, analysis, tests, Android debug build, and
-  Web build run before the signed Android, Web, and unsigned iOS jobs.
+- **Version check:** for tag pushes, `scripts/verify_release_tag.sh` rejects a
+  tag whose name (without the leading `v`) does not equal the base version in
+  `pubspec.yaml` (the part before `+`). Pages uses the same script, so a tag
+  cannot pass one workflow and fail the other.
+- **Validation gates:** `release.yml` calls the reusable `ci.yml`, so
+  formatting, analysis, tests, the Android debug build, and the Web build are
+  identical to normal CI and Pages. The signed Android, Web, and unsigned iOS
+  jobs run only after that call succeeds.
 - **Artifacts:** the Android job uploads `android-release-apk` containing
-  `app-release.apk`; the Web job uploads `web-release` containing the built Web
-  bundle rooted at `index.html`.
+  `app-release.apk`. The Web job downloads CI's validated `web-build-<run_id>`
+  artifact, re-verifies it, and uploads `web-release` without rebuilding, so the
+  GitHub Release asset and the Pages deployment come from the same build inputs.
 - **Publication:** only tag pushes create a GitHub Release. Manual dispatch
-  builds and uploads workflow artifacts without publishing a release. Release
-  assets are `app-release.apk` and `web-release.zip`; re-running a release
-  updates the existing release and overwrites its assets.
+  builds and uploads workflow artifacts without publishing a release or
+  deploying Pages. Release assets are `app-release.apk` and `web-release.zip`;
+  re-running a release updates the existing release and overwrites its assets.
 - **iOS:** `macos-latest` runs an unsigned validation build. Signed iOS
   distribution requires Apple credentials in a protected environment and is not
   automated here.
@@ -450,31 +460,38 @@ Paste the output directly into the `ANDROID_KEYSTORE_BASE64` environment secret.
 
 Configure these protected environments (Settings → Environments):
 
-| Environment       | Used by            | Recommended protection                               |
-| ----------------- | ------------------ | ---------------------------------------------------- |
-| `android-release` | Signed APK job     | Required reviewers; restrict deployment to `v*` tags |
-| `web-release`     | Web bundle job     | Required reviewers; restrict deployment to `v*` tags |
-| `release`         | GitHub Release job | Required reviewers; restrict deployment to `v*` tags |
+| Environment       | Used by              | Recommended protection                               |
+| ----------------- | -------------------- | ---------------------------------------------------- |
+| `android-release` | Signed APK job       | Required reviewers; restrict deployment to `v*` tags |
+| `web-release`     | Web bundle job       | Required reviewers; restrict deployment to `v*` tags |
+| `release`         | GitHub Release job   | Required reviewers; restrict deployment to `v*` tags |
+| `github-pages`    | Pages deployment job | Optional reviewers; restrict deployment to `v*` tags |
 
 The unsigned iOS job uses no environment because it handles no secrets.
+`github-pages` is created automatically on the first Pages deployment; add
+protection rules if deployments should pause for approval.
 
 ### Release approval and verification
 
 1. Update `pubspec.yaml` (`version: x.y.z+n`), commit, and push to `master`.
 2. Create and push the matching tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-3. The `validate` job runs formatting, analysis, tests, Android debug build, and
-   Web build, and rejects a mismatched tag.
+3. `pages.yml` and `release.yml` both run `scripts/verify_release_tag.sh` for
+   the tag, then call the reusable `ci.yml` (formatting, analysis, tests,
+   Android debug build, and Web build).
 4. Approve the paused `android-release` and `web-release` deployments in the
    Actions run. The signed Android job verifies the APK signature and package
-   identity before uploading it.
+   identity before uploading it; the Web job reuses CI's validated bundle.
 5. The unsigned iOS job builds on `macos-latest`.
 6. Approve the paused `release` environment deployment. Only then does the
-   workflow publish `app-release.apk` and `web-release.zip` on the tag.
+   workflow publish `app-release.apk` and `web-release.zip` on the tag. Unless
+   `github-pages` has reviewers, Pages deploys as soon as its build succeeds.
 7. Verify the result:
    - download the `android-release-apk` artifact and run
      `scripts/verify_android_apk.sh app-release.apk`;
    - inspect `web-release.zip` for `index.html`, `main.dart.js`, and the
      compiled assets;
+   - open the `github-pages` deployment URL and confirm the shell, server
+     selection, login, persistence, and camera access on the deployed origin;
    - install the APK on a clean device and check `com.app.meupreco`, version,
      icon, HTTPS API connectivity, server selection, camera fallback, and an
      upgrade over the previous version;
@@ -502,6 +519,9 @@ The unsigned iOS job uses no environment because it handles no secrets.
 
   Publication is idempotent and overwrites existing assets. Alternatively,
   publish a new patch release with a higher version code.
+- **Pages:** dispatching `release.yml` never deploys Pages. Re-run the `Pages`
+  workflow for the same tag to redeploy that commit, or publish a new corrective
+  tag to replace it. Tags remain immutable either way.
 - **Version code:** never reuse `+n`. If an APK was distributed, the corrective
   build must use a higher `+n` so Android accepts it as an upgrade.
 - **Concurrency:** runs for the same ref are serialized and never cancelled;
@@ -518,6 +538,7 @@ SDK build-tools (`apksigner`, `aapt2`), and `zip`.
 
 ```sh
 flutter pub get --enforce-lockfile
+scripts/verify_release_tag.sh vX.Y.Z
 dart format --set-exit-if-changed lib test
 flutter analyze
 flutter test
@@ -561,8 +582,9 @@ Unsigned iOS (macOS only):
 flutter build ios --release --no-codesign
 ```
 
-The release workflow runs the same commands; the CI-specific parts are secret
-decoding, environment approval, and artifact publication.
+The release workflow calls the same CI checks and reuses CI's validated Web
+bundle; the CI-specific parts are secret decoding, environment approval, and
+artifact publication.
 
 Google Play publishing is deliberately deferred. The first CI/CD milestone is a
 signed APK that can be installed directly. App Bundle generation, Play App
