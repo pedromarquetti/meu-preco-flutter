@@ -305,7 +305,7 @@ class _AdminReviewScreenState extends State<AdminReviewScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            '${strings.adminReviewPartialFailure}: '
+            '${strings.adminAssignmentFailureRetained} '
             '${localizedErrorMessage(strings, failure)}',
           ),
         ),

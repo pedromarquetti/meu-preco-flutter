@@ -1540,11 +1540,11 @@ abstract class AppLocalizations {
   /// **'Selecione um produto de destino válido para cada mesclagem.'**
   String get adminReviewMergeTargetRequired;
 
-  /// Partial failure message after some review operations fail
+  /// Batch assignment failure message that tells the admin the current decisions were kept for retry
   ///
   /// In pt, this message translates to:
-  /// **'Algumas operações falharam e os itens não foram recarregados'**
-  String get adminReviewPartialFailure;
+  /// **'Falha ao atribuir; suas escolhas foram mantidas. Tente novamente.'**
+  String get adminAssignmentFailureRetained;
 
   /// No description provided for @adminApproveAction.
   ///

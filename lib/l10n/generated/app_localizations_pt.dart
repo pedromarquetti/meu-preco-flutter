@@ -781,8 +781,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Selecione um produto de destino válido para cada mesclagem.';
 
   @override
-  String get adminReviewPartialFailure =>
-      'Algumas operações falharam e os itens não foram recarregados';
+  String get adminAssignmentFailureRetained =>
+      'Falha ao atribuir; suas escolhas foram mantidas. Tente novamente.';
 
   @override
   String get adminApproveAction => 'Aprovar';

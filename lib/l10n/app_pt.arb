@@ -240,7 +240,7 @@
   "adminReviewNameRequired": "Informe o nome de todos os itens selecionados.",
   "adminReviewUnitRequired": "Informe a unidade de todos os itens selecionados.",
   "adminReviewMergeTargetRequired": "Selecione um produto de destino válido para cada mesclagem.",
-  "adminReviewPartialFailure": "Algumas operações falharam e os itens não foram recarregados",
+  "adminAssignmentFailureRetained": "Falha ao atribuir; suas escolhas foram mantidas. Tente novamente.",
   "adminApproveAction": "Aprovar",
   "adminRejectAction": "Rejeitar",
   "adminProposalPending": "Proposta de associação aguardando aprovação",
@@ -354,8 +354,8 @@
   "@adminReviewMergeTargetRequired": {
     "description": "Validation message for a merge without a target product"
   },
-  "@adminReviewPartialFailure": {
-    "description": "Partial failure message after some review operations fail"
+  "@adminAssignmentFailureRetained": {
+    "description": "Batch assignment failure message that tells the admin the current decisions were kept for retry"
   },
   "@adminProposalBy": {
     "description": "Attribution for a proposal",

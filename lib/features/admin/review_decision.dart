@@ -82,15 +82,7 @@ class ReviewDecision {
 
   bool get isCreate => target == ReviewTargetKind.create;
 
-  bool get isExisting => target == ReviewTargetKind.existing;
-
   int? get targetProductId => targetProduct?.id;
-
-  /// Whether the pending proposal can be approved as-is.
-  bool get canApproveProposal =>
-      target == ReviewTargetKind.proposed &&
-      proposal?.id != null &&
-      reviewItem?.isRejected != true;
 
   /// Targets the original proposal again, keeping the create draft untouched.
   ReviewDecision useProposal() {
@@ -131,13 +123,6 @@ class ReviewDecision {
         brand: brand ?? this.brand,
         unit: unit ?? this.unit,
       );
-
-  /// Returns the normalized name for comparison purposes (trimmed and
-  /// lowercase).
-  String get normalizedName {
-    final raw = name ?? '';
-    return raw.trim().toLowerCase();
-  }
 
   /// Updates the draft values without changing the selected target.
   ReviewDecision copyWith({String? name, String? brand, String? unit}) =>

@@ -59,12 +59,10 @@ void main() {
 
       expect(decision.target, ReviewTargetKind.proposed);
       expect(decision.isCreate, isFalse);
-      expect(decision.isExisting, isFalse);
       expect(decision.proposal, _pendingItem.proposedProduct);
       expect(decision.targetProduct?.id, 8);
       expect(decision.targetProduct?.name, 'Apresuntado');
       expect(decision.targetProductId, 8);
-      expect(decision.canApproveProposal, isTrue);
     });
 
     test('rejected proposals default to create from the suggestion', () {
@@ -78,7 +76,6 @@ void main() {
       expect(decision.name, 'apresuntado');
       expect(decision.brand, isNull);
       expect(decision.unit, 'kg');
-      expect(decision.canApproveProposal, isFalse);
     });
 
     test('a rejected proposal never seeds the create draft', () {
@@ -105,7 +102,6 @@ void main() {
       expect(decision.targetProduct, isNull);
       expect(decision.name, 'saco 58x70');
       expect(decision.unit, 'un');
-      expect(decision.canApproveProposal, isFalse);
     });
 
     test('falls back to the description when there is no suggested stem', () {
@@ -130,12 +126,10 @@ void main() {
           .useExisting(product);
 
       expect(decision.target, ReviewTargetKind.existing);
-      expect(decision.isExisting, isTrue);
       expect(decision.isCreate, isFalse);
       expect(decision.proposal, _pendingItem.proposedProduct);
       expect(decision.targetProduct, product);
       expect(decision.targetProductId, 2);
-      expect(decision.canApproveProposal, isFalse);
     });
 
     test('existing -> create clears the target product', () {
@@ -161,7 +155,6 @@ void main() {
       expect(decision.target, ReviewTargetKind.proposed);
       expect(decision.targetProduct?.id, 8);
       expect(decision.proposal, _pendingItem.proposedProduct);
-      expect(decision.canApproveProposal, isTrue);
       // The create draft is unrelated state and is preserved.
       expect(decision.name, 'Novo');
       expect(decision.brand, 'Marca');
@@ -192,7 +185,6 @@ void main() {
 
       expect(explicit.target, ReviewTargetKind.proposed);
       expect(explicit.targetProductId, 8);
-      expect(explicit.canApproveProposal, isFalse);
     });
 
     test('createNew without arguments keeps the current draft', () {
@@ -212,7 +204,6 @@ void main() {
       expect(decision.target, ReviewTargetKind.proposed);
       expect(decision.targetProduct?.id, 8);
       expect(decision.name, '  Arroz  ');
-      expect(decision.normalizedName, 'arroz');
       expect(decision.brand, 'Marca');
       expect(decision.unit, 'un');
     });

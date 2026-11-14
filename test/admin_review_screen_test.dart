@@ -302,6 +302,61 @@ void main() {
       },
     );
 
+    testWidgets(
+      'reassignment restores approval once the proposal is pending again',
+      (tester) async {
+        final repos = await _pumpReviewScreen(
+          tester,
+          items: [
+            _item(
+              10,
+              'APRESUNTADO SOFT PIG KG',
+              proposedProduct: const ReviewProductView(
+                id: 8,
+                name: 'tijolo',
+                unit: 'kg',
+                canonicalStem: 'tijolo',
+              ),
+              proposalStatus: ProposalStatus.rejected,
+              lastReviewAction: ReviewAction.reject,
+            ),
+          ],
+        );
+
+        FilledButton approveButton() => tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, _strings.adminApproveAction),
+        );
+
+        expect(approveButton().onPressed, isNull);
+        expect(find.text(_strings.adminReassignBeforeApprove), findsOneWidget);
+
+        // The next queue load reports the reassigned proposal as pending.
+        repos.admin.needsReviewResult = ReviewQueuePage(
+          items: [
+            _item(
+              10,
+              'APRESUNTADO SOFT PIG KG',
+              proposedProduct: const ReviewProductView(
+                id: 8,
+                name: 'tijolo',
+                unit: 'kg',
+                canonicalStem: 'tijolo',
+              ),
+            ),
+          ],
+          page: const Page(total: 1, totalPages: 1),
+        );
+
+        await _selectAllAndOpenEditors(tester);
+        await _assignAll(tester);
+
+        expect(repos.admin.batchAssignCalls, 1);
+        expect(repos.admin.needsReviewCalls, 2);
+        expect(approveButton().onPressed, isNotNull);
+        expect(find.text(_strings.adminReassignBeforeApprove), findsNothing);
+      },
+    );
+
     testWidgets('shows a canonical identity warning on a stale proposal', (
       tester,
     ) async {
@@ -703,7 +758,7 @@ void main() {
       expect(repos.admin.batchAssignCalls, 1);
       expect(repos.admin.needsReviewCalls, 1);
       expect(
-        find.textContaining(_strings.adminReviewPartialFailure),
+        find.textContaining(_strings.adminAssignmentFailureRetained),
         findsOneWidget,
       );
       expect(find.byType(ReviewTargetSelector), findsWidgets);
