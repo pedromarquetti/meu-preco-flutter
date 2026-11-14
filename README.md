@@ -195,6 +195,9 @@ editing the repository name. It also:
   `API_ORIGIN`;
 - verifies `index.html`, `flutter_bootstrap.js`, and `main.dart.js` exist and
   that `index.html` uses the expected base href;
+- serves the bundle under the derived base path with a local Pages-style server
+  and verifies the shell, bootstrap, entrypoint, and assets resolve while
+  missing paths return a real 404 instead of the application shell;
 - rejects public source maps and common credential formats in the bundle.
 
 Release and Pages builds require an HTTPS `API_ORIGIN`. Use `--allow-http` only
@@ -207,6 +210,18 @@ API_ORIGIN=http://localhost:8080 scripts/build_web_pages.sh --allow-http
 
 For custom hosting, override the derived base path with `BASE_HREF` or
 `--base-href` (it must start and end with `/`).
+
+GitHub Pages is static hosting, so the Web build uses Flutter's hash URL
+strategy: `/REPOSITORY/#/products/42`. Loading `/REPOSITORY/`, refreshing a
+nested route, and opening a hash deep link all request only the repository root,
+so they work without a `404.html` rewrite. Path-based URLs such as
+`/REPOSITORY/products/42` are intentionally not supported; they return a normal
+404 and never the application shell. Do not call `usePathUrlStrategy()` for
+Pages. To verify routing against an existing bundle:
+
+```sh
+scripts/verify_web_routing.sh build/web /REPOSITORY/
+```
 
 #### MacOS
 
@@ -319,6 +334,10 @@ package id, version, and label without printing any secret.
 - **Sub-path hosting** — `scripts/build_web_pages.sh` derives the base href from
   the GitHub repository (or the local git remote). Override it with
   `BASE_HREF=/custom-path/` when the bundle is served from a different path.
+- **Routing** — Web uses hash-based routes (`/REPOSITORY/#/settings`), so
+  GitHub Pages static hosting can refresh and deep-link without server rewrites
+  or a `404.html` fallback. The bundle never publishes the application shell as
+  `404.html`, so missing assets stay real 404s instead of being masked as HTML.
 - **Browser storage** — session and preferences use browser storage
   (localStorage-backed), which is per-origin and can be cleared by the user or
   the browser, unlike the platform keystore used on Android. Changing the

@@ -22,6 +22,9 @@
 # remote, so forks deploy under their own Pages path without editing the build.
 # The pinned Flutter version is taken from pubspec.yaml and verified against the
 # installed toolchain; CI installs it with .github/actions/setup-flutter.
+#
+# The bundle is validated for entrypoints, secrets, and GitHub Pages-style
+# routing before this script exits.
 
 set -euo pipefail
 
@@ -151,6 +154,10 @@ echo "    Flutter:     $installed_flutter"
 )
 
 "$REPO_ROOT/scripts/verify_web_bundle.sh" \
+  "$REPO_ROOT/build/web" \
+  "$BASE_HREF"
+
+"$REPO_ROOT/scripts/verify_web_routing.sh" \
   "$REPO_ROOT/build/web" \
   "$BASE_HREF"
 
