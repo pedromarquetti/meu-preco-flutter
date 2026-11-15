@@ -37,9 +37,11 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     env:
-      # Single source for the Pages sub-path; the build script and both
-      # verification scripts must agree on it.
-      BASE_HREF: /${{ github.event.repository.name }}/
+      # Repository variable override for custom domains, which serve the site
+      # at the domain root (`BASE_HREF=/`). Without it the build uses the
+      # github.io sub-path derived from the repository name. The build and both
+      # verification scripts must agree on this value.
+      BASE_HREF: ${{ vars.BASE_HREF }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,6 +89,11 @@ jobs:
 
       - name: Smoke-test deployed Pages shell
         env:
-          DEPLOYMENT_URL: ${{ needs.deploy.outputs.page_url }}
-          BASE_HREF: /${{ github.event.repository.name }}/
+          # Repository variable override for custom domains. `page_url` is
+          # reported as HTTP until GitHub enforces HTTPS, so the script also
+          # upgrades to HTTPS itself when that origin answers.
+          DEPLOYMENT_URL: ${{ vars.DEPLOYMENT_URL || needs.deploy.outputs.page_url }}
+          # Empty by default: the script derives the expected base path from
+          # the deployed URL, so a custom domain at the root expects `/`.
+          BASE_HREF: ${{ vars.BASE_HREF }}
         run: scripts/verify_pages_deployment.sh "$DEPLOYMENT_URL" "$BASE_HREF"

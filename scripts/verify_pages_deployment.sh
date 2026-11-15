@@ -5,6 +5,12 @@
 # Usage:
 #   scripts/verify_pages_deployment.sh <deployment-url> [expected-base-href]
 #
+# When no expected base href is given it is derived from the deployment URL, so
+# a custom domain at the root expects `/` and a github.io project site expects
+# `/<repository>/`. An HTTP URL is upgraded to HTTPS when that origin answers;
+# otherwise the check continues over HTTP and prints a warning, because camera
+# scanning requires a secure context.
+#
 # The check intentionally validates only public static resources. It never logs
 # in, sends credentials, mutates API data, or follows a link to the API.
 
@@ -17,15 +23,32 @@ fail() {
   echo "FAIL: $*" >&2
   exit 1
 }
-
+echo "$URL"
 [[ -n "$URL" ]] || fail "A deployed Pages URL is required"
-[[ "$URL" == https://* ]] || fail "Pages deployment URL must use HTTPS"
+[[ "$URL" == https://* || "$URL" == http://* ]] \
+  || fail "Pages deployment URL must use HTTP or HTTPS"
 [[ "$URL" != *[[:space:]]* ]] || fail "Pages deployment URL must not contain whitespace"
 command -v curl >/dev/null 2>&1 || fail "curl is required"
 
 URL="${URL%/}/"
+
+# GitHub Pages reports a custom-domain URL as HTTP until HTTPS is enforced,
+# even when the origin already serves HTTPS (for example through a proxy).
+# Prefer HTTPS so the check matches what browsers use and what camera access
+# requires; fall back to HTTP with a warning instead of failing the deploy.
+if [[ "$URL" == http://* ]]; then
+  https_url="https://${URL#http://}"
+  https_status="$(curl -sS --max-time 20 -L -o /dev/null -w '%{http_code}' \
+    "$https_url" || true)"
+  if [[ "$https_status" == 200 ]]; then
+    URL="$https_url"
+  else
+    echo "WARNING - $URL is served over HTTP; camera scanning requires HTTPS." >&2
+  fi
+fi
+
 if [[ -z "$EXPECTED_BASE_HREF" ]]; then
-  host_and_path="${URL#https://}"
+  host_and_path="${URL#*://}"
   EXPECTED_BASE_HREF="/${host_and_path#*/}"
   EXPECTED_BASE_HREF="${EXPECTED_BASE_HREF%%\?*}"
   EXPECTED_BASE_HREF="${EXPECTED_BASE_HREF%%#*}"
