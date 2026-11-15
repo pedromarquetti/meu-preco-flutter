@@ -2,7 +2,7 @@ name: meu_preco_frontend
 description: "Front end do aplicativo Meu Preço, que permite aos usuários pesquisar e comparar preços de produtos em diferentes lojas."
 publish_to: "none"
 
-version: 0.3.0+3
+version: 0.3.1+3
 
 environment:
   sdk: ^3.13.5
