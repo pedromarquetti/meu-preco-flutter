@@ -54,6 +54,15 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
     Navigator.of(context).pop(value);
   }
 
+  /// Swaps the preview for a recovery state when the camera fails to start.
+  ///
+  /// The availability check also absorbs the repeated callbacks a preview can
+  /// emit while it is being torn down.
+  void _onScannerError(ScannerStatus status) {
+    if (!mounted || _status?.availability == status.availability) return;
+    setState(() => _status = status);
+  }
+
   Future<void> _openSettings() async {
     final opened = await _scanner.openSettings();
     if (!mounted) return;
@@ -79,7 +88,10 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
       return Stack(
         fit: StackFit.expand,
         children: [
-          _scanner.buildPreview(onDetected: _onDetected),
+          _scanner.buildPreview(
+            onDetected: _onDetected,
+            onError: _onScannerError,
+          ),
           const _ScannerOverlay(),
         ],
       );

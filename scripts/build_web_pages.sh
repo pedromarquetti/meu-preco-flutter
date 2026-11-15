@@ -118,8 +118,14 @@ echo "    Flutter:     $installed_flutter"
   cd "$REPO_ROOT"
   flutter build web \
     --release \
+    --no-web-resources-cdn \
     --base-href="$BASE_HREF"
 )
+
+# web/index.html ships a development-friendly baseline so `flutter run` and a
+# plain local build work. Replace it with the stricter policy for the public
+# bundle before anything is uploaded or deployed.
+"$REPO_ROOT/scripts/apply_web_csp.sh" "$REPO_ROOT/build/web"
 
 "$REPO_ROOT/scripts/verify_web_bundle.sh" \
   "$REPO_ROOT/build/web" \

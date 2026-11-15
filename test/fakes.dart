@@ -598,9 +598,15 @@ class FakeCodeScanner implements CodeScanner {
 
   String? payload;
   Object? error;
+
+  /// When set, the preview reports this status through `onError` after it is
+  /// built, emulating a camera that fails to start.
+  ScannerStatus? previewError;
+
   int scanCalls = 0;
   int prepareCalls = 0;
   int openSettingsCalls = 0;
+  int previewBuilds = 0;
 
   @override
   Future<ScannerStatus> prepare() async {
@@ -619,8 +625,17 @@ class FakeCodeScanner implements CodeScanner {
   }
 
   @override
-  Widget buildPreview({required ValueChanged<String> onDetected}) =>
-      const SizedBox.shrink();
+  Widget buildPreview({
+    required ValueChanged<String> onDetected,
+    required ValueChanged<ScannerStatus> onError,
+  }) {
+    previewBuilds++;
+    final failure = previewError;
+    if (failure != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => onError(failure));
+    }
+    return const SizedBox.shrink();
+  }
 
   @override
   Future<bool> openSettings() async {

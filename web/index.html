@@ -1,23 +1,35 @@
 <!doctype html>
-<html>
+<html lang="pt-BR">
 	<head>
-		<!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
 		<base href="$FLUTTER_BASE_HREF" />
 
 		<meta charset="UTF-8" />
 		<meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<!--
+		  GitHub Pages cannot set response headers, so the public shell carries a
+		  CSP meta policy.
+
+		  This is the development/local baseline used by `flutter run` and by a
+		  plain `flutter build web` served from localhost or the LAN:
+		  - Flutter's debug loader (DDC) injects inline scripts and uses eval.
+		  - The debug service connects over a WebSocket on localhost.
+		  - Local testing may talk to HTTP APIs on localhost or the LAN.
+		  - The mobile_scanner Web backend loads its reviewed zxing-wasm helper
+		    from jsDelivr and fetches the WASM binary from the same origin.
+
+		  scripts/build_web_pages.sh replaces this policy with the stricter
+		  production policy (no eval, no broad HTTP/WebSocket sources) before
+		  the bundle is published. The production policy is what GitHub Pages
+		  serves. This is defense-in-depth and does not make browser-held bearer
+		  tokens XSS-proof.
+		-->
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: http: ws: wss:; media-src 'self' blob:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';"
+		/>
+
 		<meta
 			name="description"
 			content="Meu Preço — compare preços de produtos entre supermercados."
@@ -36,14 +48,6 @@
 		<link rel="manifest" href="manifest.json" />
 	</head>
 	<body>
-		<!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
 		<script src="flutter_bootstrap.js" async></script>
 	</body>
 </html>

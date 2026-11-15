@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/widgets.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'camera_support.dart';
 import 'scanner_status.dart';
 
 /// Platform seam for reading an NFC-e QR code with a device camera.
@@ -26,7 +28,14 @@ abstract interface class CodeScanner {
   Future<String?> scan();
 
   /// Live preview widget for the scanning surface.
-  Widget buildPreview({required ValueChanged<String> onDetected});
+  ///
+  /// [onError] is called when the camera cannot be started after [prepare]
+  /// reported it as ready, so the screen can swap the preview for a recovery
+  /// state instead of leaving an empty surface.
+  Widget buildPreview({
+    required ValueChanged<String> onDetected,
+    required ValueChanged<ScannerStatus> onError,
+  });
 
   /// Opens the OS settings page for this app, used to recover from a
   /// permanently denied camera permission.
@@ -48,8 +57,10 @@ class UnavailableCodeScanner implements CodeScanner {
   Future<String?> scan() async => null;
 
   @override
-  Widget buildPreview({required ValueChanged<String> onDetected}) =>
-      const SizedBox.shrink();
+  Widget buildPreview({
+    required ValueChanged<String> onDetected,
+    required ValueChanged<ScannerStatus> onError,
+  }) => const SizedBox.shrink();
 
   @override
   Future<bool> openSettings() async => false;
@@ -67,6 +78,14 @@ class CameraCodeScanner implements CodeScanner {
 
   @override
   Future<ScannerStatus> prepare() async {
+    // Web reports whether the browser can expose a camera without opening it:
+    // Firefox for Android fails with NotReadableError when getUserMedia runs
+    // again right after a stream is stopped, so the preview must be the only
+    // caller that starts the device.
+    if (kIsWeb) {
+      return webCameraStatus();
+    }
+
     try {
       final status = await permission.status;
       if (_grants(status)) return const ScannerStatus.ready();
@@ -98,7 +117,10 @@ class CameraCodeScanner implements CodeScanner {
   Future<String?> scan() async => null;
 
   @override
-  Widget buildPreview({required ValueChanged<String> onDetected}) {
+  Widget buildPreview({
+    required ValueChanged<String> onDetected,
+    required ValueChanged<ScannerStatus> onError,
+  }) {
     try {
       return MobileScanner(
         onDetect: (capture) {
@@ -110,9 +132,19 @@ class CameraCodeScanner implements CodeScanner {
             }
           }
         },
+        errorBuilder: (context, error) {
+          // Report after the frame so the screen can call setState safely.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onError(scannerStatusForError(error));
+          });
+          return const ColoredBox(color: Color(0xFF000000));
+        },
       );
-    } catch (e) {
-      return const SizedBox.shrink();
+    } catch (_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onError(const ScannerStatus(ScannerAvailability.error));
+      });
+      return const ColoredBox(color: Color(0xFF000000));
     }
   }
 
@@ -124,4 +156,24 @@ class CameraCodeScanner implements CodeScanner {
       return false;
     }
   }
+}
+
+/// Maps a camera start failure to the recovery state rendered by the screen.
+///
+/// The detail message is kept for diagnostics only; the UI always renders
+/// localized copy based on [ScannerStatus.availability].
+@visibleForTesting
+ScannerStatus scannerStatusForError(MobileScannerException error) {
+  final message = error.errorDetails?.message;
+  return switch (error.errorCode) {
+    MobileScannerErrorCode.permissionDenied => ScannerStatus(
+      ScannerAvailability.permissionDenied,
+      message: message,
+    ),
+    MobileScannerErrorCode.unsupported => ScannerStatus(
+      ScannerAvailability.noCamera,
+      message: message,
+    ),
+    _ => ScannerStatus(ScannerAvailability.error, message: message),
+  };
 }

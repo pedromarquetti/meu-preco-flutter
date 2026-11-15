@@ -75,3 +75,18 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Smoke-test deployed Pages shell
+        env:
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.page_url }}
+          BASE_HREF: /${{ github.event.repository.name }}/
+        run: scripts/verify_pages_deployment.sh "$DEPLOYMENT_URL" "$BASE_HREF"

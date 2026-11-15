@@ -2,7 +2,7 @@ name: meu_preco_frontend
 description: "Front end do aplicativo Meu Preço, que permite aos usuários pesquisar e comparar preços de produtos em diferentes lojas."
 publish_to: "none"
 
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.13.5
@@ -24,6 +24,7 @@ dependencies:
     sdk: flutter
   mobile_scanner: ^7.4.2
   permission_handler: ^12.0.1
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

@@ -188,10 +188,18 @@ local `origin` git remote, so forks deploy under their own Pages path without
 editing the repository name. It also:
 
 - verifies the installed Flutter version matches `pubspec.yaml`;
-- builds with `--release` and the derived `--base-href`, with no API origin
-  baked in (browser users choose their own server);
-- verifies `index.html`, `flutter_bootstrap.js`, and `main.dart.js` exist and
-  that `index.html` uses the expected base href;
+- builds with `--release`, the derived `--base-href`, and no API origin baked in
+  (browser users choose their own server);
+- bundles CanvasKit locally with `--no-web-resources-cdn`; the checked-in
+  `web/flutter_bootstrap.js` loads without registering the deprecated Flutter
+  service worker, so a rebuild cannot serve a stale bundle from browser cache.
+  Flutter still emits `flutter_service_worker.js` as a self-unregistering stub,
+  so browsers that kept an older registration drop it on their next visit;
+- replaces the development CSP in `web/index.html` with the stricter production
+  policy through `scripts/apply_web_csp.sh`;
+- verifies `index.html`, `flutter_bootstrap.js`, and `main.dart.js` exist, that
+  `index.html` uses the expected base href, and that the production CSP is
+  present and does not allow eval or inline scripts;
 - serves the bundle under the derived base path with a local Pages-style server
   and verifies the shell, bootstrap, entrypoint, and assets resolve while
   missing paths return a real 404 instead of the application shell;
@@ -202,6 +210,37 @@ browser storage and reused on later visits.
 
 For custom hosting, override the derived base path with `BASE_HREF` or
 `--base-href` (it must start and end with `/`).
+
+For local development and local release checks:
+
+```sh
+# Debug build with hot reload; uses the development CSP in web/index.html.
+flutter run -d chrome
+
+# Local release bundle at the root path.
+flutter build web --release --no-web-resources-cdn
+python3 -m http.server 8000 --directory build/web
+# Open http://localhost:8000/
+```
+
+`flutter run` and a plain local release build use the development CSP, which
+allows the debug loader's inline scripts/eval and localhost WebSocket
+connections. The published bundle is tightened by `scripts/build_web_pages.sh`.
+To test the published bundle locally, run the script and serve the parent
+directory so the derived base path exists:
+
+```sh
+scripts/build_web_pages.sh
+mkdir -p /tmp/pages && ln -s "$PWD/build/web" /tmp/pages/REPOSITORY
+python3 -m http.server 8000 --directory /tmp/pages
+# Open http://localhost:8000/REPOSITORY/
+```
+
+To reach the app from another device on the LAN, bind the server to `0.0.0.0`.
+The app renders over LAN HTTP, but browsers only expose the camera in a secure
+context (`https://` or `http://localhost`). Camera scanning therefore requires
+HTTPS or a localhost origin; on plain LAN HTTP the app falls back to pasting the
+QR payload or typing the access key.
 
 GitHub Pages is static hosting, so the Web build uses Flutter's hash URL
 strategy: `/REPOSITORY/#/products/42`. Loading `/REPOSITORY/`, refreshing a
@@ -315,8 +354,21 @@ package id, version, and label without printing any secret.
   for bearer tokens and `Content-Type`. Preflight `OPTIONS` requests must also
   succeed; the browser enforces these rules and the app cannot bypass them.
 - **HTTPS** — camera access requires a secure context, so serve the bundle over
-  HTTPS. When the camera is denied or unavailable, the app falls back to pasting
+  HTTPS (GitHub Pages) or from `http://localhost`. A bundle served from a plain
+  LAN IP over HTTP still renders, but browsers will not expose `getUserMedia`
+  there. When the camera is denied or unavailable, the app falls back to pasting
   the QR payload or typing the access key manually.
+- **Camera permission** — the Web scanner does not query
+  `navigator.permissions.query({name: 'camera'})`, because Firefox rejects that
+  name, and it does not open the camera before showing the preview. The preview
+  is the only caller of `getUserMedia`, so the browser prompts once and the
+  device is opened exactly once. This matters on Firefox for Android, which
+  fails with `NotReadableError` when `getUserMedia` runs again right after a
+  stream is stopped (Mozilla bug 1667635). If the camera cannot start, the
+  preview reports the failure and the screen shows the matching recovery state.
+  On Chromium, `BarcodeDetector` is used when available; other browsers fall
+  back to the reviewed `zxing-wasm` helper loaded from `cdn.jsdelivr.net`
+  (allowed by the CSP).
 - **Sub-path hosting** — `scripts/build_web_pages.sh` derives the base href from
   the GitHub repository (or the local git remote). Override it with
   `BASE_HREF=/custom-path/` when the bundle is served from a different path.
@@ -386,11 +438,36 @@ validation artifacts; it never modifies the release or Pages.
 - **Deploy:** the build job uploads `build/web` with
   `actions/upload-pages-artifact@v4`; a separate `deploy` job runs in the
   `github-pages` environment with only `pages: write` and `id-token: write`.
+- **Public shell hardening:** `index.html` includes the required responsive
+  viewport. It ships a development/local CSP baseline so `flutter run` and a
+  plain local release build work, and `scripts/apply_web_csp.sh` replaces it
+  with the stricter production policy before upload. The production policy
+  permits same-origin assets, HTTPS API origins selected at runtime, localhost
+  HTTP only for local testing, and the reviewed `mobile_scanner` Web camera
+  helper from `cdn.jsdelivr.net`. It disables `eval`, inline scripts, plug-in
+  content, and broad HTTP/WebSocket sources. The bundle shell itself has no
+  third-party script tags. Bundle checks reject source maps, credential-like
+  values, unexpected external shell scripts, eval, and inline scripts. GitHub
+  Pages cannot emit custom response headers, so this CSP is defense-in-depth
+  rather than a replacement for dependency hygiene, short token lifetimes, and
+  server-side revocation.
+- **Post-deployment check:** after `deploy-pages`, the workflow performs a
+  non-destructive HTTPS/200 smoke test against the deployment URL. It checks the
+  repository base href, viewport/CSP metadata, bootstrap and compiled entrypoint
+  availability, source-map absence, and credential-like values. It never
+  contacts the configured API or sends user credentials.
 - **One-time setup:** in Settings → Pages → Build and deployment, set **Source**
   to **GitHub Actions**. The deployment URL is shown in the `github-pages`
   environment and in the workflow run.
+- **Backend CORS:** allow the exact deployed Pages origin (scheme, host, and
+  port; normally `https://OWNER.github.io` for an organization site or
+  `https://OWNER.github.io` with the repository path not included for CORS),
+  plus `Authorization` and `Content-Type` headers and the required methods. CORS
+  origins contain the origin, not the `/REPOSITORY/` path.
 - **Rollback:** tags are immutable. Publish a newer corrective tag with a higher
-  version code instead of moving or deleting an existing one.
+  version code instead of moving or deleting an existing one. Re-run the Pages
+  workflow only to redeploy the same immutable tag; use a new corrective tag
+  when the source or public shell must change.
 
 ### Release workflow
 
