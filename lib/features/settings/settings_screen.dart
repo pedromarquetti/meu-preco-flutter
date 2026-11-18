@@ -9,6 +9,7 @@ import '../../core/http/server_health_service.dart';
 import '../../core/models/models.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../server/server_health_message.dart';
 
 /// Frontend configuration: change the API host, reset to defaults, and view
 /// the active server.
@@ -44,7 +45,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String? _validate(String? value) {
     final strings = AppLocalizations.of(context);
-    if (value == null || AppConfig.tryParseOrigin(value) == null) {
+    final candidates = AppConfig.candidateOrigins(value ?? '');
+    if (candidates.isEmpty ||
+        !candidates.any(
+          (candidate) => AppConfig.tryParseOrigin(candidate) != null,
+        )) {
       return strings.invalidServerUrl;
     }
     return null;
@@ -66,11 +71,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
       return;
     }
-    await deps.configController.saveOrigin(_controller.text);
+    final origin =
+        result.resolvedOrigin ?? AppConfig.tryParseOrigin(_controller.text);
+    if (origin == null) {
+      setState(() {
+        _busy = false;
+        _result = const ServerHealthResult.failed(errorCode: 'invalid_url');
+      });
+      return;
+    }
+    await deps.configController.saveOrigin(origin.toString());
     if (!mounted) return;
     setState(() {
       _busy = false;
       _result = result;
+      _controller.text = origin.toString();
     });
   }
 
@@ -92,7 +107,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _readiness = null;
     });
     final health = await deps.healthChecker.check(_controller.text);
-    final readiness = await deps.healthChecker.checkReadiness(_controller.text);
+    // Reuse the origin the liveness probe resolved (scheme-less input is
+    // probed with both schemes), so readiness does not repeat the fallback.
+    final origin =
+        health.resolvedOrigin ?? AppConfig.tryParseOrigin(_controller.text);
+    final readiness = await deps.healthChecker.checkReadiness(
+      origin?.toString() ?? _controller.text,
+    );
     if (!mounted) return;
     setState(() {
       _checking = false;
@@ -111,18 +132,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       UserRole.user => strings.userRoleLabel,
       null => strings.notAuthenticatedLabel,
     };
-  }
-
-  String _messageFor(AppLocalizations strings, ServerHealthResult result) {
-    if (result.ok) return strings.serverConnectionSuccess;
-    switch (result.errorCode) {
-      case 'invalid_url':
-        return strings.invalidServerUrl;
-      case 'timeout':
-        return strings.serverConnectionTimeout;
-      default:
-        return strings.serverConnectionFailure;
-    }
   }
 
   @override
@@ -273,7 +282,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _StatusRow(
                             label: strings.healthStatusLabel,
                             ok: _health!.ok,
-                            text: _messageFor(strings, _health!),
+                            text: serverHealthMessage(strings, _health!),
                           ),
                         if (_readiness != null) ...[
                           const SizedBox(height: 8),
@@ -343,7 +352,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _messageFor(strings, _result!),
+                        serverHealthMessage(strings, _result!),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: _result!.ok
                               ? theme.colorScheme.primary

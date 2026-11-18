@@ -60,6 +60,35 @@ class AppConfig {
     );
   }
 
+  /// Addresses that should be probed for a user supplied server address.
+  ///
+  /// An address that already spells out its scheme is returned unchanged, so a
+  /// probe never silently switches schemes. Otherwise the address is returned
+  /// with HTTPS first and HTTP second, letting users type `localhost:8080` or
+  /// `api.example.com` without writing the scheme themselves.
+  ///
+  /// Returns an empty list for input that cannot be a server address at all
+  /// (empty, or containing whitespace).
+  static List<String> candidateOrigins(String raw) {
+    // TODO: the app should add port if no other option works (so, the app should try http(s)://<input>:8080 and http(s)://<input>)
+    String trimmed = raw.trim();
+    if (trimmed.isEmpty) return const <String>[];
+    if (_hasExplicitScheme(trimmed)) return <String>[trimmed];
+    if (trimmed.contains(RegExp(r'\s'))) return const <String>[];
+    return <String>['https://$trimmed', 'http://$trimmed'];
+  }
+
+  /// Whether [value] starts with a `scheme://` prefix of any kind.
+  ///
+  /// Deliberately scheme-agnostic: `ftp://host` must be rejected as invalid
+  /// instead of being treated as a host and prefixed with `https://`.
+  static bool _hasExplicitScheme(String value) {
+    final separator = value.indexOf('://');
+    if (separator <= 0) return false;
+    return RegExp(r'^[a-zA-Z][a-zA-Z0-9+.\-]*$')
+        .hasMatch(value.substring(0, separator));
+  }
+
   /// Parses and normalizes an origin, returning `null` when invalid.
   static Uri? tryParseOrigin(
     String raw, {

@@ -16,13 +16,14 @@
   "serverConfigTitle": "Configurar servidor",
   "serverAddressLabel": "Endereço do servidor",
   "serverAddressHint": "https://meu-preco.exemplo.com",
-  "serverAddressHelp": "Pode ser informado com ou sem o prefixo /api/v1.",
+  "serverAddressHelp": "Pode ser informado com ou sem http:// ou https://, e com ou sem o prefixo /api/v1.",
   "testConnection": "Testar conexão",
   "saveAndContinue": "Salvar e continuar",
   "serverConnectionSuccess": "Servidor disponível",
   "serverConnectionFailure": "Não foi possível conectar ao servidor",
+  "serverConnectionFailureWithAttempts": "Não foi possível conectar. Opções tentadas: {addresses}",
   "serverConnectionTimeout": "O servidor demorou demais para responder",
-  "invalidServerUrl": "Informe uma URL válida, começando com http:// ou https://",
+  "invalidServerUrl": "Informe um endereço de servidor válido.",
   "continueAction": "Continuar",
   "loadMoreAction": "Carregar mais",
   "loginTitle": "Entrar",
@@ -469,6 +470,14 @@
   },
   "@serverConnectionFailure": {
     "description": "ServerConnectionFailure"
+  },
+  "@serverConnectionFailureWithAttempts": {
+    "description": "ServerConnectionFailureWithAttempts",
+    "placeholders": {
+      "addresses": {
+        "type": "String"
+      }
+    }
   },
   "@serverConnectionTimeout": {
     "description": "ServerConnectionTimeout"

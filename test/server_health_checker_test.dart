@@ -105,6 +105,65 @@ void main() {
     });
   });
 
+  group('scheme-less addresses', () {
+    test(
+      'probes https first, then http, and resolves the reachable one',
+      () async {
+        final requested = <Uri>[];
+        final mock = MockClient((request) async {
+          requested.add(request.url);
+          if (request.url.scheme == 'https') {
+            throw http.ClientException('connection refused');
+          }
+          return http.Response(jsonEncode({'status': 'ok'}), 200);
+        });
+
+        final result = await checkerWith(mock).check('localhost:8080');
+
+        expect(result.ok, isTrue);
+        expect(requested.map((uri) => uri.toString()), [
+          'https://localhost:8080/healthz',
+          'http://localhost:8080/healthz',
+        ]);
+        expect(result.resolvedOrigin.toString(), 'http://localhost:8080');
+        expect(result.attemptedOrigins, [
+          'https://localhost:8080',
+          'http://localhost:8080',
+        ]);
+      },
+    );
+
+    test('reports every attempted origin when all of them fail', () async {
+      final mock = MockClient(
+        (_) async => throw http.ClientException('connection refused'),
+      );
+
+      final result = await checkerWith(mock).check('localhost:8080');
+
+      expect(result.ok, isFalse);
+      expect(result.errorCode, 'unreachable');
+      expect(result.resolvedOrigin, isNull);
+      expect(result.attemptedOrigins, [
+        'https://localhost:8080',
+        'http://localhost:8080',
+      ]);
+    });
+
+    test('keeps a typed scheme and never retries another one', () async {
+      final requested = <Uri>[];
+      final mock = MockClient((request) async {
+        requested.add(request.url);
+        throw http.ClientException('connection refused');
+      });
+
+      final result = await checkerWith(mock).check('http://localhost:8080');
+
+      expect(result.ok, isFalse);
+      expect(requested.map((uri) => uri.scheme), ['http']);
+      expect(result.attemptedOrigins, ['http://localhost:8080']);
+    });
+  });
+
   group('failures', () {
     test('an invalid origin never hits the network', () async {
       var called = false;
@@ -113,7 +172,7 @@ void main() {
         return http.Response('{}', 200);
       });
 
-      final result = await checkerWith(mock).check('not-a-url');
+      final result = await checkerWith(mock).check('ftp://localhost:8080');
 
       expect(result.errorCode, 'invalid_url');
       expect(called, isFalse);

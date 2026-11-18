@@ -199,7 +199,7 @@ abstract class AppLocalizations {
   /// ServerAddressHelp
   ///
   /// In pt, this message translates to:
-  /// **'Pode ser informado com ou sem o prefixo /api/v1.'**
+  /// **'Pode ser informado com ou sem http:// ou https://, e com ou sem o prefixo /api/v1.'**
   String get serverAddressHelp;
 
   /// TestConnection
@@ -226,6 +226,12 @@ abstract class AppLocalizations {
   /// **'Não foi possível conectar ao servidor'**
   String get serverConnectionFailure;
 
+  /// ServerConnectionFailureWithAttempts
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível conectar. Opções tentadas: {addresses}'**
+  String serverConnectionFailureWithAttempts(String addresses);
+
   /// ServerConnectionTimeout
   ///
   /// In pt, this message translates to:
@@ -235,7 +241,7 @@ abstract class AppLocalizations {
   /// InvalidServerUrl
   ///
   /// In pt, this message translates to:
-  /// **'Informe uma URL válida, começando com http:// ou https://'**
+  /// **'Informe um endereço de servidor válido.'**
   String get invalidServerUrl;
 
   /// Continue

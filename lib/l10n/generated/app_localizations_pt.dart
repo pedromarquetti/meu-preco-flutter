@@ -65,7 +65,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get serverAddressHelp =>
-      'Pode ser informado com ou sem o prefixo /api/v1.';
+      'Pode ser informado com ou sem http:// ou https://, e com ou sem o prefixo /api/v1.';
 
   @override
   String get testConnection => 'Testar conexão';
@@ -80,12 +80,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get serverConnectionFailure => 'Não foi possível conectar ao servidor';
 
   @override
+  String serverConnectionFailureWithAttempts(String addresses) {
+    return 'Não foi possível conectar. Opções tentadas: $addresses';
+  }
+
+  @override
   String get serverConnectionTimeout =>
       'O servidor demorou demais para responder';
 
   @override
-  String get invalidServerUrl =>
-      'Informe uma URL válida, começando com http:// ou https://';
+  String get invalidServerUrl => 'Informe um endereço de servidor válido.';
 
   @override
   String get continueAction => 'Continuar';

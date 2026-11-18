@@ -6,6 +6,7 @@ import '../../app/router.dart';
 import '../../core/config/app_config.dart';
 import '../../core/http/server_health_service.dart';
 import '../../l10n/generated/app_localizations.dart';
+import 'server_health_message.dart';
 
 /// First screen on boot: pick (or confirm) the Meu Preço API server.
 ///
@@ -43,7 +44,11 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
 
   String? _validate(String? value) {
     final strings = AppLocalizations.of(context);
-    if (value == null || AppConfig.tryParseOrigin(value) == null) {
+    final candidates = AppConfig.candidateOrigins(value ?? '');
+    if (candidates.isEmpty ||
+        !candidates.any(
+          (candidate) => AppConfig.tryParseOrigin(candidate) != null,
+        )) {
       return strings.invalidServerUrl;
     }
     return null;
@@ -80,23 +85,20 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
       });
       return;
     }
-    await deps.configController.saveOrigin(_controller.text);
+    final origin =
+        result.resolvedOrigin ?? AppConfig.tryParseOrigin(_controller.text);
+    if (origin == null) {
+      setState(() {
+        _busy = false;
+        _result = const ServerHealthResult.failed(errorCode: 'invalid_url');
+      });
+      return;
+    }
+    await deps.configController.saveOrigin(origin.toString());
     deps.serverGate = null;
     if (!mounted) return;
     setState(() => _busy = false);
     context.go(AppRoutes.login);
-  }
-
-  String _messageFor(AppLocalizations strings, ServerHealthResult result) {
-    if (result.ok) return strings.serverConnectionSuccess;
-    switch (result.errorCode) {
-      case 'invalid_url':
-        return strings.invalidServerUrl;
-      case 'timeout':
-        return strings.serverConnectionTimeout;
-      default:
-        return strings.serverConnectionFailure;
-    }
   }
 
   @override
@@ -146,7 +148,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                     if (_result != null) ...[
                       _StatusBanner(
                         result: _result!,
-                        text: _messageFor(strings, _result!),
+                        text: serverHealthMessage(strings, _result!),
                       ),
                       const SizedBox(height: 16),
                     ],

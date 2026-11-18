@@ -108,12 +108,38 @@ void main() {
     expect(find.text(_strings.loginTitle), findsOneWidget);
   });
 
+  testWidgets('a scheme-less host applies the resolved origin', (tester) async {
+    final store = InMemoryKeyValueStore();
+    final health = FakeServerHealthChecker(
+      result: ServerHealthResult.ok(
+        resolvedOrigin: Uri.parse('http://localhost:8080'),
+      ),
+    );
+    final dependencies = await openSettings(
+      tester,
+      healthChecker: health,
+      store: store,
+    );
+
+    await tester.enterText(find.byType(TextFormField), 'localhost:8080');
+    await tester.tap(
+      find.widgetWithText(FilledButton, _strings.testConnection),
+    );
+    await tester.pumpAndSettle();
+
+    expect(dependencies.config!.apiOrigin.toString(), 'http://localhost:8080');
+    expect(
+      store.entries[AppConfigController.apiOriginKey],
+      'http://localhost:8080',
+    );
+  });
+
   testWidgets('an invalid host is rejected without saving', (tester) async {
     final store = InMemoryKeyValueStore();
     final dependencies = await openSettings(tester, store: store);
     final before = dependencies.config!.apiOrigin.toString();
 
-    await tester.enterText(find.byType(TextFormField), 'not-a-url');
+    await tester.enterText(find.byType(TextFormField), 'ftp://example.com');
     await tester.tap(
       find.widgetWithText(FilledButton, _strings.testConnection),
     );

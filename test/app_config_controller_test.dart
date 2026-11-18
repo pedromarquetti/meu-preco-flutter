@@ -67,6 +67,33 @@ void main() {
       expect(AppConfig.tryFromOrigin('   '), isNull);
     });
 
+    test('adds http schemes to addresses typed without one', () {
+      expect(AppConfig.candidateOrigins('localhost:8080'), [
+        'https://localhost:8080',
+        'http://localhost:8080',
+      ]);
+      expect(AppConfig.candidateOrigins('  api.example.com  '), [
+        'https://api.example.com',
+        'http://api.example.com',
+      ]);
+      expect(AppConfig.candidateOrigins('localhost:8080/api/v1'), [
+        'https://localhost:8080/api/v1',
+        'http://localhost:8080/api/v1',
+      ]);
+    });
+
+    test('keeps an explicit scheme and rejects unusable input', () {
+      expect(AppConfig.candidateOrigins('http://localhost:8080'), [
+        'http://localhost:8080',
+      ]);
+      expect(AppConfig.candidateOrigins('ftp://localhost:8080'), [
+        'ftp://localhost:8080',
+      ]);
+      expect(AppConfig.candidateOrigins(''), isEmpty);
+      expect(AppConfig.candidateOrigins('   '), isEmpty);
+      expect(AppConfig.candidateOrigins('local host:8080'), isEmpty);
+    });
+
     test('accepts ports within range', () {
       for (final raw in [
         'http://localhost:80',

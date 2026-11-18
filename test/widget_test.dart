@@ -113,6 +113,60 @@ void main() {
     expect(find.text(_strings.loginTitle), findsNothing);
   });
 
+  testWidgets('a scheme-less address saves the origin the probe resolved', (
+    tester,
+  ) async {
+    final health = FakeServerHealthChecker(
+      result: ServerHealthResult.ok(
+        resolvedOrigin: Uri.parse('http://localhost:8080'),
+        attemptedOrigins: const [
+          'https://localhost:8080',
+          'http://localhost:8080',
+        ],
+      ),
+    );
+    final dependencies = buildTestDependencies(healthChecker: health);
+    await tester.pumpWidget(MeuPrecoApp(dependencies: dependencies));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField), 'localhost:8080');
+    await tester.tap(
+      find.widgetWithText(FilledButton, _strings.saveAndContinue),
+    );
+    await tester.pumpAndSettle();
+
+    expect(dependencies.config!.apiOrigin.toString(), 'http://localhost:8080');
+    expect(find.text(_strings.loginTitle), findsOneWidget);
+  });
+
+  testWidgets('a failed scheme-less probe lists every attempted origin', (
+    tester,
+  ) async {
+    final health = FakeServerHealthChecker(
+      result: const ServerHealthResult.failed(
+        errorCode: 'unreachable',
+        attemptedOrigins: ['https://localhost:8080', 'http://localhost:8080'],
+      ),
+    );
+    await pumpApp(tester, healthChecker: health);
+
+    await tester.enterText(find.byType(TextFormField), 'localhost:8080');
+    await tester.tap(
+      find.widgetWithText(FilledButton, _strings.saveAndContinue),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        _strings.serverConnectionFailureWithAttempts(
+          'https://localhost:8080, http://localhost:8080',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text(_strings.loginTitle), findsNothing);
+  });
+
   testWidgets('a persisted server origin skips the server selection screen', (
     tester,
   ) async {
@@ -195,7 +249,7 @@ void main() {
     final health = FakeServerHealthChecker();
     await pumpApp(tester, healthChecker: health);
 
-    await tester.enterText(find.byType(TextFormField), 'not-a-url');
+    await tester.enterText(find.byType(TextFormField), 'ftp://example.com');
     await tester.tap(
       find.widgetWithText(FilledButton, _strings.saveAndContinue),
     );
@@ -219,7 +273,7 @@ void main() {
     );
 
     await pumpApp(tester);
-    await tester.enterText(find.byType(TextFormField), 'not-a-url');
+    await tester.enterText(find.byType(TextFormField), 'ftp://example.com');
     await tester.tap(
       find.widgetWithText(FilledButton, _strings.saveAndContinue),
     );

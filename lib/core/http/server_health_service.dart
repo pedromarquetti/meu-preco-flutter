@@ -5,16 +5,21 @@ import 'api_client.dart';
 /// Outcome of a liveness (`/healthz`) or readiness (`/readyz`) probe against a
 /// candidate API origin.
 class ServerHealthResult {
-  const ServerHealthResult.ok({this.statusCode})
-    : ok = true,
-      errorCode = null,
-      errorMessage = null;
+  const ServerHealthResult.ok({
+    this.statusCode,
+    this.resolvedOrigin,
+    this.attemptedOrigins = const <String>[],
+  }) : ok = true,
+       errorCode = null,
+       errorMessage = null;
 
   const ServerHealthResult.failed({
     this.statusCode,
     this.errorCode,
     this.errorMessage,
-  }) : ok = false;
+    this.attemptedOrigins = const <String>[],
+  }) : ok = false,
+       resolvedOrigin = null;
 
   /// Whether the origin answered with a well-formed healthy [Status] body.
   final bool ok;
@@ -26,6 +31,16 @@ class ServerHealthResult {
   final String? errorCode;
 
   final String? errorMessage;
+
+  /// Normalized origin that answered the probe, when [ok] is true.
+  ///
+  /// Callers must persist this instead of the raw input, because input without
+  /// a scheme only becomes a usable origin once a candidate was chosen.
+  final Uri? resolvedOrigin;
+
+  /// Origins actually probed, in order, so failures can tell the user exactly
+  /// what was tried.
+  final List<String> attemptedOrigins;
 }
 
 /// Probes whether a given API origin is a reachable, healthy Meu Preço server.
@@ -68,16 +83,53 @@ class HttpServerHealthChecker implements ServerHealthChecker {
   }
 
   Future<ServerHealthResult> _probe(String rawOrigin, String path) async {
-    // A candidate config lets the probe target an origin that has not been
-    // saved yet, and applies the (shorter) health-check timeout.
-    final config = AppConfig.tryFromOrigin(rawOrigin, requestTimeout: _timeout);
-    if (config == null) {
+    final candidates = AppConfig.candidateOrigins(rawOrigin);
+    if (candidates.isEmpty) {
       return const ServerHealthResult.failed(
         errorCode: 'invalid_url',
         errorMessage: 'The server address is not a valid http(s) origin.',
       );
     }
 
+    final attemptedOrigins = <String>[];
+    ServerHealthResult? lastFailure;
+    for (final candidate in candidates) {
+      // A candidate config lets the probe target an origin that has not been
+      // saved yet, and applies the (shorter) health-check timeout.
+      final config = AppConfig.tryFromOrigin(
+        candidate,
+        requestTimeout: _timeout,
+      );
+      if (config == null) {
+        attemptedOrigins.add(candidate);
+        lastFailure = const ServerHealthResult.failed(
+          errorCode: 'invalid_url',
+          errorMessage: 'The server address is not a valid http(s) origin.',
+        );
+        continue;
+      }
+
+      attemptedOrigins.add(config.apiOrigin.toString());
+      final result = await _probeConfig(config, path);
+      if (result.ok) {
+        return ServerHealthResult.ok(
+          statusCode: result.statusCode,
+          resolvedOrigin: config.apiOrigin,
+          attemptedOrigins: List<String>.unmodifiable(attemptedOrigins),
+        );
+      }
+      lastFailure = result;
+    }
+
+    return ServerHealthResult.failed(
+      statusCode: lastFailure?.statusCode,
+      errorCode: lastFailure?.errorCode,
+      errorMessage: lastFailure?.errorMessage,
+      attemptedOrigins: List<String>.unmodifiable(attemptedOrigins),
+    );
+  }
+
+  Future<ServerHealthResult> _probeConfig(AppConfig config, String path) async {
     try {
       final response = await _apiClient.sendRaw(
         'GET',
