@@ -67,14 +67,46 @@ void main() {
       expect(AppConfig.tryFromOrigin('   '), isNull);
     });
 
-    test('adds http schemes to addresses typed without one', () {
-      expect(AppConfig.candidateOrigins('localhost:8080'), [
-        'https://localhost:8080',
-        'http://localhost:8080',
-      ]);
-      expect(AppConfig.candidateOrigins('  api.example.com  '), [
-        'https://api.example.com',
+    test('probes the fallback port first for scheme-less addresses', () {
+      // No port: fallback port first (http, https), then the scheme defaults.
+      expect(AppConfig.candidateOrigins('api.example.com'), [
+        'http://api.example.com:8080',
+        'https://api.example.com:8080',
         'http://api.example.com',
+        'https://api.example.com',
+      ]);
+      expect(AppConfig.candidateOrigins('localhost'), [
+        'http://localhost:8080',
+        'https://localhost:8080',
+        'http://localhost',
+        'https://localhost',
+      ]);
+      expect(AppConfig.candidateOrigins('  localhost  '), [
+        'http://localhost:8080',
+        'https://localhost:8080',
+        'http://localhost',
+        'https://localhost',
+      ]);
+      // An IP address is not misread as containing a port.
+      expect(AppConfig.candidateOrigins('192.168.1.5'), [
+        'http://192.168.1.5:8080',
+        'https://192.168.1.5:8080',
+        'http://192.168.1.5',
+        'https://192.168.1.5',
+      ]);
+      // Digits inside a hostname are not a port either.
+      expect(AppConfig.candidateOrigins('web2.example.com'), [
+        'http://web2.example.com:8080',
+        'https://web2.example.com:8080',
+        'http://web2.example.com',
+        'https://web2.example.com',
+      ]);
+    });
+
+    test('keeps an explicit port and tries both schemes', () {
+      expect(AppConfig.candidateOrigins('localhost:2138'), [
+        'https://localhost:2138',
+        'http://localhost:2138',
       ]);
       expect(AppConfig.candidateOrigins('localhost:8080/api/v1'), [
         'https://localhost:8080/api/v1',
@@ -82,10 +114,22 @@ void main() {
       ]);
     });
 
-    test('keeps an explicit scheme and rejects unusable input', () {
+    test('keeps an explicit scheme and adds the fallback port last', () {
+      expect(AppConfig.candidateOrigins('http://localhost'), [
+        'http://localhost',
+        'http://localhost:8080',
+      ]);
+      expect(AppConfig.candidateOrigins('https://api.example.com'), [
+        'https://api.example.com',
+        'https://api.example.com:8080',
+      ]);
+      // An explicit port is tried exactly as typed.
       expect(AppConfig.candidateOrigins('http://localhost:8080'), [
         'http://localhost:8080',
       ]);
+    });
+
+    test('keeps a non-http scheme and rejects unusable input', () {
       expect(AppConfig.candidateOrigins('ftp://localhost:8080'), [
         'ftp://localhost:8080',
       ]);

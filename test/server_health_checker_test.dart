@@ -162,6 +162,66 @@ void main() {
       expect(requested.map((uri) => uri.scheme), ['http']);
       expect(result.attemptedOrigins, ['http://localhost:8080']);
     });
+
+    test('tries the fallback port first for a scheme-less host', () async {
+      final requested = <Uri>[];
+      final mock = MockClient((request) async {
+        requested.add(request.url);
+        throw http.ClientException('connection refused');
+      });
+
+      final result = await checkerWith(mock).check('localhost');
+
+      expect(result.ok, isFalse);
+      expect(requested.map((uri) => uri.toString()), [
+        'http://localhost:8080/healthz',
+        'https://localhost:8080/healthz',
+        'http://localhost/healthz',
+        'https://localhost/healthz',
+      ]);
+      expect(result.attemptedOrigins, [
+        'http://localhost:8080',
+        'https://localhost:8080',
+        'http://localhost',
+        'https://localhost',
+      ]);
+    });
+
+    test('stops at the first reachable fallback-port candidate', () async {
+      final requested = <Uri>[];
+      final mock = MockClient((request) async {
+        requested.add(request.url);
+        if (request.url.toString() == 'http://localhost:8080/healthz') {
+          return http.Response(jsonEncode({'status': 'ok'}), 200);
+        }
+        throw http.ClientException('connection refused');
+      });
+
+      final result = await checkerWith(mock).check('localhost');
+
+      expect(result.ok, isTrue);
+      expect(requested.map((uri) => uri.toString()), [
+        'http://localhost:8080/healthz',
+      ]);
+      expect(result.resolvedOrigin.toString(), 'http://localhost:8080');
+    });
+
+    test('adds the fallback port when a scheme is typed without one', () async {
+      final requested = <Uri>[];
+      final mock = MockClient((request) async {
+        requested.add(request.url);
+        throw http.ClientException('connection refused');
+      });
+
+      final result = await checkerWith(mock).check('http://localhost');
+
+      expect(result.ok, isFalse);
+      expect(requested.map((uri) => uri.toString()), [
+        'http://localhost/healthz',
+        'http://localhost:8080/healthz',
+      ]);
+      expect(requested.map((uri) => uri.scheme), ['http', 'http']);
+    });
   });
 
   group('failures', () {

@@ -29,6 +29,9 @@ class AppConfig {
   /// Highest valid TCP port.
   static const int maxPort = 65535;
 
+  /// Port probed when the user does not supply one (the API's local default).
+  static const int fallbackPort = 8080;
+
   /// Root URI of the configured Meu Preço API (scheme + host + optional port).
   ///
   /// The [path] is preserved for deployments hosted under a sub-path but any
@@ -60,22 +63,71 @@ class AppConfig {
     );
   }
 
-  /// Addresses that should be probed for a user supplied server address.
+  /// Origins that should be probed for a user supplied server address.
   ///
-  /// An address that already spells out its scheme is returned unchanged, so a
-  /// probe never silently switches schemes. Otherwise the address is returned
-  /// with HTTPS first and HTTP second, letting users type `localhost:8080` or
-  /// `api.example.com` without writing the scheme themselves.
+  /// * A scheme-less address without a port (`localhost`, `api.example.com`)
+  ///   is tried on the fallback port first, then on the scheme defaults, for
+  ///   both schemes: `http://host:8080`, `https://host:8080`, `http://host`,
+  ///   `https://host`.
+  /// * A scheme-less address with an explicit port (`localhost:2138`) keeps
+  ///   that port and is tried over both schemes, without a `:8080` fallback.
+  /// * An explicit `http(s)://` address keeps its scheme; when it has no port
+  ///   the address as typed is tried first, then the fallback-port variant.
+  /// * Any other explicit scheme is returned unchanged so it fails validation
+  ///   instead of being silently rewritten.
   ///
   /// Returns an empty list for input that cannot be a server address at all
   /// (empty, or containing whitespace).
   static List<String> candidateOrigins(String raw) {
-    // TODO: the app should add port if no other option works (so, the app should try http(s)://<input>:8080 and http(s)://<input>)
-    String trimmed = raw.trim();
+    final trimmed = raw.trim();
     if (trimmed.isEmpty) return const <String>[];
-    if (_hasExplicitScheme(trimmed)) return <String>[trimmed];
     if (trimmed.contains(RegExp(r'\s'))) return const <String>[];
-    return <String>['https://$trimmed', 'http://$trimmed'];
+
+    final hasExplicitPort = _hasExplicitPort(trimmed);
+
+    if (_hasExplicitScheme(trimmed)) {
+      final scheme = trimmed.substring(0, trimmed.indexOf('://')).toLowerCase();
+      if (scheme != 'http' && scheme != 'https') {
+        return <String>[trimmed];
+      }
+      if (hasExplicitPort) return <String>[trimmed];
+      final withPort = _withPort(trimmed, fallbackPort);
+      if (withPort == trimmed) return <String>[trimmed];
+      return <String>[trimmed, withPort];
+    }
+
+    if (hasExplicitPort) {
+      return <String>['https://$trimmed', 'http://$trimmed'];
+    }
+
+    return <String>[
+      _withPort('http://$trimmed', fallbackPort),
+      _withPort('https://$trimmed', fallbackPort),
+      'http://$trimmed',
+      'https://$trimmed',
+    ];
+  }
+
+  /// Whether [value] carries an explicit TCP port in its authority.
+  ///
+  /// Only the authority is inspected, so digits in an IP (`192.168.1.5`) or a
+  /// hostname (`web2.example.com`) are never mistaken for a port.
+  static bool _hasExplicitPort(String value) {
+    var rest = value;
+    final separator = rest.indexOf('://');
+    if (separator > 0) rest = rest.substring(separator + 3);
+    final authority = rest.split(RegExp(r'[/?#]')).first;
+    return RegExp(r':\d+$').hasMatch(authority);
+  }
+
+  /// Returns [origin] with [port] set, preserving scheme, host and path.
+  ///
+  /// Returns [origin] unchanged when it has no parseable host, so malformed
+  /// input is rejected by [tryParseOrigin] instead of becoming a different URL.
+  static String _withPort(String origin, int port) {
+    final uri = Uri.tryParse(origin);
+    if (uri == null || uri.host.isEmpty) return origin;
+    return uri.replace(port: port).toString();
   }
 
   /// Whether [value] starts with a `scheme://` prefix of any kind.
