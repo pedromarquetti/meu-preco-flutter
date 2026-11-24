@@ -10,6 +10,8 @@
   "success":"Sucesso!",
   "merge":"Mesclar",
   "goBack":"Voltar",
+  "registrationDisabled":"Registro de usuários desabilitado!",
+  "contactAdmin":"Contate o administrador.",
   "goNext":"Avançar",
   "selected":"Selecionado",
   "appDescription": "Compare preços de produtos entre supermercados.",
@@ -547,6 +549,12 @@
   },
   "@userExistsError": {
     "description": "UserExists"
+  },
+  "@registrationDisabled": {
+    "description": "Shown when the server rejects account creation because registration is disabled"
+  },
+  "@contactAdmin": {
+    "description": "Follow-up shown with the registration-disabled message"
   },
   "@rateLimitedError": {
     "description": "RateLimited"

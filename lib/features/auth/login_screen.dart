@@ -64,7 +64,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final expired = context.authSession.status == AuthStatus.expired;
 
     return Scaffold(
-      appBar: AppBar(title: Text(strings.loginTitle)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: strings.goBack,
+          onPressed: () => context.go(AppRoutes.server),
+        ),
+        title: Text(strings.loginTitle),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

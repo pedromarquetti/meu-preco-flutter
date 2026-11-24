@@ -100,6 +100,20 @@ void main() {
     expect(find.text(_strings.serverConfigTitle), findsNothing);
   });
 
+  testWidgets('login back button returns to server configuration', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await continueFromServer(tester);
+    expect(find.text(_strings.loginTitle), findsOneWidget);
+
+    await tester.tap(find.byTooltip(_strings.goBack));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_strings.serverConfigTitle), findsOneWidget);
+    expect(find.text(_strings.loginTitle), findsNothing);
+  });
+
   testWidgets('failed health check stays on the server screen', (tester) async {
     final health = FakeServerHealthChecker(
       result: const ServerHealthResult.failed(errorCode: 'unreachable'),

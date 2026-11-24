@@ -26,6 +26,8 @@ void main() {
       'unauthorized': strings.sessionExpiredMessage,
       'invalid_credentials': strings.invalidCredentialsError,
       'upstream_error': strings.upstreamErrorMessage,
+      'registration_disabled':
+          '${strings.registrationDisabled} ${strings.contactAdmin}',
     };
 
     for (final entry in cases.entries) {

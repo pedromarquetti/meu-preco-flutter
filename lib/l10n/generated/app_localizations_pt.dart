@@ -45,6 +45,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get goBack => 'Voltar';
 
   @override
+  String get registrationDisabled => 'Registro de usuários desabilitado!';
+
+  @override
+  String get contactAdmin => 'Contate o administrador.';
+
+  @override
   String get goNext => 'Avançar';
 
   @override

@@ -328,11 +328,8 @@ class ApiClient {
           code: code,
           statusCode: status,
         ),
-        ApiErrorCode.forbidden => ForbiddenException(
-          message: message,
-          code: code,
-          statusCode: status,
-        ),
+        ApiErrorCode.registrationDisabled || ApiErrorCode.forbidden =>
+          ForbiddenException(message: message, code: code, statusCode: status),
         ApiErrorCode.notFound ||
         ApiErrorCode.receiptNotFound ||
         ApiErrorCode.previewNotFound ||

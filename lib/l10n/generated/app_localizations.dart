@@ -160,6 +160,18 @@ abstract class AppLocalizations {
   /// **'Voltar'**
   String get goBack;
 
+  /// Shown when the server rejects account creation because registration is disabled
+  ///
+  /// In pt, this message translates to:
+  /// **'Registro de usuários desabilitado!'**
+  String get registrationDisabled;
+
+  /// Follow-up shown with the registration-disabled message
+  ///
+  /// In pt, this message translates to:
+  /// **'Contate o administrador.'**
+  String get contactAdmin;
+
   /// No description provided for @goNext.
   ///
   /// In pt, this message translates to:

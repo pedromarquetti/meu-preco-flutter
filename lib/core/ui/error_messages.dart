@@ -11,6 +11,8 @@ import '../errors/app_exception.dart';
 String localizedErrorMessage(AppLocalizations strings, Object error) {
   if (error is AppException) {
     switch (ApiErrorCode.fromWire(error.code)) {
+      case ApiErrorCode.registrationDisabled:
+        return '${strings.registrationDisabled} ${strings.contactAdmin}';
       case ApiErrorCode.unauthorized:
       case ApiErrorCode.invalidRefreshToken:
       case ApiErrorCode.refreshReuseDetected:

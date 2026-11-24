@@ -42,6 +42,7 @@ enum ApiErrorCode {
   unsupportedUf('unsupported_uf'),
   upstreamError('upstream_error'),
   upstreamRateLimited('upstream_rate_limited'),
+  registrationDisabled('registration_disabled'),
   userExists('user_exists');
 
   const ApiErrorCode(this.wire);

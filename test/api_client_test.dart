@@ -124,6 +124,11 @@ void main() {
         type: isA<UnauthorizedException>(),
       ),
       (status: 403, code: 'forbidden', type: isA<ForbiddenException>()),
+      (
+        status: 403,
+        code: 'registration_disabled',
+        type: isA<ForbiddenException>(),
+      ),
       (status: 404, code: 'not_found', type: isA<NotFoundException>()),
       (status: 404, code: 'receipt_not_found', type: isA<NotFoundException>()),
       (status: 404, code: 'preview_not_found', type: isA<NotFoundException>()),
