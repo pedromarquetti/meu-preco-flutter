@@ -15,6 +15,13 @@ void main() {
     );
   }
 
+  ApiClient clientFor(String origin, MockClient mock) {
+    return ApiClient(
+      configProvider: () => AppConfig.tryFromOrigin(origin)!,
+      httpClient: mock,
+    );
+  }
+
   test('successful GET resolves the /api/v1 path and decodes JSON', () async {
     late Uri requested;
     final mock = MockClient((request) async {
@@ -43,6 +50,177 @@ void main() {
     expect(contentType, contains('application/json'));
   });
 
+  group('HTTPS upgrades', () {
+    test(
+      'upgrades a public default-port HTTP request before sending',
+      () async {
+        late Uri requested;
+        final mock = MockClient((request) async {
+          requested = request.url;
+          return http.Response('{}', 200);
+        });
+
+        await clientFor('http://api.example.com', mock).get('/products');
+
+        expect(requested.toString(), 'https://api.example.com/api/v1/products');
+      },
+    );
+
+    test('keeps plain HTTP for local and private hosts', () async {
+      final requested = <Uri>[];
+      final mock = MockClient((request) async {
+        requested.add(request.url);
+        return http.Response('{}', 200);
+      });
+
+      await clientFor(
+        'http://localhost',
+        mock,
+      ).get('/healthz', useApiPrefix: false);
+      await clientFor(
+        'http://192.168.1.5',
+        mock,
+      ).get('/healthz', useApiPrefix: false);
+      await clientFor(
+        'http://10.0.0.5',
+        mock,
+      ).get('/healthz', useApiPrefix: false);
+
+      expect(requested.map((uri) => uri.scheme), ['http', 'http', 'http']);
+    });
+
+    test('does not upgrade a public origin with a non-default port', () async {
+      late Uri requested;
+      final mock = MockClient((request) async {
+        requested = request.url;
+        return http.Response('{}', 200);
+      });
+
+      await clientFor('http://api.example.com:8080', mock).get('/products');
+
+      expect(requested.scheme, 'http');
+      expect(requested.port, 8080);
+    });
+
+    for (final status in [301, 302, 307, 308]) {
+      test(
+        'follows a $status same-host HTTP to HTTPS redirect for POST',
+        () async {
+          final requests = <http.Request>[];
+          final mock = MockClient((request) async {
+            requests.add(request);
+            if (requests.length == 1) {
+              return http.Response(
+                '',
+                status,
+                headers: {
+                  'location': 'https://api.example.com/api/v1/auth/login',
+                },
+              );
+            }
+            return http.Response(jsonEncode({'ok': true}), 200);
+          });
+
+          final result = await clientFor('http://api.example.com:8080', mock)
+              .post(
+                '/auth/login',
+                body: {'login': 'ada', 'password': 'secret123'},
+              );
+
+          expect(requests, hasLength(2));
+          expect(requests.first.method, 'POST');
+          expect(requests.first.url.scheme, 'http');
+          expect(requests.last.method, 'POST');
+          expect(
+            requests.last.url.toString(),
+            'https://api.example.com/api/v1/auth/login',
+          );
+          expect(jsonDecode(requests.last.body), {
+            'login': 'ada',
+            'password': 'secret123',
+          });
+          expect(result, {'ok': true});
+        },
+      );
+    }
+
+    test('does not follow a redirect to another host', () async {
+      final requests = <http.Request>[];
+      final mock = MockClient((request) async {
+        requests.add(request);
+        return http.Response(
+          '',
+          301,
+          headers: {'location': 'https://evil.example.com/login'},
+        );
+      });
+
+      await expectLater(
+        clientFor(
+          'http://api.example.com:8080',
+          mock,
+        ).post('/auth/login', body: {'login': 'ada'}),
+        throwsA(
+          isA<ApiException>()
+              .having((error) => error.code, 'code', 'unexpected_redirect')
+              .having((error) => error.statusCode, 'statusCode', 301),
+        ),
+      );
+      expect(requests, hasLength(1));
+    });
+
+    test('does not follow an HTTPS to HTTP downgrade', () async {
+      final requests = <http.Request>[];
+      final mock = MockClient((request) async {
+        requests.add(request);
+        return http.Response(
+          '',
+          301,
+          headers: {'location': 'http://api.example.com/api/v1/auth/login'},
+        );
+      });
+
+      await expectLater(
+        clientWith(mock).post('/auth/login', body: {'login': 'ada'}),
+        throwsA(
+          isA<ApiException>().having(
+            (error) => error.code,
+            'code',
+            'unexpected_redirect',
+          ),
+        ),
+      );
+      expect(requests, hasLength(1));
+    });
+
+    test('does not replay a POST through a 303', () async {
+      final requests = <http.Request>[];
+      final mock = MockClient((request) async {
+        requests.add(request);
+        return http.Response(
+          '',
+          303,
+          headers: {'location': 'https://api.example.com/api/v1/auth/login'},
+        );
+      });
+
+      await expectLater(
+        clientFor(
+          'http://api.example.com:8080',
+          mock,
+        ).post('/auth/login', body: {'login': 'ada'}),
+        throwsA(
+          isA<ApiException>().having(
+            (error) => error.code,
+            'code',
+            'unexpected_redirect',
+          ),
+        ),
+      );
+      expect(requests, hasLength(1));
+    });
+  });
+
   test('injects the bearer token when available', () async {
     late String? authorization;
     final mock = MockClient((request) async {
@@ -69,6 +247,7 @@ void main() {
 
   test('maps status codes to actionable typed failures', () async {
     final cases = <int, Matcher>{
+      400: isA<ValidationException>(),
       401: isA<UnauthorizedException>(),
       403: isA<ForbiddenException>(),
       404: isA<NotFoundException>(),

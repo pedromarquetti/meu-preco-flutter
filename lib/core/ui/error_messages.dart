@@ -93,7 +93,17 @@ String localizedErrorMessage(AppLocalizations strings, Object error) {
     if (error.code == 'invalid_date_range') {
       return strings.invalidDateRangeError;
     }
+    if (error.code == 'unexpected_redirect') {
+      return strings.unexpectedRedirectError;
+    }
+    // Configuration and serialization failures have dedicated copy so a setup
+    // problem or a malformed response never reads as a generic error.
+    if (error is ConfigException) return strings.serverNotConfiguredError;
+    if (error is SerializationException) {
+      return strings.unexpectedResponseError;
+    }
     // Locally-constructed exceptions may not carry a backend code.
+    if (error is ValidationException) return strings.invalidRequestError;
     if (error is InvalidAssignment) return strings.invalidAssignment;
     if (error is ForbiddenException) return strings.forbiddenError;
     if (error is NotFoundException) return strings.notFoundError;

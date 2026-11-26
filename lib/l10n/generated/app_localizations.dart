@@ -472,6 +472,24 @@ abstract class AppLocalizations {
   /// **'Não foi possível conectar ao servidor'**
   String get networkErrorMessage;
 
+  /// Shown when an API request is attempted without a configured server origin
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum servidor configurado. Selecione um servidor para continuar.'**
+  String get serverNotConfiguredError;
+
+  /// Shown when the server response cannot be decoded into the expected contract
+  ///
+  /// In pt, this message translates to:
+  /// **'O servidor respondeu em um formato inesperado. Tente novamente.'**
+  String get unexpectedResponseError;
+
+  /// Shown when the server redirects an API request to an address the app will not follow
+  ///
+  /// In pt, this message translates to:
+  /// **'O servidor redirecionou a requisição para um endereço não suportado.'**
+  String get unexpectedRedirectError;
+
   /// Shown when the server rejects a request with 403
   ///
   /// In pt, this message translates to:

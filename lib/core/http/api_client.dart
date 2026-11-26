@@ -50,6 +50,18 @@ class ApiClient {
   final ConfigProvider _configProvider;
   final http.Client _client;
 
+  /// Maximum number of http→https redirect hops followed for one request.
+  static const int _maxHttpsRedirects = 5;
+
+  /// Redirects that can be resolved by reissuing the same request.
+  ///
+  /// `303` is excluded: it asks the client to switch to `GET`, which would
+  /// replay an API `POST` against the wrong endpoint.
+  static const Set<int> _followableRedirectStatuses = {301, 302, 307, 308};
+
+  /// Redirect statuses that must never surface as a successful API response.
+  static const Set<int> _redirectStatuses = {301, 302, 303, 307, 308};
+
   /// GET request; [useApiPrefix] selects `/api/v1` vs the origin root
   /// (used for `/healthz` and `/readyz`).
   Future<dynamic> get(
@@ -242,23 +254,50 @@ class ApiClient {
     if (query != null && query.isNotEmpty) {
       uri = uri.replace(queryParameters: {...uri.queryParameters, ...query});
     }
+    uri = _upgradePublicHttp(uri);
 
     final requestHeaders = <String, String>{
       'Accept': 'application/json',
       ...?headers,
     };
 
+    final visited = <String>{uri.toString()};
+    for (var redirects = 0; ; redirects++) {
+      final response = await _sendOnce(
+        method,
+        uri,
+        requestHeaders,
+        body,
+        effectiveConfig.requestTimeout,
+      );
+
+      if (redirects >= _maxHttpsRedirects) return response;
+
+      final target = _httpsUpgradeTarget(uri, response);
+      if (target == null || !visited.add(target.toString())) return response;
+
+      uri = target;
+    }
+  }
+
+  /// Sends one request without following redirects.
+  Future<http.Response> _sendOnce(
+    String method,
+    Uri uri,
+    Map<String, String> requestHeaders,
+    Object? body,
+    Duration timeout,
+  ) async {
     try {
       final request = http.Request(method, uri);
+      final headers = <String, String>{...requestHeaders};
       if (body != null) {
         request.body = jsonEncode(body);
-        requestHeaders['Content-Type'] = 'application/json';
+        headers['Content-Type'] = 'application/json';
       }
-      request.headers.addAll(requestHeaders);
+      request.headers.addAll(headers);
 
-      final streamed = await _client
-          .send(request)
-          .timeout(effectiveConfig.requestTimeout);
+      final streamed = await _client.send(request).timeout(timeout);
       return await http.Response.fromStream(streamed);
     } on async.TimeoutException {
       throw const TimeoutException();
@@ -275,6 +314,73 @@ class ApiClient {
     } on Exception catch (error) {
       throw NetworkException(message: error.toString());
     }
+  }
+
+  /// Upgrades a public default-port HTTP request to HTTPS before it leaves the
+  /// device, so credentials are never sent in cleartext.
+  ///
+  /// Loopback and private-network hosts keep HTTP for local development, and an
+  /// explicit non-default port is left alone because the TLS listener may live
+  /// on a different port; those cases rely on redirect following instead.
+  static Uri _upgradePublicHttp(Uri uri) {
+    if (uri.scheme != 'http') return uri;
+    if (_isLocalHost(uri.host)) return uri;
+    if (uri.hasPort && uri.port != 80) return uri;
+    return Uri(
+      scheme: 'https',
+      host: uri.host,
+      path: uri.path,
+      query: uri.query,
+    );
+  }
+
+  static bool _isLocalHost(String host) {
+    final lowered = host.toLowerCase();
+    if (lowered == 'localhost' || lowered == '::1' || lowered == '0.0.0.0') {
+      return true;
+    }
+    if (lowered.endsWith('.local')) return true;
+
+    final parts = lowered.split('.');
+    if (parts.length != 4) return false;
+    final octets = <int>[];
+    for (final part in parts) {
+      final octet = int.tryParse(part);
+      if (octet == null || octet < 0 || octet > 255) return false;
+      octets.add(octet);
+    }
+    final first = octets[0];
+    final second = octets[1];
+    return first == 127 ||
+        first == 10 ||
+        (first == 192 && second == 168) ||
+        (first == 172 && second >= 16 && second <= 31);
+  }
+
+  /// Returns the HTTPS target of a same-host `http` redirect, or `null` when
+  /// the redirect must not be followed.
+  ///
+  /// Only scheme upgrades are followed: cross-host targets would leak
+  /// credentials, HTTPS-to-HTTP would downgrade security, and a `303` asks for
+  /// a `GET` that would silently replay an API `POST` at the wrong endpoint.
+  static Uri? _httpsUpgradeTarget(Uri current, http.Response response) {
+    if (current.scheme != 'http') return null;
+    if (!_followableRedirectStatuses.contains(response.statusCode)) {
+      return null;
+    }
+    final location = response.headers['location'];
+    if (location == null || location.isEmpty) return null;
+
+    final Uri target;
+    try {
+      target = current.resolve(location);
+    } on FormatException {
+      return null;
+    }
+    if (target.scheme != 'https') return null;
+    if (target.host.toLowerCase() != current.host.toLowerCase()) return null;
+    if (target.userInfo.isNotEmpty) return null;
+    return target;
   }
 
   dynamic _decode(http.Response response) {
@@ -317,6 +423,14 @@ class ApiClient {
     final status = response.statusCode;
     final retryAfter = _retryAfter(response);
     final errorCode = ApiErrorCode.fromWire(code);
+
+    if (_redirectStatuses.contains(status)) {
+      return ApiException(
+        message: message,
+        code: 'unexpected_redirect',
+        statusCode: status,
+      );
+    }
 
     if (errorCode != null) {
       return switch (errorCode) {
@@ -404,6 +518,11 @@ class ApiClient {
     }
 
     return switch (status) {
+      400 => ValidationException(
+        message: message,
+        code: code,
+        statusCode: status,
+      ),
       401 => UnauthorizedException(message: message, code: code),
       403 => ForbiddenException(message: message, code: code),
       404 => NotFoundException(message: message, code: code),

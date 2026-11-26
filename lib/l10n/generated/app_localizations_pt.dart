@@ -216,6 +216,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get networkErrorMessage => 'Não foi possível conectar ao servidor';
 
   @override
+  String get serverNotConfiguredError =>
+      'Nenhum servidor configurado. Selecione um servidor para continuar.';
+
+  @override
+  String get unexpectedResponseError =>
+      'O servidor respondeu em um formato inesperado. Tente novamente.';
+
+  @override
+  String get unexpectedRedirectError =>
+      'O servidor redirecionou a requisição para um endereço não suportado.';
+
+  @override
   String get forbiddenError => 'Você não tem permissão para esta ação';
 
   @override

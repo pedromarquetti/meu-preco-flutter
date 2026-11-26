@@ -62,6 +62,9 @@
   "userExistsError": "Este e-mail já está cadastrado",
   "rateLimitedError": "Muitas tentativas. Tente novamente em instantes",
   "networkErrorMessage": "Não foi possível conectar ao servidor",
+  "serverNotConfiguredError": "Nenhum servidor configurado. Selecione um servidor para continuar.",
+  "unexpectedResponseError": "O servidor respondeu em um formato inesperado. Tente novamente.",
+  "unexpectedRedirectError": "O servidor redirecionou a requisição para um endereço não suportado.",
   "forbiddenError": "Você não tem permissão para esta ação",
   "notFoundError": "O recurso solicitado não foi encontrado",
   "sessionExpiredMessage": "Sua sessão expirou. Entre novamente.",
@@ -561,6 +564,15 @@
   },
   "@networkErrorMessage": {
     "description": "Network"
+  },
+  "@serverNotConfiguredError": {
+    "description": "Shown when an API request is attempted without a configured server origin"
+  },
+  "@unexpectedResponseError": {
+    "description": "Shown when the server response cannot be decoded into the expected contract"
+  },
+  "@unexpectedRedirectError": {
+    "description": "Shown when the server redirects an API request to an address the app will not follow"
   },
   "@forbiddenError": {
     "description": "Shown when the server rejects a request with 403"

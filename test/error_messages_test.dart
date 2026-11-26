@@ -60,6 +60,43 @@ void main() {
     );
   });
 
+  test('maps configuration and serialization failures to dedicated copy', () {
+    expect(
+      localizedErrorMessage(
+        strings,
+        const ConfigException(code: 'api_origin_missing'),
+      ),
+      strings.serverNotConfiguredError,
+    );
+    expect(
+      localizedErrorMessage(
+        strings,
+        const SerializationException(message: 'Unexpected JSON shape'),
+      ),
+      strings.unexpectedResponseError,
+    );
+  });
+
+  test('maps local validation failures without a documented code', () {
+    expect(
+      localizedErrorMessage(
+        strings,
+        const ValidationException(code: 'invalid_login'),
+      ),
+      strings.invalidRequestError,
+    );
+  });
+
+  test('maps unfollowable redirects to a dedicated message', () {
+    expect(
+      localizedErrorMessage(
+        strings,
+        const ApiException(code: 'unexpected_redirect', statusCode: 301),
+      ),
+      strings.unexpectedRedirectError,
+    );
+  });
+
   test('keeps transport and unknown-code fallbacks', () {
     expect(
       localizedErrorMessage(strings, const NetworkException()),
